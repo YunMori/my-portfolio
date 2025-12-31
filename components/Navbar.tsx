@@ -3,7 +3,7 @@ export default function Navbar() {
     <nav className="fixed w-full z-50 bg-main/85 backdrop-blur-md border-b border-khaki-500/10">
       <div className="max-w-7xl mx-auto px-6 h-16 flex justify-between items-center">
         <a href="#" className="text-xl font-display font-bold tracking-tighter text-stone-100 group">
-          PORTFOLIO<span className="text-khaki-500 group-hover:text-khaki-400 transition-colors">.</span>
+          MORI<span className="text-khaki-500 group-hover:text-khaki-400 transition-colors">.</span>
         </a>
         <div className="hidden md:flex items-center space-x-8 text-sm font-medium text-stone-400">
           <a href="#about" className="hover:text-khaki-400 transition-colors">소개</a>
