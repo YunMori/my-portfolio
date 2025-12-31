@@ -1,26 +1,29 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+@plugin "tailwindcss-animate";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --color-main: #0c0a09;
+  --color-surface: #1c1917;
+  --color-highlight: #292524;
+
+  --color-khaki-400: #d4c55e;
+  --color-khaki-500: #a3a948;
+  --color-khaki-600: #858a3a;
+  --color-khaki-900: #3f421b;
+
+  --color-brown-400: #a18072;
+  --color-brown-500: #8d6e63;
+  --color-brown-600: #5d4037;
+
+  --font-sans: var(--font-noto-sans-kr);
+  --font-display: var(--font-space-grotesk);
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
-}
+/* 
+  Legacy variable support if needed, but we rely on utility classes 
+  defined in @theme.
+  Removed conflicting body styles to let layout.tsx classes control the theme.
+*/
