@@ -1,65 +1,105 @@
-import Image from "next/image";
+'use client';
+
+import { useState, useMemo, useEffect } from 'react';
+import Navbar from '@/components/Navbar';
+import Hero from '@/components/Hero';
+import TechStack from '@/components/TechStack';
+import Projects from '@/components/Projects';
+import ProjectSimulator from '@/components/ProjectSimulator';
+import Footer from '@/components/Footer';
+
+// --- 초기 프로젝트 데이터 ---
+const initialProjects = [
+  {
+    title: "Dark Mode Tech Blog",
+    desc: "MDX 기반의 정적 블로그. 가독성을 위한 타이포그래피 설계.",
+    date: "2024.12",
+    stack: ["Next.js", "Tailwind", "Git"]
+  },
+  {
+    title: "Sales Admin Dashboard",
+    desc: "매출 데이터 시각화 및 관리자 기능 구현.",
+    date: "2024.10",
+    stack: ["React", "Tailwind", "Node.js"]
+  },
+  {
+    title: "Anonymous Chat Service",
+    desc: "Socket.io를 활용한 실시간 채팅 및 트래픽 처리.",
+    date: "2024.08",
+    stack: ["Node.js", "Socket.io", "Vue"]
+  }
+];
 
 export default function Home() {
+  const [projects, setProjects] = useState(initialProjects);
+
+  // --- 기술 스택 통계 계산 (useMemo로 최적화) ---
+  const techStats = useMemo(() => {
+    const stats: { [key: string]: number } = {};
+    projects.forEach(p => {
+      p.stack.forEach(tech => {
+        stats[tech] = (stats[tech] || 0) + 1;
+      });
+    });
+    return Object.entries(stats)
+      .map(([name, count]) => ({ name, count }))
+      .sort((a, b) => b.count - a.count);
+  }, [projects]);
+
+  // --- 시뮬레이션: 프로젝트 추가 ---
+  const addRandomProject = () => {
+    const demoTitles = ["AI Image Analyzer", "Healthcare App", "Travel Planner", "Portfolio V2"];
+    const demoStacks = [
+      ["Next.js", "TypeScript", "Supabase"],
+      ["Python", "React", "Firebase"],
+      ["Vue", "Tailwind", "Node.js"],
+      ["Next.js", "Tailwind", "Figma"]
+    ];
+    const randomIdx = Math.floor(Math.random() * demoTitles.length);
+    const randomStack = demoStacks[randomIdx];
+
+    const newProject = {
+      title: `${demoTitles[randomIdx]} #${projects.length + 1}`,
+      desc: "시뮬레이션으로 추가된 프로젝트입니다. 데이터 변경을 확인하세요.",
+      date: "2025.01",
+      stack: randomStack
+    };
+
+    setProjects([newProject, ...projects]);
+  };
+
+  // --- 스크롤 애니메이션 (Intersection Observer) ---
+  useEffect(() => {
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('opacity-100', 'translate-y-0');
+          entry.target.classList.remove('opacity-0', 'translate-y-5');
+        }
+      });
+    }, { threshold: 0.1 });
+
+    // 컴포넌트 마운트 후 DOM 요소 선택
+    // 약간의 지연을 주어 자식 컴포넌트 렌더링 확보 (필요 시)
+    const timeoutId = setTimeout(() => {
+      const fadeElems = document.querySelectorAll('.fade-in-section');
+      fadeElems.forEach(el => observer.observe(el));
+    }, 100);
+
+    return () => {
+      observer.disconnect();
+      clearTimeout(timeoutId);
+    };
+  }, [projects]);
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+    <main className="min-h-screen selection:bg-khaki-900 selection:text-khaki-400 pb-0">
+      <Navbar />
+      <Hero />
+      <TechStack techStats={techStats} totalProjects={projects.length} />
+      <Projects projects={projects} />
+      <Footer />
+      <ProjectSimulator onAddProject={addRandomProject} />
+    </main>
   );
 }
