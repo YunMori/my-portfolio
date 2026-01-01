@@ -7,7 +7,7 @@ export default function Navbar() {
         </a>
         <div className="hidden md:flex items-center space-x-8 text-sm font-medium text-stone-400">
           <a href="#about" className="hover:text-khaki-400 transition-colors">소개</a>
-          <a href="#skills" className="hover:text-khaki-400 transition-colors">기술 스택 (Live)</a>
+          <a href="#skills" className="hover:text-khaki-400 transition-colors">기술 스택</a>
           <a href="#projects" className="hover:text-khaki-400 transition-colors">프로젝트</a>
           <a href="#contact" className="px-6 py-2 bg-khaki-500 text-black font-bold text-xs uppercase tracking-wider rounded-full hover:bg-khaki-400 transition-colors shadow-lg shadow-khaki-900/50">Contact</a>
         </div>

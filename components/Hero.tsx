@@ -1,27 +1,72 @@
 export default function Hero() {
     return (
-        <section className="relative min-h-[85vh] flex items-center justify-center pt-16 px-6 overflow-hidden">
-            {/* Abstract Backgrounds */}
-            <div className="absolute top-20 right-[10%] w-96 h-96 bg-khaki-900/20 rounded-full blur-[100px] animate-pulse"></div>
-            <div className="absolute bottom-20 left-[10%] w-80 h-80 bg-brown-600/10 rounded-full blur-[80px]"></div>
+        <section className="relative min-h-[90vh] flex items-center pt-24 pb-12 px-6 overflow-hidden bg-main">
+            {/* Background Decor */}
+            <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-khaki-900/10 rounded-full blur-[120px] -translate-y-1/2 translate-x-1/4"></div>
+            <div className="absolute bottom-0 left-0 w-[300px] h-[300px] bg-brown-600/5 rounded-full blur-[80px] translate-y-1/4 -translate-x-1/4"></div>
 
-            <div className="max-w-5xl mx-auto text-center relative z-10 fade-in-section opacity-0 translate-y-5 transition-all duration-700">
-                <span className="inline-block py-1.5 px-4 border border-stone-800 bg-surface text-stone-400 text-[10px] font-bold tracking-[0.2em] uppercase mb-8 rounded-full">
-                    Data-Driven Portfolio
-                </span>
-                <h1 className="text-5xl md:text-8xl font-display font-bold mb-8 leading-tight text-stone-100">
-                    DATA PROVES<br />
-                    <span className="bg-gradient-to-br from-khaki-400 to-khaki-600 bg-clip-text text-transparent">EXPERIENCE.</span>
-                </h1>
-                <p className="text-lg md:text-xl text-stone-500 max-w-2xl mx-auto mb-12 font-light">
-                    블랙과 카키의 조화처럼, <strong className="text-khaki-400">디자인 감각</strong>과 <strong className="text-brown-400">견고한 코드</strong>가<br className="hidden md:block" />
-                    어우러진 웹 경험을 만듭니다.
-                </p>
-                <div className="flex justify-center">
-                    <a href="#projects" className="group px-8 py-4 bg-transparent border border-khaki-500 text-khaki-500 font-bold hover:bg-khaki-500 hover:text-black transition-all duration-300 rounded-full flex items-center gap-2">
-                        프로젝트 확인하기 <i className="fa-solid fa-arrow-down group-hover:translate-y-1 transition-transform"></i>
-                    </a>
+            <div className="max-w-7xl mx-auto w-full grid md:grid-cols-2 gap-12 items-center relative z-10">
+
+                {/* Left Column: Text */}
+                <div className="fade-in-section opacity-0 translate-y-5 transition-all duration-1000 order-2 md:order-1">
+                    <span className="inline-block py-1 px-3 border border-khaki-500/30 bg-khaki-500/10 text-khaki-400 text-[11px] font-bold tracking-[0.2em] uppercase mb-6 rounded-full">
+                        Available for new projects
+                    </span>
+                    <h1 className="text-5xl md:text-7xl font-display font-bold mb-6 text-stone-100 leading-[1.1]">
+                        Hello, I'm<br />
+                        <span className="text-khaki-500">Yun Jong Seo.</span>
+                    </h1>
+                    <h2 className="text-xl md:text-2xl text-stone-400 font-medium mb-8">
+                        Full Stack Developer <span className="text-stone-600 mx-2">|</span> Data Enthusiast
+                    </h2>
+                    <p className="text-stone-500 text-base md:text-lg leading-relaxed max-w-xl mb-10">
+                        데이터가 이끄는 정확한 설계와 감각적인 인터페이스의 조화를 추구합니다.
+                        단순히 기능을 구현하는 것을 넘어, 사용자의 경험을 깊이 있게 고민하고
+                        비즈니스 가치를 창출하는 웹 애플리케이션을 만듭니다.
+                    </p>
+
+                    <div className="flex flex-wrap gap-4">
+                        <a href="#projects" className="px-8 py-3 bg-khaki-500 text-black font-bold text-sm rounded-full hover:bg-khaki-400 transition-all shadow-[0_0_20px_rgba(163,169,72,0.3)] hover:shadow-[0_0_30px_rgba(163,169,72,0.5)]">
+                            View Work
+                        </a>
+                        <a href="mailto:contact@example.com" className="px-8 py-3 bg-transparent border border-stone-700 text-stone-300 font-bold text-sm rounded-full hover:border-khaki-500 hover:text-khaki-500 transition-all flex items-center gap-2">
+                            <i className="fa-regular fa-envelope"></i> Contact Me
+                        </a>
+                    </div>
                 </div>
+
+                {/* Right Column: Image Placeholder */}
+                <div className="relative order-1 md:order-2 flex justify-center md:justify-end fade-in-section opacity-0 translate-y-5 transition-all duration-1000 delay-300">
+                    <div className="relative w-72 h-72 md:w-96 md:h-96">
+                        {/* Image Frame Effect */}
+                        <div className="absolute inset-0 border-2 border-khaki-500/30 rounded-[2rem] rotate-3 scale-105"></div>
+                        <div className="absolute inset-0 bg-stone-800 rounded-[2rem] -rotate-3 hover:rotate-0 transition-transform duration-500 overflow-hidden shadow-2xl group cursor-pointer">
+                            {/* Placeholder Content */}
+                            <div className="w-full h-full flex flex-col items-center justify-center bg-[#151412] text-stone-600 group-hover:text-khaki-500 transition-colors">
+                                <i className="fa-solid fa-user text-6xl mb-4 opacity-50"></i>
+                                <span className="text-xs font-mono uppercase tracking-widest opacity-70">Profile Image</span>
+                                <p className="text-[10px] mt-2 opacity-40 px-8 text-center">Replace this with your photo in public/ folder</p>
+                            </div>
+
+                            {/* Optional: Actual Image Tag (Commented out) */}
+                            {/* <img src="/profile.jpg" alt="Yun Jong Seo" className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" /> */}
+                        </div>
+
+                        {/* Decorative Floating Element */}
+                        <div className="absolute -bottom-6 -left-6 bg-surface border border-stone-800 p-4 rounded-xl shadow-xl animate-bounce duration-[3000ms]">
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-full bg-khaki-500/20 flex items-center justify-center text-khaki-500">
+                                    <i className="fa-solid fa-code"></i>
+                                </div>
+                                <div>
+                                    <div className="text-[10px] text-stone-500 uppercase tracking-wider font-bold">Experience</div>
+                                    <div className="text-sm font-bold text-stone-200">3+ Years</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
             </div>
         </section>
     );
