@@ -5,7 +5,6 @@ import Navbar from '@/components/Navbar';
 import Hero from '@/components/Hero';
 import TechStack from '@/components/TechStack';
 import Projects from '@/components/Projects';
-import ProjectSimulator from '@/components/ProjectSimulator';
 import Footer from '@/components/Footer';
 import { Project, Profile } from '@/types/database.types';
 
@@ -60,28 +59,6 @@ export default function HomeClient({ initialProjects, profile }: HomeClientProps
             .sort((a, b) => b.count - a.count);
     }, [projects]);
 
-    // --- 시뮬레이션: 프로젝트 추가 ---
-    const addRandomProject = () => {
-        const demoTitles = ["AI Image Analyzer", "Healthcare App", "Travel Planner", "Portfolio V2"];
-        const demoStacks = [
-            ["Next.js", "TypeScript", "Supabase"],
-            ["Python", "React", "Firebase"],
-            ["Vue", "Tailwind", "Node.js"],
-            ["Next.js", "Tailwind", "Figma"]
-        ];
-        const randomIdx = Math.floor(Math.random() * demoTitles.length);
-        const randomStack = demoStacks[randomIdx];
-
-        const newProject = {
-            title: `${demoTitles[randomIdx]} #${projects.length + 1}`,
-            description: "시뮬레이션으로 추가된 프로젝트입니다. (클라이언트 전용)",
-            date: "2025.01",
-            stack: randomStack
-        };
-
-        setProjects([newProject, ...projects]);
-    };
-
     // --- 스크롤 애니메이션 (Intersection Observer) ---
     useEffect(() => {
         const observer = new IntersectionObserver((entries) => {
@@ -107,12 +84,11 @@ export default function HomeClient({ initialProjects, profile }: HomeClientProps
     return (
         <main className="min-h-screen selection:bg-khaki-900 selection:text-khaki-400 pb-0">
             <Navbar />
-            {/* Pass profile data to Hero if needed in future, currently static */}
-            <Hero />
+            {/* Pass profile data to Hero */}
+            <Hero profile={profile} />
             <TechStack techStats={techStats} totalProjects={projects.length} />
             <Projects projects={projects} />
             <Footer />
-            <ProjectSimulator onAddProject={addRandomProject} />
         </main>
     );
 }

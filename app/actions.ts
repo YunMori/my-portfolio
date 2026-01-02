@@ -54,21 +54,31 @@ export async function updateProfile(formData: FormData) {
         name: formData.get('name') as string,
         role: formData.get('role') as string,
         bio: formData.get('bio') as string,
-        // Add other fields as needed
     }
 
-    // Handle Image Upload if present (Advanced)
-    // For simplicity, assuming image URL handling happens client-side or separate action for now
+    // Handle Image Upload
+    const avatarFile = formData.get('avatar') as File;
+    if (avatarFile && avatarFile.size > 0 && avatarFile.name !== 'undefined') {
+        const fileName = `avatar-${Date.now()}`;
+        const { data: uploadData, error: uploadError } = await supabase.storage
+            .from('images')
+            .upload(fileName, avatarFile, { upsert: true });
 
-    // In real app, we should update the profile where ID matches specific requirement or just single row
-    // A bit hacky: since we only have one profile, we might update 'any' or based on fixed ID.
-    // Better practice: update where id = (select id from profile limit 1)
+        if (uploadError) {
+            console.error('Upload Error:', uploadError);
+            // Proceeding without image update if fail, or return error? 
+            // Let's log and continue for now or return error.
+        } else {
+            // Get Public URL
+            const { data: { publicUrl } } = supabase.storage.from('images').getPublicUrl(fileName);
+            profileData.avatar_url = publicUrl;
+        }
+    }
+
     const { error } = await supabase
         .from('profile')
         .update(profileData)
-        // For now we will rely on there being one row or RLS.
         .neq('id', '00000000-0000-0000-0000-000000000000')
-    // Let's assume there is only one row in the table for a portfolio.
 
     if (error) {
         console.error('Error updating profile:', error)
@@ -90,10 +100,12 @@ export async function addProject(formData: FormData) {
     const desc = formData.get('desc') as string
     const date = formData.get('date') as string
     const stack = (formData.get('stack') as string).split(',').map(s => s.trim())
+    const github_link = formData.get('github_link') as string
+    const content = formData.get('content') as string
 
     const { error } = await supabase
         .from('projects')
-        .insert({ title, description: desc, date, stack })
+        .insert({ title, description: desc, date, stack, github_link, content })
 
     if (error) {
         console.error('Error adding project:', error)
@@ -101,6 +113,7 @@ export async function addProject(formData: FormData) {
     }
 
     revalidatePath('/')
+    revalidatePath('/admin/projects')
     return { success: true }
 }
 
@@ -116,10 +129,12 @@ export async function updateProject(formData: FormData) {
     const desc = formData.get('desc') as string
     const date = formData.get('date') as string
     const stack = (formData.get('stack') as string).split(',').map(s => s.trim())
+    const github_link = formData.get('github_link') as string
+    const content = formData.get('content') as string
 
     const { error } = await supabase
         .from('projects')
-        .update({ title, description: desc, date, stack })
+        .update({ title, description: desc, date, stack, github_link, content })
         .eq('id', id)
 
     if (error) {

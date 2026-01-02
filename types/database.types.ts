@@ -19,8 +19,10 @@ export type Project = {
     description: string;
     stack: string[];
     date: string;
-    image_url: string | null;
-    link: string | null;
+    image_url?: string;
+    link?: string;
+    github_link?: string;
+    content?: string;
     created_at?: string;
 }
 
