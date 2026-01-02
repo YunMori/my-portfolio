@@ -20,6 +20,11 @@ export default function ProfilePage() {
             <section className="bg-surface p-8 rounded-2xl border border-stone-800 max-w-2xl">
                 <form action={handleProfileUpdate} className="space-y-6">
                     <div>
+                        <label className="block text-xs uppercase tracking-wider text-stone-500 mb-2">Profile Image</label>
+                        <input name="avatar" type="file" accept="image/*" className="w-full text-sm text-stone-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-khaki-500/10 file:text-khaki-500 hover:file:bg-khaki-500/20" />
+                        <p className="text-[10px] text-stone-600 mt-1">Recommended: Square image, max 2MB.</p>
+                    </div>
+                    <div>
                         <label className="block text-xs uppercase tracking-wider text-stone-500 mb-2">Full Name</label>
                         <input name="name" type="text" placeholder="Yun Jong Seo" className="w-full bg-stone-900 border border-stone-700 rounded p-3 text-stone-200 focus:border-khaki-500 outline-none" />
                     </div>

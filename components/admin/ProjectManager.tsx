@@ -116,6 +116,26 @@ export default function ProjectManager({ initialProjects }: ProjectManagerProps)
                             />
                         </div>
                     </div>
+                    <div>
+                        <label className="block text-xs uppercase tracking-wider text-stone-500 mb-1">GitHub Link</label>
+                        <input
+                            name="github_link"
+                            type="text"
+                            placeholder="https://github.com/username/repo"
+                            defaultValue={editingProject?.github_link || ''}
+                            className="w-full bg-stone-900 border border-stone-700 rounded p-2 text-stone-200 focus:border-khaki-500 outline-none"
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-xs uppercase tracking-wider text-stone-500 mb-1">Detailed Content (Markdown)</label>
+                        <textarea
+                            name="content"
+                            rows={6}
+                            placeholder="# Project Details\n\nExplain your project methodology..."
+                            defaultValue={editingProject?.content || ''}
+                            className="w-full bg-stone-900 border border-stone-700 rounded p-2 text-stone-200 focus:border-khaki-500 outline-none font-mono text-sm"
+                        ></textarea>
+                    </div>
                     <button
                         type="submit"
                         className={`w-full font-bold py-3 rounded transition-colors mt-2 ${editingId ? 'bg-khaki-600 hover:bg-khaki-500 text-black' : 'bg-stone-700 hover:bg-stone-600 text-white'}`}
