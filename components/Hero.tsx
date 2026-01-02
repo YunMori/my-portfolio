@@ -1,4 +1,10 @@
-export default function Hero() {
+import { Profile } from '@/types/database.types';
+
+interface HeroProps {
+    profile: Profile | null;
+}
+
+export default function Hero({ profile }: HeroProps) {
     return (
         <section className="relative min-h-[90vh] flex items-center pt-24 pb-12 px-6 overflow-hidden bg-main">
             {/* Background Decor */}
@@ -14,15 +20,15 @@ export default function Hero() {
                     </span>
                     <h1 className="text-5xl md:text-7xl font-display font-bold mb-6 text-stone-100 leading-[1.1]">
                         Hello, I'm<br />
-                        <span className="text-khaki-500">Yun Jong Seo.</span>
+                        <span className="text-khaki-500">{profile?.name || "Yun Jong Seo."}</span>
                     </h1>
                     <h2 className="text-xl md:text-2xl text-stone-400 font-medium mb-8">
-                        Full Stack Developer <span className="text-stone-600 mx-2">|</span> Data Enthusiast
+                        {profile?.role || "Full Stack Developer"} <span className="text-stone-600 mx-2">|</span> Data Enthusiast
                     </h2>
-                    <p className="text-stone-500 text-base md:text-lg leading-relaxed max-w-xl mb-10">
-                        데이터가 이끄는 정확한 설계와 감각적인 인터페이스의 조화를 추구합니다.
-                        단순히 기능을 구현하는 것을 넘어, 사용자의 경험을 깊이 있게 고민하고
-                        비즈니스 가치를 창출하는 웹 애플리케이션을 만듭니다.
+                    <p className="text-stone-500 text-base md:text-lg leading-relaxed max-w-xl mb-10 whitespace-pre-wrap">
+                        {profile?.bio || `데이터가 이끄는 정확한 설계와 감각적인 인터페이스의 조화를 추구합니다. 
+                        단순히 기능을 구현하는 것을 넘어, 사용자의 경험을 깊이 있게 고민하고 
+                        비즈니스 가치를 창출하는 웹 애플리케이션을 만듭니다.`}
                     </p>
 
                     <div className="flex flex-wrap gap-4">
@@ -41,15 +47,16 @@ export default function Hero() {
                         {/* Image Frame Effect */}
                         <div className="absolute inset-0 border-2 border-khaki-500/30 rounded-[2rem] rotate-3 scale-105"></div>
                         <div className="absolute inset-0 bg-stone-800 rounded-[2rem] -rotate-3 hover:rotate-0 transition-transform duration-500 overflow-hidden shadow-2xl group cursor-pointer">
-                            {/* Placeholder Content */}
-                            <div className="w-full h-full flex flex-col items-center justify-center bg-[#151412] text-stone-600 group-hover:text-khaki-500 transition-colors">
-                                <i className="fa-solid fa-user text-6xl mb-4 opacity-50"></i>
-                                <span className="text-xs font-mono uppercase tracking-widest opacity-70">Profile Image</span>
-                                <p className="text-[10px] mt-2 opacity-40 px-8 text-center">Replace this with your photo in public/ folder</p>
-                            </div>
-
-                            {/* Optional: Actual Image Tag (Commented out) */}
-                            {/* <img src="/profile.jpg" alt="Yun Jong Seo" className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" /> */}
+                            {/* Placeholder Content OR Actual Image */}
+                            {profile?.avatar_url ? (
+                                <img src={profile.avatar_url} alt={profile.name} className="w-full h-full object-cover opacity-90 group-hover:opacity-100 transition-opacity" />
+                            ) : (
+                                <div className="w-full h-full flex flex-col items-center justify-center bg-[#151412] text-stone-600 group-hover:text-khaki-500 transition-colors">
+                                    <i className="fa-solid fa-user text-6xl mb-4 opacity-50"></i>
+                                    <span className="text-xs font-mono uppercase tracking-widest opacity-70">Profile Image</span>
+                                    <p className="text-[10px] mt-2 opacity-40 px-8 text-center">Upload via Admin Panel</p>
+                                </div>
+                            )}
                         </div>
 
                         {/* Decorative Floating Element */}
