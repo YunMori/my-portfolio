@@ -1,7 +1,8 @@
 'use client'
 
 import { Project } from '@/types/database.types';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import ReactMarkdown from 'react-markdown';
 
 interface ProjectsProps {
     projects: Project[];
@@ -9,6 +10,63 @@ interface ProjectsProps {
 
 export default function Projects({ projects }: ProjectsProps) {
     const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+    const [readmeContent, setReadmeContent] = useState<string | null>(null);
+    const [isLoadingReadme, setIsLoadingReadme] = useState(false);
+
+    useEffect(() => {
+        if (selectedProject) {
+            if (selectedProject.content) {
+                // Use stored content if available (Priority)
+                setReadmeContent(selectedProject.content);
+                setIsLoadingReadme(false);
+            } else if (selectedProject.github_link) {
+                // Fallback: Fetch from GitHub if no content stored
+                const fetchReadme = async () => {
+                    setIsLoadingReadme(true);
+                    setReadmeContent(null);
+                    try {
+                        let path = selectedProject.github_link!.trim();
+                        // Robust URL parsing (matching admin logic)
+                        path = path.replace(/\/+$/, ""); // Remove trailing slash
+                        path = path.replace(/^https?:\/\//, ""); // Remove protocol
+                        path = path.replace(/^(www\.)?github\.com\//, ""); // Remove domain
+                        path = path.replace(/\.git$/, ""); // Remove .git
+
+                        const parts = path.split('/').filter(Boolean);
+
+                        if (parts.length >= 2) {
+                            const owner = parts[0];
+                            const repo = parts[1];
+
+                            const res = await fetch(`https://api.github.com/repos/${owner}/${repo}/readme`, {
+                                headers: { 'Accept': 'application/vnd.github.v3+json' }
+                            });
+
+                            if (res.ok) {
+                                const data = await res.json();
+                                // GitHub content is base64
+                                const content = atob(data.content);
+                                setReadmeContent(content);
+                            } else {
+                                console.warn('Failed to fetch README from GitHub fallback');
+                            }
+                        }
+                    } catch (error) {
+                        console.error('Error fetching README:', error);
+                    } finally {
+                        setIsLoadingReadme(false);
+                    }
+                };
+                fetchReadme();
+            } else {
+                setReadmeContent(null);
+                setIsLoadingReadme(false);
+            }
+        } else {
+            setReadmeContent(null);
+            setIsLoadingReadme(false);
+        }
+    }, [selectedProject]);
 
     return (
         <section id="projects" className="py-24 bg-main relative">
@@ -75,7 +133,7 @@ export default function Projects({ projects }: ProjectsProps) {
                     <div className="relative bg-[#1a1917] w-full max-w-3xl max-h-[90vh] overflow-y-auto rounded-3xl border border-stone-800 shadow-2xl p-8 md:p-12 animate-in fade-in zoom-in duration-300">
                         <button
                             onClick={() => setSelectedProject(null)}
-                            className="absolute top-6 right-6 w-10 h-10 rounded-full bg-stone-800 text-stone-400 hover:bg-stone-700 hover:text-white flex items-center justify-center transition-colors"
+                            className="absolute top-6 right-6 w-10 h-10 rounded-full bg-stone-800 text-stone-400 hover:bg-stone-700 hover:text-white flex items-center justify-center transition-colors z-50"
                         >
                             <i className="fa-solid fa-xmark"></i>
                         </button>
@@ -98,11 +156,15 @@ export default function Projects({ projects }: ProjectsProps) {
                         </div>
 
                         <div className="prose prose-invert prose-stone max-w-none">
-                            {/* Render content as simple text or markdown. For now, preserving whitespace. */}
-                            {selectedProject.content ? (
-                                <div className="whitespace-pre-wrap font-sans text-stone-300 leading-relaxed">
-                                    {selectedProject.content}
+                            {/* Loading State or README Content */}
+                            {isLoadingReadme ? (
+                                <div className="space-y-4 animate-pulse">
+                                    <div className="h-4 bg-stone-800 rounded w-3/4"></div>
+                                    <div className="h-4 bg-stone-800 rounded w-1/2"></div>
+                                    <div className="h-4 bg-stone-800 rounded w-5/6"></div>
                                 </div>
+                            ) : readmeContent ? (
+                                <ReactMarkdown>{readmeContent}</ReactMarkdown>
                             ) : (
                                 <p className="text-stone-500 italic">No detailed content available for this project yet.</p>
                             )}

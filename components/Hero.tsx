@@ -1,4 +1,5 @@
 import { Profile } from '@/types/database.types';
+import Image from 'next/image';
 
 interface HeroProps {
     profile: Profile | null;
@@ -49,7 +50,13 @@ export default function Hero({ profile }: HeroProps) {
                         <div className="absolute inset-0 bg-stone-800 rounded-[2rem] -rotate-3 hover:rotate-0 transition-transform duration-500 overflow-hidden shadow-2xl group cursor-pointer">
                             {/* Placeholder Content OR Actual Image */}
                             {profile?.avatar_url ? (
-                                <img src={profile.avatar_url} alt={profile.name} className="w-full h-full object-cover opacity-90 group-hover:opacity-100 transition-opacity" />
+                                <Image
+                                    src={profile.avatar_url}
+                                    alt={profile.name}
+                                    fill
+                                    className="object-cover opacity-90 group-hover:opacity-100 transition-opacity"
+                                    sizes="(max-width: 768px) 100vw, 50vw"
+                                />
                             ) : (
                                 <div className="w-full h-full flex flex-col items-center justify-center bg-[#151412] text-stone-600 group-hover:text-khaki-500 transition-colors">
                                     <i className="fa-solid fa-user text-6xl mb-4 opacity-50"></i>

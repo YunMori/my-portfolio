@@ -153,7 +153,6 @@ export async function deleteProject(id: string) {
     }
 
     const supabase = await createClient()
-
     const { error } = await supabase
         .from('projects')
         .delete()
@@ -167,4 +166,78 @@ export async function deleteProject(id: string) {
     revalidatePath('/')
     revalidatePath('/admin/projects')
     return { success: true }
+}
+
+export async function fetchGithubRepo(url: string) {
+    try {
+        console.log('fetchGithubRepo called with:', url);
+
+        let path = url.trim();
+        // 1. Remove trailing slashes
+        path = path.replace(/\/+$/, "");
+        // 2. Remove protocol (http:// or https://)
+        path = path.replace(/^https?:\/\//, "");
+        // 3. Remove domain (www.github.com/ or github.com/)
+        path = path.replace(/^(www\.)?github\.com\//, "");
+        // 4. Remove .git extension if present
+        path = path.replace(/\.git$/, "");
+
+        const parts = path.split('/').filter(Boolean);
+        console.log('Parsed path:', path, 'Parts:', parts);
+
+        let owner, repo;
+        if (parts.length >= 2) {
+            owner = parts[0];
+            repo = parts[1];
+        }
+
+        if (!owner || !repo) {
+            console.error('Invalid URL format derived:', path);
+            return { success: false, error: 'Invalid URL format' };
+        }
+
+        // 1. Fetch Repo Info
+        const repoRes = await fetch(`https://api.github.com/repos/${owner}/${repo}`, {
+            headers: {
+                'User-Agent': 'Portfolio-App',
+                'Accept': 'application/vnd.github.v3+json'
+            }
+        });
+
+        if (!repoRes.ok) {
+            const errorText = await repoRes.text();
+            console.error('GitHub API Error:', repoRes.status, errorText);
+            return { success: false, error: `Repository not found (${owner}/${repo}). Status: ${repoRes.status}` };
+        }
+        const repoData = await repoRes.json();
+
+        // 2. Fetch README
+        const readmeRes = await fetch(`https://api.github.com/repos/${owner}/${repo}/readme`, {
+            headers: {
+                'User-Agent': 'Portfolio-App',
+                'Accept': 'application/vnd.github.v3+json'
+            }
+        });
+
+        let readmeContent = '';
+        if (readmeRes.ok) {
+            const readmeData = await readmeRes.json();
+            // Use Buffer for decoding in Node.js environment
+            readmeContent = Buffer.from(readmeData.content, 'base64').toString('utf-8');
+        }
+
+        return {
+            success: true,
+            data: {
+                title: repoData.name,
+                description: repoData.description || '',
+                date: new Date(repoData.pushed_at).toISOString().slice(0, 7).replace('-', '.'), // YYYY.MM
+                content: readmeContent
+            }
+        };
+
+    } catch (error) {
+        console.error('GitHub Fetch Error:', error);
+        return { success: false, error: 'Failed to fetch data' };
+    }
 }
