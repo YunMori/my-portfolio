@@ -3,12 +3,14 @@
 import { Project } from '@/types/database.types';
 import { useState, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
+import { useLanguage } from '@/context/LanguageContext';
 
 interface ProjectsProps {
     projects: Project[];
 }
 
 export default function Projects({ projects }: ProjectsProps) {
+    const { t } = useLanguage();
     const [selectedProject, setSelectedProject] = useState<Project | null>(null);
     const [readmeContent, setReadmeContent] = useState<string | null>(null);
     const [isLoadingReadme, setIsLoadingReadme] = useState(false);
@@ -72,9 +74,9 @@ export default function Projects({ projects }: ProjectsProps) {
         <section id="projects" className="py-24 bg-main relative">
             <div className="max-w-7xl mx-auto px-6">
                 <div className="mb-20 space-y-4">
-                    <span className="text-khaki-500 font-bold tracking-widest text-xs uppercase">Selected Works</span>
+                    <span className="text-khaki-500 font-bold tracking-widest text-xs uppercase">{t('projects.header')}</span>
                     <h2 className="text-4xl md:text-5xl font-display font-bold text-stone-100">
-                        Recent <span className="text-stone-600">Projects</span>
+                        {t('projects.title')}
                     </h2>
                 </div>
 
@@ -112,7 +114,7 @@ export default function Projects({ projects }: ProjectsProps) {
                                 </p>
                                 <div className="flex items-center gap-2 mt-auto">
                                     <button className="text-xs font-bold text-stone-300 hover:text-white flex items-center gap-2 group-hover:gap-3 transition-all">
-                                        View Case Study <i className="fa-solid fa-arrow-right text-khaki-500"></i>
+                                        {t('projects.viewCase')} <i className="fa-solid fa-arrow-right text-khaki-500"></i>
                                     </button>
                                     {p.github_link && (
                                         <a href={p.github_link} target="_blank" rel="noopener noreferrer" className="ml-auto text-stone-500 hover:text-white" onClick={(e) => e.stopPropagation()}>
@@ -150,7 +152,7 @@ export default function Projects({ projects }: ProjectsProps) {
                             </div>
                             {selectedProject.github_link && (
                                 <a href={selectedProject.github_link} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-sm font-bold text-stone-300 hover:text-white border border-stone-700 px-4 py-2 rounded-lg hover:border-stone-500 transition-colors mb-8">
-                                    <i className="fa-brands fa-github"></i> View Source
+                                    <i className="fa-brands fa-github"></i> {t('projects.viewSource')}
                                 </a>
                             )}
                         </div>
@@ -166,7 +168,7 @@ export default function Projects({ projects }: ProjectsProps) {
                             ) : readmeContent ? (
                                 <ReactMarkdown>{readmeContent}</ReactMarkdown>
                             ) : (
-                                <p className="text-stone-500 italic">No detailed content available for this project yet.</p>
+                                <p className="text-stone-500 italic">{t('projects.noContent')}</p>
                             )}
                         </div>
                     </div>

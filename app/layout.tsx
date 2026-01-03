@@ -1,13 +1,14 @@
 import type { Metadata } from "next";
 // 구글 폰트 최적화 로드
-import { Noto_Sans_KR, Space_Grotesk } from "next/font/google";
+import { Gowun_Dodum, Space_Grotesk } from "next/font/google";
 import { Toaster } from "sonner";
 import "./globals.css";
+import { Providers } from "@/components/Providers";
 
-const notoSansKr = Noto_Sans_KR({
+const gowunDodum = Gowun_Dodum({
   subsets: ["latin"],
-  weight: ["100", "300", "400", "500", "700", "900"],
-  variable: "--font-noto-sans-kr",
+  weight: "400",
+  variable: "--font-gowun-dodum",
 });
 
 const spaceGrotesk = Space_Grotesk({
@@ -56,10 +57,12 @@ export default function RootLayout({
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
       </head>
       <body
-        className={`${notoSansKr.variable} ${spaceGrotesk.variable} antialiased bg-main text-stone-200`}
+        className={`${gowunDodum.variable} ${spaceGrotesk.variable} antialiased bg-main text-stone-200`}
       >
-        {children}
-        <Toaster position="top-center" richColors />
+        <Providers>
+          {children}
+          <Toaster position="top-center" richColors />
+        </Providers>
       </body>
     </html>
   );

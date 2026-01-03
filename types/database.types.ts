@@ -39,6 +39,23 @@ export type Database = {
                 Insert: Omit<Project, 'id' | 'created_at'>;
                 Update: Partial<Omit<Project, 'id' | 'created_at'>>;
             };
+            daily_stats: {
+                Row: {
+                    date: string;
+                    views: number;
+                    created_at: string;
+                };
+                Insert: {
+                    date?: string;
+                    views?: number;
+                    created_at?: string;
+                };
+                Update: {
+                    date?: string;
+                    views?: number;
+                    created_at?: string;
+                };
+            };
         };
     };
 };

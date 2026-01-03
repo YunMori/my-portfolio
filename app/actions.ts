@@ -4,6 +4,52 @@ import { createClient } from '@/utils/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { Project, Profile } from '@/types/database.types'
 
+// --- Analytics Actions ---
+
+export async function incrementView() {
+    const supabase = await createClient()
+    const today = new Date().toISOString().split('T')[0]
+
+    // Upsert: Try to insert, if conflict (date exists), increment views
+    // Note: Supabase JS doesn't support 'increment' in upsert directly easily without RPC, 
+    // but we can try a simple read-modify-type approach or use RPC if created.
+    // For simplicity without simpler RPC: Check existence -> Insert or Update.
+
+    // Simple approach:
+    const { data: existing } = await supabase
+        .from('daily_stats')
+        .select('views')
+        .eq('date', today)
+        .single()
+
+    if (existing) {
+        await supabase
+            .from('daily_stats')
+            .update({ views: existing.views + 1 })
+            .eq('date', today)
+    } else {
+        await supabase
+            .from('daily_stats')
+            .insert({ date: today, views: 1 })
+    }
+}
+
+export async function getAnalyticsData() {
+    const supabase = await createClient()
+    // Get last 7 days
+    const { data, error } = await supabase
+        .from('daily_stats')
+        .select('*')
+        .order('date', { ascending: true })
+        .limit(7)
+
+    if (error) {
+        console.error('Error fetching analytics:', error)
+        return []
+    }
+    return data
+}
+
 // --- Fetch Actions ---
 
 export async function getProfile() {

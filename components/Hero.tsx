@@ -1,11 +1,16 @@
+'use client';
+
 import { Profile } from '@/types/database.types';
 import Image from 'next/image';
+import { useLanguage } from '@/context/LanguageContext';
 
 interface HeroProps {
     profile: Profile | null;
 }
 
 export default function Hero({ profile }: HeroProps) {
+    const { t } = useLanguage();
+
     return (
         <section className="relative min-h-[90vh] flex items-center pt-24 pb-12 px-6 overflow-hidden bg-main">
             {/* Background Decor */}
@@ -20,7 +25,7 @@ export default function Hero({ profile }: HeroProps) {
                         Available for new projects
                     </span>
                     <h1 className="text-5xl md:text-7xl font-display font-bold mb-6 text-stone-100 leading-[1.1]">
-                        Hello, I'm<br />
+                        {t('hero.greeting')}<br />
                         <span className="text-khaki-500">{profile?.name || "Yun Jong Seo."}</span>
                     </h1>
                     <h2 className="text-xl md:text-2xl text-stone-400 font-medium mb-8">
@@ -37,7 +42,7 @@ export default function Hero({ profile }: HeroProps) {
                             View Work
                         </a>
                         <a href="mailto:contact@example.com" className="px-8 py-3 bg-transparent border border-stone-700 text-stone-300 font-bold text-sm rounded-full hover:border-khaki-500 hover:text-khaki-500 transition-all flex items-center gap-2">
-                            <i className="fa-regular fa-envelope"></i> Contact Me
+                            <i className="fa-regular fa-envelope"></i> {t('hero.contact')}
                         </a>
                     </div>
                 </div>
@@ -74,7 +79,7 @@ export default function Hero({ profile }: HeroProps) {
                                 </div>
                                 <div>
                                     <div className="text-[10px] text-stone-500 uppercase tracking-wider font-bold">Experience</div>
-                                    <div className="text-sm font-bold text-stone-200">3+ Years</div>
+                                    <div className="text-sm font-bold text-stone-200">3+ {t('stats.years')}</div>
                                 </div>
                             </div>
                         </div>
