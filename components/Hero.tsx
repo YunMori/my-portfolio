@@ -22,7 +22,7 @@ export default function Hero({ profile }: HeroProps) {
                 {/* Left Column: Text */}
                 <div className="fade-in-section opacity-0 translate-y-5 transition-all duration-1000 order-2 md:order-1">
                     <span className="inline-block py-1 px-3 border border-khaki-500/30 bg-khaki-500/10 text-khaki-400 text-[11px] font-bold tracking-[0.2em] uppercase mb-6 rounded-full">
-                        Available for new projects
+                        Project Exhibition Hall
                     </span>
                     <h1 className="text-5xl md:text-7xl font-display font-bold mb-6 text-stone-100 leading-[1.1]">
                         {t('hero.greeting')}<br />
@@ -41,7 +41,7 @@ export default function Hero({ profile }: HeroProps) {
                         <a href="#projects" className="px-8 py-3 bg-khaki-500 text-black font-bold text-sm rounded-full hover:bg-khaki-400 transition-all shadow-[0_0_20px_rgba(163,169,72,0.3)] hover:shadow-[0_0_30px_rgba(163,169,72,0.5)]">
                             View Work
                         </a>
-                        <a href="mailto:contact@example.com" className="px-8 py-3 bg-transparent border border-stone-700 text-stone-300 font-bold text-sm rounded-full hover:border-khaki-500 hover:text-khaki-500 transition-all flex items-center gap-2">
+                        <a href="mailto:sbok10422@gmail.com" className="px-8 py-3 bg-transparent border border-stone-700 text-stone-300 font-bold text-sm rounded-full hover:border-khaki-500 hover:text-khaki-500 transition-all flex items-center gap-2">
                             <i className="fa-regular fa-envelope"></i> {t('hero.contact')}
                         </a>
                     </div>

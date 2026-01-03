@@ -19,13 +19,13 @@ export default function Footer() {
                     </div>
 
                     <div className="flex gap-4">
-                        <a href="#" className="w-10 h-10 rounded-full bg-stone-900 flex items-center justify-center text-stone-500 hover:bg-khaki-500 hover:text-black transition-all duration-300">
+                        <a href="https://github.com/YunMori" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-stone-900 flex items-center justify-center text-stone-500 hover:bg-khaki-500 hover:text-black transition-all duration-300">
                             <i className="fa-brands fa-github text-lg"></i>
                         </a>
-                        <a href="#" className="w-10 h-10 rounded-full bg-stone-900 flex items-center justify-center text-stone-500 hover:bg-khaki-500 hover:text-black transition-all duration-300">
+                        <a href="https://www.linkedin.com/in/종서1042" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-stone-900 flex items-center justify-center text-stone-500 hover:bg-khaki-500 hover:text-black transition-all duration-300">
                             <i className="fa-brands fa-linkedin text-lg"></i>
                         </a>
-                        <a href="mailto:contact@example.com" className="w-10 h-10 rounded-full bg-stone-900 flex items-center justify-center text-stone-500 hover:bg-khaki-500 hover:text-black transition-all duration-300">
+                        <a href="mailto:sbok10422@gmail.com" className="w-10 h-10 rounded-full bg-stone-900 flex items-center justify-center text-stone-500 hover:bg-khaki-500 hover:text-black transition-all duration-300">
                             <i className="fa-solid fa-envelope text-lg"></i>
                         </a>
                     </div>
