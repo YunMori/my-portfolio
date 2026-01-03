@@ -2,14 +2,16 @@
 
 import { updateProfile } from '@/app/actions'
 
+import { toast } from 'sonner';
+
 export default function ProfilePage() {
 
     const handleProfileUpdate = async (formData: FormData) => {
         const result = await updateProfile(formData);
         if (!result.success) {
-            alert('Failed to update profile');
+            toast.error('Failed to update profile');
         } else {
-            alert('Profile updated!');
+            toast.success('Profile updated!');
         }
     };
 
