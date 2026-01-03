@@ -1,7 +1,8 @@
 'use client'
 
-import { useState } from 'react'
-import { addProject, updateProject, deleteProject } from '@/app/actions'
+import { useState, useEffect } from 'react'
+import { Toaster, toast } from 'sonner'
+import { addProject, updateProject, deleteProject, fetchGithubRepo } from '@/app/actions'
 import { Project } from '@/types/database.types'
 
 interface ProjectManagerProps {
@@ -11,33 +12,120 @@ interface ProjectManagerProps {
 export default function ProjectManager({ initialProjects }: ProjectManagerProps) {
     const [projects] = useState<Project[]>(initialProjects)
     const [editingId, setEditingId] = useState<string | null>(null)
+    const [isFetching, setIsFetching] = useState(false)
 
-    // Find the project currently being edited
-    const editingProject = projects.find(p => p.id === editingId)
+    // Form State for Controlled Inputs
+    const [formData, setFormData] = useState({
+        title: '',
+        description: '',
+        date: '',
+        stack: '',
+        github_link: '',
+        content: ''
+    })
 
-    const handleSubmit = async (formData: FormData) => {
+    // Update form when editingId changes
+    useEffect(() => {
+        if (editingId) {
+            const project = projects.find(p => p.id === editingId)
+            if (project) {
+                setFormData({
+                    title: project.title,
+                    description: project.description,
+                    date: project.date,
+                    stack: project.stack.join(', '),
+                    github_link: project.github_link || '',
+                    content: project.content || ''
+                })
+            }
+        } else {
+            // Reset form for new project
+            setFormData({
+                title: '',
+                description: '',
+                date: '',
+                stack: '',
+                github_link: '',
+                content: ''
+            })
+        }
+    }, [editingId, projects])
+
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+        const { name, value } = e.target
+        setFormData(prev => ({ ...prev, [name]: value }))
+    }
+
+    const handleFetchGithub = async () => {
+        const url = formData.github_link.trim()
+        if (!url) {
+            toast.error('Please enter a GitHub URL first')
+            return
+        }
+
+        setIsFetching(true)
+        try {
+            console.log('Calling fetchGithubRepo with:', url);
+            const result = await fetchGithubRepo(url);
+            console.log('Fetch result:', result);
+
+            if (!result.success || !result.data) {
+                console.error('Fetch failed:', result.error);
+                throw new Error(result.error || 'Failed to fetch');
+            }
+
+            const data = result.data;
+            console.log('Setting form data with:', data);
+
+            // Auto-fill form
+            setFormData(prev => ({
+                ...prev,
+                title: data.title,
+                description: data.description,
+                date: data.date,
+                content: data.content
+            }))
+
+            toast.success('Fetched data from GitHub!')
+
+        } catch (error: any) {
+            console.error(error)
+            toast.error(error.message || 'Failed to fetch from GitHub.')
+        } finally {
+            setIsFetching(false)
+        }
+    }
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault()
+        const submitData = new FormData()
+
+        // Append all controlled state to FormData
+        Object.entries(formData).forEach(([key, value]) => {
+            submitData.append(key, value)
+        })
+
+        // Rename description field to match action expectation if necessary
+        // The action expects 'desc', but state is 'description'. 
+        // Let's ensure we send what the action expects.
+        if (formData.description) {
+            submitData.append('desc', formData.description)
+        }
+
         // Determine which action to run
         const action = editingId ? updateProject : addProject
 
-        // If editing, append the ID to formData so the server knows which one to update
         if (editingId) {
-            formData.append('id', editingId)
+            submitData.append('id', editingId)
         }
 
-        const result = await action(formData)
+        const result = await action(submitData)
 
         if (!result.success) {
-            alert('Operation failed')
+            toast.error('Operation failed')
         } else {
-            alert(editingId ? 'Project updated!' : 'Project added!')
-            if (!editingId) {
-                // Reset form or handle simple UI update if needed. 
-                // Since we use revalidatePath, a full refresh is often simplest for server components,
-                // but for a smooth UX we might want to manually update local state or trigger a router refresh.
-                window.location.reload()
-            } else {
-                window.location.reload()
-            }
+            toast.success(editingId ? 'Project updated!' : 'Project added!')
+            window.location.reload()
         }
     }
 
@@ -46,9 +134,10 @@ export default function ProjectManager({ initialProjects }: ProjectManagerProps)
 
         const result = await deleteProject(id)
         if (result.success) {
+            toast.success('Project deleted')
             window.location.reload()
         } else {
-            alert('Failed to delete')
+            toast.error('Failed to delete')
         }
     }
 
@@ -71,71 +160,91 @@ export default function ProjectManager({ initialProjects }: ProjectManagerProps)
                     )}
                 </div>
 
-                <form action={handleSubmit} className="space-y-4" key={editingId || 'new'}>
-                    <input type="hidden" name="id" value={editingId || ''} />
-                    {/* Key ensures form resets when switching modes */}
-                    <div>
-                        <label className="block text-xs uppercase tracking-wider text-stone-500 mb-1">Project Title</label>
-                        <input
-                            name="title"
-                            type="text"
-                            required
-                            defaultValue={editingProject?.title || ''}
-                            className="w-full bg-stone-900 border border-stone-700 rounded p-2 text-stone-200 focus:border-khaki-500 outline-none"
-                        />
-                    </div>
-                    <div>
-                        <label className="block text-xs uppercase tracking-wider text-stone-500 mb-1">Description</label>
-                        <textarea
-                            name="desc"
-                            required
-                            rows={3}
-                            defaultValue={editingProject?.description || ''}
-                            className="w-full bg-stone-900 border border-stone-700 rounded p-2 text-stone-200 focus:border-khaki-500 outline-none"
-                        ></textarea>
-                    </div>
-                    <div className="flex gap-4">
-                        <div className="flex-1">
-                            <label className="block text-xs uppercase tracking-wider text-stone-500 mb-1">Date</label>
+                <form onSubmit={handleSubmit} className="space-y-4">
+                    {/* GitHub Link First */}
+                    <div className="relative">
+                        <label className="block text-xs uppercase tracking-wider text-stone-500 mb-1">GitHub Link (Auto-fill)</label>
+                        <div className="flex gap-2">
                             <input
-                                name="date"
+                                name="github_link"
                                 type="text"
-                                placeholder="2025.01"
-                                defaultValue={editingProject?.date || ''}
+                                placeholder="https://github.com/username/repo"
+                                value={formData.github_link}
+                                onChange={handleInputChange}
+                                className="w-full bg-stone-900 border border-stone-700 rounded p-2 text-stone-200 focus:border-khaki-500 outline-none"
+                            />
+                            <button
+                                type="button"
+                                onClick={handleFetchGithub}
+                                disabled={isFetching || !formData.github_link}
+                                className="px-4 py-2 bg-stone-800 text-stone-300 rounded border border-stone-700 hover:bg-stone-700 hover:text-white disabled:opacity-50 text-xs font-bold whitespace-nowrap"
+                            >
+                                {isFetching ? <i className="fa-solid fa-spinner fa-spin"></i> : 'Fetch Data'}
+                            </button>
+                        </div>
+                        <p className="text-[10px] text-stone-600 mt-1">Enter a GitHub repository URL to auto-fill details.</p>
+                    </div>
+
+                    <div className="border-t border-stone-800 pt-4 space-y-4">
+                        <div>
+                            <label className="block text-xs uppercase tracking-wider text-stone-500 mb-1">Project Title</label>
+                            <input
+                                name="title"
+                                type="text"
+                                required
+                                value={formData.title}
+                                onChange={handleInputChange}
                                 className="w-full bg-stone-900 border border-stone-700 rounded p-2 text-stone-200 focus:border-khaki-500 outline-none"
                             />
                         </div>
-                        <div className="flex-1">
-                            <label className="block text-xs uppercase tracking-wider text-stone-500 mb-1">Stack (CSV)</label>
-                            <input
-                                name="stack"
-                                type="text"
-                                placeholder="React, Node.js"
-                                defaultValue={editingProject?.stack?.join(', ') || ''}
+                        <div>
+                            <label className="block text-xs uppercase tracking-wider text-stone-500 mb-1">Description</label>
+                            <textarea
+                                name="description"
+                                required
+                                rows={3}
+                                value={formData.description}
+                                onChange={handleInputChange}
                                 className="w-full bg-stone-900 border border-stone-700 rounded p-2 text-stone-200 focus:border-khaki-500 outline-none"
-                            />
+                            ></textarea>
+                        </div>
+                        <div className="flex gap-4">
+                            <div className="flex-1">
+                                <label className="block text-xs uppercase tracking-wider text-stone-500 mb-1">Date</label>
+                                <input
+                                    name="date"
+                                    type="text"
+                                    placeholder="2025.01"
+                                    value={formData.date}
+                                    onChange={handleInputChange}
+                                    className="w-full bg-stone-900 border border-stone-700 rounded p-2 text-stone-200 focus:border-khaki-500 outline-none"
+                                />
+                            </div>
+                            <div className="flex-1">
+                                <label className="block text-xs uppercase tracking-wider text-stone-500 mb-1">Stack (CSV)</label>
+                                <input
+                                    name="stack"
+                                    type="text"
+                                    placeholder="React, Node.js"
+                                    value={formData.stack}
+                                    onChange={handleInputChange}
+                                    className="w-full bg-stone-900 border border-stone-700 rounded p-2 text-stone-200 focus:border-khaki-500 outline-none"
+                                />
+                            </div>
+                        </div>
+                        <div>
+                            <label className="block text-xs uppercase tracking-wider text-stone-500 mb-1">Detailed Content (Markdown)</label>
+                            <textarea
+                                name="content"
+                                rows={6}
+                                placeholder="# Project Details\n\nExplain your project methodology..."
+                                value={formData.content}
+                                onChange={handleInputChange}
+                                className="w-full bg-stone-900 border border-stone-700 rounded p-2 text-stone-200 focus:border-khaki-500 outline-none font-mono text-sm"
+                            ></textarea>
                         </div>
                     </div>
-                    <div>
-                        <label className="block text-xs uppercase tracking-wider text-stone-500 mb-1">GitHub Link</label>
-                        <input
-                            name="github_link"
-                            type="text"
-                            placeholder="https://github.com/username/repo"
-                            defaultValue={editingProject?.github_link || ''}
-                            className="w-full bg-stone-900 border border-stone-700 rounded p-2 text-stone-200 focus:border-khaki-500 outline-none"
-                        />
-                    </div>
-                    <div>
-                        <label className="block text-xs uppercase tracking-wider text-stone-500 mb-1">Detailed Content (Markdown)</label>
-                        <textarea
-                            name="content"
-                            rows={6}
-                            placeholder="# Project Details\n\nExplain your project methodology..."
-                            defaultValue={editingProject?.content || ''}
-                            className="w-full bg-stone-900 border border-stone-700 rounded p-2 text-stone-200 focus:border-khaki-500 outline-none font-mono text-sm"
-                        ></textarea>
-                    </div>
+
                     <button
                         type="submit"
                         className={`w-full font-bold py-3 rounded transition-colors mt-2 ${editingId ? 'bg-khaki-600 hover:bg-khaki-500 text-black' : 'bg-stone-700 hover:bg-stone-600 text-white'}`}
