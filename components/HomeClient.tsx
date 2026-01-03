@@ -46,6 +46,15 @@ export default function HomeClient({ initialProjects, profile }: HomeClientProps
         }
     }, [initialProjects]);
 
+    // Track Page View
+    useEffect(() => {
+        // Simple distinct check could be added here (sessionStorage), 
+        // but for now we just count every load as a view.
+        import('@/app/actions').then(actions => {
+            actions.incrementView();
+        });
+    }, []);
+
     // --- 기술 스택 통계 계산 (useMemo로 최적화) ---
     const techStats = useMemo(() => {
         const stats: { [key: string]: number } = {};

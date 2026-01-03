@@ -1,5 +1,10 @@
+'use client';
+
+import { useLanguage } from '@/context/LanguageContext';
 
 export default function Footer() {
+    const { t } = useLanguage();
+
     const scrollToTop = () => {
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
@@ -27,12 +32,12 @@ export default function Footer() {
                 </div>
 
                 <div className="border-t border-stone-900 pt-8 flex flex-col md:flex-row justify-between items-center text-xs text-stone-600">
-                    <p>&copy; {new Date().getFullYear()} Yun Jong Seo. All rights reserved.</p>
+                    <p>&copy; {new Date().getFullYear()} Yun Jong Seo. {t('footer.rights')}</p>
                     <button
                         onClick={scrollToTop}
                         className="mt-4 md:mt-0 flex items-center hover:text-khaki-500 transition-colors"
                     >
-                        Back to Top <i className="fa-solid fa-arrow-up ml-2"></i>
+                        {t('footer.backToTop')} <i className="fa-solid fa-arrow-up ml-2"></i>
                     </button>
                 </div>
             </div>
