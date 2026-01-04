@@ -33,7 +33,7 @@ A modern, high-performance portfolio website built with **Next.js 15** and **Sup
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/your-username/my-portfolio.git
+   git clone https://github.com/YunMori/my-portfolio.git
    cd my-portfolio
    ```
 
