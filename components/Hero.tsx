@@ -26,7 +26,7 @@ export default function Hero({ profile }: HeroProps) {
                     </span>
                     <h1 className="text-5xl md:text-7xl font-display font-bold mb-6 text-stone-100 leading-[1.1]">
                         {t('hero.greeting')}<br />
-                        <span className="text-khaki-500">{profile?.name || "Yun Jong Seo."}</span>
+                        <span className="text-khaki-500">{profile?.name || "Jong Seo Yun."}</span>
                     </h1>
                     <h2 className="text-xl md:text-2xl text-stone-400 font-medium mb-8">
                         {profile?.role || "Full Stack Developer"} <span className="text-stone-600 mx-2">|</span> Data Enthusiast
@@ -72,7 +72,7 @@ export default function Hero({ profile }: HeroProps) {
                                 </div>
                                 <div>
                                     <div className="text-[10px] text-stone-500 uppercase tracking-wider font-bold">Experience</div>
-                                    <div className="text-sm font-bold text-stone-200">3+ {t('stats.years')}</div>
+                                    <div className="text-sm font-bold text-stone-200">Junior</div>
                                 </div>
                             </div>
                         </div>
