@@ -32,12 +32,7 @@ export default async function AdminLayout({
                         <i className="fa-solid fa-chart-line w-6 text-center"></i> Dashboard
                     </Link>
                     <div className="pt-4 pb-2 px-4 text-[10px] uppercase font-bold text-stone-600 tracking-widest">Content</div>
-                    <Link
-                        href="/admin/profile"
-                        className="block px-4 py-3 rounded-lg hover:bg-stone-800 text-stone-400 hover:text-stone-200 transition-colors font-medium text-sm"
-                    >
-                        <i className="fa-solid fa-user-pen w-6 text-center"></i> Edit Profile
-                    </Link>
+
                     <Link
                         href="/admin/projects"
                         className="block px-4 py-3 rounded-lg hover:bg-stone-800 text-stone-400 hover:text-stone-200 transition-colors font-medium text-sm"

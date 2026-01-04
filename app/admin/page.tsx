@@ -15,13 +15,7 @@ export default function AdminDashboard() {
             </div>
 
             <div className="grid md:grid-cols-2 gap-6">
-                <Link href="/admin/profile" className="group bg-surface hover:bg-stone-800 border border-stone-800 p-8 rounded-2xl transition-all hover:-translate-y-1 hover:border-khaki-500/50 hover:shadow-xl">
-                    <div className="w-12 h-12 rounded-full bg-khaki-500/10 flex items-center justify-center text-khaki-500 mb-4 group-hover:bg-khaki-500 group-hover:text-black transition-colors">
-                        <i className="fa-solid fa-user-pen text-xl"></i>
-                    </div>
-                    <h2 className="text-xl font-bold text-stone-200 mb-2">Edit Profile</h2>
-                    <p className="text-sm text-stone-500 group-hover:text-stone-400">Update your name, role, bio, and social links displayed on the Hero section.</p>
-                </Link>
+
 
                 <Link href="/admin/projects" className="group bg-surface hover:bg-stone-800 border border-stone-800 p-8 rounded-2xl transition-all hover:-translate-y-1 hover:border-khaki-500/50 hover:shadow-xl">
                     <div className="w-12 h-12 rounded-full bg-blue-500/10 flex items-center justify-center text-blue-500 mb-4 group-hover:bg-blue-500 group-hover:text-black transition-colors">
