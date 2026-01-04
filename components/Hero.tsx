@@ -26,7 +26,7 @@ export default function Hero({ profile }: HeroProps) {
                     </span>
                     <h1 className="text-5xl md:text-7xl font-display font-bold mb-6 text-stone-100 leading-[1.1]">
                         {t('hero.greeting')}<br />
-                        <span className="text-khaki-500">{profile?.name || "Yun Jong Seo."}</span>
+                        <span className="text-khaki-500">{profile?.name || "Jong Seo Yun."}</span>
                     </h1>
                     <h2 className="text-xl md:text-2xl text-stone-400 font-medium mb-8">
                         {profile?.role || "Full Stack Developer"} <span className="text-stone-600 mx-2">|</span> Data Enthusiast
@@ -54,21 +54,14 @@ export default function Hero({ profile }: HeroProps) {
                         <div className="absolute inset-0 border-2 border-khaki-500/30 rounded-[2rem] rotate-3 scale-105"></div>
                         <div className="absolute inset-0 bg-stone-800 rounded-[2rem] -rotate-3 hover:rotate-0 transition-transform duration-500 overflow-hidden shadow-2xl group cursor-pointer">
                             {/* Placeholder Content OR Actual Image */}
-                            {profile?.avatar_url ? (
-                                <Image
-                                    src={profile.avatar_url}
-                                    alt={profile.name}
-                                    fill
-                                    className="object-cover opacity-90 group-hover:opacity-100 transition-opacity"
-                                    sizes="(max-width: 768px) 100vw, 50vw"
-                                />
-                            ) : (
-                                <div className="w-full h-full flex flex-col items-center justify-center bg-[#151412] text-stone-600 group-hover:text-khaki-500 transition-colors">
-                                    <i className="fa-solid fa-user text-6xl mb-4 opacity-50"></i>
-                                    <span className="text-xs font-mono uppercase tracking-widest opacity-70">Profile Image</span>
-                                    <p className="text-[10px] mt-2 opacity-40 px-8 text-center">Upload via Admin Panel</p>
-                                </div>
-                            )}
+                            <Image
+                                src={profile?.avatar_url || "/hero-profile.jpg"}
+                                alt={profile?.name || "Profile Image"}
+                                fill
+                                className="object-cover opacity-90 group-hover:opacity-100 transition-opacity"
+                                sizes="(max-width: 768px) 100vw, 50vw"
+                                priority
+                            />
                         </div>
 
                         {/* Decorative Floating Element */}
@@ -79,7 +72,7 @@ export default function Hero({ profile }: HeroProps) {
                                 </div>
                                 <div>
                                     <div className="text-[10px] text-stone-500 uppercase tracking-wider font-bold">Experience</div>
-                                    <div className="text-sm font-bold text-stone-200">3+ {t('stats.years')}</div>
+                                    <div className="text-sm font-bold text-stone-200">Junior</div>
                                 </div>
                             </div>
                         </div>
