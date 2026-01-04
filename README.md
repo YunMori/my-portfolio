@@ -8,7 +8,6 @@ A modern, high-performance portfolio website built with **Next.js 15** and **Sup
 
 - **Responsive & Aesthetic Design**: Built with pure **Tailwind CSS v4**, featuring smooth animations (`tailwindcss-animate`), dark mode support, and premium typography (`Gowun Dodum` & `Space Grotesk`).
 - **Dynamic Content Management**: An Admin Dashboard allows for easy updates to:
-  - **Profile Information**: Bio, role, avatar upload.
   - **Projects**: Auto-fetch project data from GitHub (readme, stars, language) or manual entry.
 - **Visitor Analytics**: Custom-built, privacy-friendly visitor tracking system. View daily traffic trends directly from the Admin Dashboard.
 - **Multilingual Support (i18n)**: Seamless English/Korean language toggling with persistent user preference.
@@ -49,11 +48,11 @@ A modern, high-performance portfolio website built with **Next.js 15** and **Sup
    NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
    ```
 
-4. **Database Migration**
-   Run the provided SQL scripts in your Supabase SQL Editor to set up tables (`profile`, `projects`, `daily_stats`) and Row Level Security (RLS) policies.
+4. **Database Migration & Security**
+   Run the provided SQL scripts in your Supabase SQL Editor to set up tables and secure RLS policies.
    - Run `schema.sql` (Base schema)
    - Run `migration.sql` (Additional columns)
-   - Run `analytics_migration.sql` (Analytics table)
+   - **IMPORTANT**: Run `secure_policies.sql` (Creates analytics table & applies strict security rules)
 
 5. **Run the development server**
    ```bash
@@ -65,7 +64,6 @@ A modern, high-performance portfolio website built with **Next.js 15** and **Sup
 
 To access the admin dashboard, navigate to `/login` and sign in with your Supabase credentials.
 - **Dashboard**: `/admin`
-- **Edit Profile**: `/admin/profile`
 - **Manage Projects**: `/admin/projects`
 
 ## 🌍 Internationalization
