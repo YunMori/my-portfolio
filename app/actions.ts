@@ -52,19 +52,7 @@ export async function getAnalyticsData() {
 
 // --- Fetch Actions ---
 
-export async function getProfile() {
-    const supabase = await createClient()
-    const { data, error } = await supabase
-        .from('profile')
-        .select('*')
-        .single()
 
-    if (error) {
-        console.error('Error fetching profile:', error)
-        return null
-    }
-    return data as Profile
-}
 
 export async function getProjects() {
     const supabase = await createClient()

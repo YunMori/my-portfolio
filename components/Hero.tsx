@@ -1,14 +1,9 @@
 'use client';
 
-import { Profile } from '@/types/database.types';
 import Image from 'next/image';
 import { useLanguage } from '@/context/LanguageContext';
 
-interface HeroProps {
-    profile: Profile | null;
-}
-
-export default function Hero({ profile }: HeroProps) {
+export default function Hero() {
     const { t } = useLanguage();
 
     return (
@@ -26,15 +21,15 @@ export default function Hero({ profile }: HeroProps) {
                     </span>
                     <h1 className="text-5xl md:text-7xl font-display font-bold mb-6 text-stone-100 leading-[1.1]">
                         {t('hero.greeting')}<br />
-                        <span className="text-khaki-500">{profile?.name || "Jong Seo Yun."}</span>
+                        <span className="text-khaki-500">Jong Seo Yun.</span>
                     </h1>
                     <h2 className="text-xl md:text-2xl text-stone-400 font-medium mb-8">
-                        {profile?.role || "Full Stack Developer"} <span className="text-stone-600 mx-2">|</span> You can call me Mori
+                        Full Stack Developer <span className="text-stone-600 mx-2">|</span> You can call me Mori
                     </h2>
                     <p className="text-stone-500 text-base md:text-lg leading-relaxed max-w-xl mb-10 whitespace-pre-wrap">
-                        {profile?.bio || `데이터가 이끄는 정확한 설계와 감각적인 인터페이스의 조화를 추구합니다. 
-                        단순히 기능을 구현하는 것을 넘어, 사용자의 경험을 깊이 있게 고민하고 
-                        비즈니스 가치를 창출하는 웹 애플리케이션을 만듭니다.`}
+                        데이터가 이끄는 정확한 설계와 감각적인 인터페이스의 조화를 추구합니다.
+                        단순히 기능을 구현하는 것을 넘어, 사용자의 경험을 깊이 있게 고민하고
+                        비즈니스 가치를 창출하는 웹 애플리케이션을 만듭니다.
                     </p>
 
                     <div className="flex flex-wrap gap-4">
@@ -55,8 +50,8 @@ export default function Hero({ profile }: HeroProps) {
                         <div className="absolute inset-0 bg-stone-800 rounded-[2rem] -rotate-3 hover:rotate-0 transition-transform duration-500 overflow-hidden shadow-2xl group cursor-pointer">
                             {/* Placeholder Content OR Actual Image */}
                             <Image
-                                src={profile?.avatar_url || "/hero-profile.jpg"}
-                                alt={profile?.name || "Profile Image"}
+                                src="/hero-profile.jpg"
+                                alt="Jong Seo Yun"
                                 fill
                                 className="object-cover opacity-90 group-hover:opacity-100 transition-opacity"
                                 sizes="(max-width: 768px) 100vw, 50vw"
