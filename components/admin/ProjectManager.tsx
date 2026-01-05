@@ -65,9 +65,7 @@ export default function ProjectManager({ initialProjects }: ProjectManagerProps)
 
         setIsFetching(true)
         try {
-            console.log('Calling fetchGithubRepo with:', url);
             const result = await fetchGithubRepo(url);
-            console.log('Fetch result:', result);
 
             if (!result.success || !result.data) {
                 console.error('Fetch failed:', result.error);
@@ -75,7 +73,6 @@ export default function ProjectManager({ initialProjects }: ProjectManagerProps)
             }
 
             const data = result.data;
-            console.log('Setting form data with:', data);
 
             // Auto-fill form
             setFormData(prev => ({

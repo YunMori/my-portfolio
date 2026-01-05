@@ -172,8 +172,6 @@ export async function deleteProject(id: string) {
 
 export async function fetchGithubRepo(url: string) {
     try {
-        console.log('fetchGithubRepo called with:', url);
-
         let path = url.trim();
         // 1. Remove trailing slashes
         path = path.replace(/\/+$/, "");
@@ -185,7 +183,6 @@ export async function fetchGithubRepo(url: string) {
         path = path.replace(/\.git$/, "");
 
         const parts = path.split('/').filter(Boolean);
-        console.log('Parsed path:', path, 'Parts:', parts);
 
         let owner, repo;
         if (parts.length >= 2) {

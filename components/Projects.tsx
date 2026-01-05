@@ -49,8 +49,6 @@ export default function Projects({ projects }: ProjectsProps) {
                                 // GitHub content is base64
                                 const content = atob(data.content);
                                 setReadmeContent(content);
-                            } else {
-                                console.warn('Failed to fetch README from GitHub fallback');
                             }
                         }
                     } catch (error) {
