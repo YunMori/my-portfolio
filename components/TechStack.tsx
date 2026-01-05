@@ -21,7 +21,9 @@ const techIcons: { [key: string]: string } = {
     'Python': 'fa-brands fa-python text-blue-400',
     'Git': 'fa-brands fa-git-alt text-orange-500',
     'Figma': 'fa-brands fa-figma text-purple-400',
-    'Socket.io': 'fa-solid fa-bolt text-yellow-200'
+    'Socket.io': 'fa-solid fa-bolt text-yellow-200',
+    'Numpy': 'devicon-numpy-plain text-blue-400',
+    'Pandas': 'devicon-pandas-plain text-stone-100'
 };
 
 export default function TechStack({ techStats, totalProjects }: TechStackProps) {
