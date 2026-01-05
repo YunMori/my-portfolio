@@ -24,12 +24,10 @@ export default function Hero() {
                         <span className="text-khaki-500">Jong Seo Yun.</span>
                     </h1>
                     <h2 className="text-xl md:text-2xl text-stone-400 font-medium mb-8">
-                        Full Stack Developer <span className="text-stone-600 mx-2">|</span> You can call me Mori
+                        You can call me "Mori"
                     </h2>
                     <p className="text-stone-500 text-base md:text-lg leading-relaxed max-w-xl mb-10 whitespace-pre-wrap">
-                        데이터가 이끄는 정확한 설계와 감각적인 인터페이스의 조화를 추구합니다.
-                        단순히 기능을 구현하는 것을 넘어, 사용자의 경험을 깊이 있게 고민하고
-                        비즈니스 가치를 창출하는 웹 애플리케이션을 만듭니다.
+                        그냥 지금까지 했던 프로젝트 저장소 입니다.
                     </p>
 
                     <div className="flex flex-wrap gap-4">
