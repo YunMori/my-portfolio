@@ -1,8 +1,5 @@
-'use client';
-
 import Image from 'next/image';
 import { useLanguage } from '@/context/LanguageContext';
-import CatAnimation from './CatAnimation';
 
 export default function Hero() {
     const { t } = useLanguage();
@@ -73,9 +70,8 @@ export default function Hero() {
                     </div>
                 </div>
             </div>
-
-            {/* Walking Cat Animation */}
-            <CatAnimation />
         </section>
     );
 }
+
+
