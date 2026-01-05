@@ -29,7 +29,7 @@ export default function Hero({ profile }: HeroProps) {
                         <span className="text-khaki-500">{profile?.name || "Jong Seo Yun."}</span>
                     </h1>
                     <h2 className="text-xl md:text-2xl text-stone-400 font-medium mb-8">
-                        {profile?.role || "Full Stack Developer"} <span className="text-stone-600 mx-2">|</span> Data Enthusiast
+                        {profile?.role || "Full Stack Developer"} <span className="text-stone-600 mx-2">|</span> You can call me Mori
                     </h2>
                     <p className="text-stone-500 text-base md:text-lg leading-relaxed max-w-xl mb-10 whitespace-pre-wrap">
                         {profile?.bio || `데이터가 이끄는 정확한 설계와 감각적인 인터페이스의 조화를 추구합니다. 
