@@ -6,7 +6,7 @@ import Hero from '@/components/Hero';
 import TechStack from '@/components/TechStack';
 import Projects from '@/components/Projects';
 import Footer from '@/components/Footer';
-import { Project, Profile } from '@/types/database.types';
+import { Project } from '@/types/database.types';
 
 // Fallback data if DB is empty
 const fallbackProjects = [
@@ -32,10 +32,9 @@ const fallbackProjects = [
 
 interface HomeClientProps {
     initialProjects: Project[];
-    profile: Profile | null;
 }
 
-export default function HomeClient({ initialProjects, profile }: HomeClientProps) {
+export default function HomeClient({ initialProjects }: HomeClientProps) {
     const startProjects = initialProjects.length > 0 ? initialProjects : (fallbackProjects as any[]);
     const [projects, setProjects] = useState(startProjects);
 
@@ -93,8 +92,8 @@ export default function HomeClient({ initialProjects, profile }: HomeClientProps
     return (
         <main className="min-h-screen selection:bg-khaki-900 selection:text-khaki-400 pb-0">
             <Navbar />
-            {/* Pass profile data to Hero */}
-            <Hero profile={profile} />
+            {/* Hero Section (Hardcoded) */}
+            <Hero />
             <TechStack techStats={techStats} totalProjects={projects.length} />
             <Projects projects={projects} />
             <Footer />
