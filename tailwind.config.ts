@@ -44,11 +44,11 @@ const config: Config = {
           '100%': { opacity: '1', transform: 'translateY(0)' },
         },
         walk: {
-          '0%': { left: '-50px', transform: 'scaleX(1)' }, // Start off-screen left, facing right
-          '49%': { left: 'calc(100% + 50px)', transform: 'scaleX(1)' }, // Walk to right
-          '50%': { left: 'calc(100% + 50px)', transform: 'scaleX(-1)' }, // Turn around
-          '99%': { left: '-50px', transform: 'scaleX(-1)' }, // Walk to left
-          '100%': { left: '-50px', transform: 'scaleX(1)' } // Reset
+          '0%': { transform: 'translateX(-100px) scaleX(1)' },
+          '45%': { transform: 'translateX(calc(100vw + 100px)) scaleX(1)' },
+          '50%': { transform: 'translateX(calc(100vw + 100px)) scaleX(-1)' },
+          '95%': { transform: 'translateX(-100px) scaleX(-1)' },
+          '100%': { transform: 'translateX(-100px) scaleX(1)' }
         },
         hop: {
           '0%, 100%': { transform: 'translateY(0)' },
