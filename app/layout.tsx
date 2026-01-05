@@ -55,6 +55,8 @@ export default function RootLayout({
       <head>
         {/* 아이콘 사용을 위한 FontAwesome CDN (간편 적용) */}
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+        {/* Devicon CDN for tech stack icons not in FontAwesome */}
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/devicon.min.css" />
       </head>
       <body
         className={`${gowunDodum.variable} ${spaceGrotesk.variable} antialiased bg-main text-stone-200`}
