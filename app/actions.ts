@@ -89,51 +89,7 @@ async function isAuthenticated() {
     return !!user
 }
 
-export async function updateProfile(formData: FormData) {
-    if (!(await isAuthenticated())) {
-        return { success: false, error: 'Unauthorized' }
-    }
 
-    const supabase = await createClient()
-
-    const profileData: Partial<Profile> = {
-        name: formData.get('name') as string,
-        role: formData.get('role') as string,
-        bio: formData.get('bio') as string,
-    }
-
-    // Handle Image Upload
-    const avatarFile = formData.get('avatar') as File;
-    if (avatarFile && avatarFile.size > 0 && avatarFile.name !== 'undefined') {
-        const fileName = `avatar-${Date.now()}`;
-        const { data: uploadData, error: uploadError } = await supabase.storage
-            .from('images')
-            .upload(fileName, avatarFile, { upsert: true });
-
-        if (uploadError) {
-            console.error('Upload Error:', uploadError);
-            // Proceeding without image update if fail, or return error? 
-            // Let's log and continue for now or return error.
-        } else {
-            // Get Public URL
-            const { data: { publicUrl } } = supabase.storage.from('images').getPublicUrl(fileName);
-            profileData.avatar_url = publicUrl;
-        }
-    }
-
-    const { error } = await supabase
-        .from('profile')
-        .update(profileData)
-        .neq('id', '00000000-0000-0000-0000-000000000000')
-
-    if (error) {
-        console.error('Error updating profile:', error)
-        return { success: false, error }
-    }
-
-    revalidatePath('/')
-    return { success: true }
-}
 
 export async function addProject(formData: FormData) {
     if (!(await isAuthenticated())) {
