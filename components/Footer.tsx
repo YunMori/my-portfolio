@@ -15,7 +15,7 @@ export default function Footer() {
                 <div className="flex flex-col md:flex-row justify-between items-center mb-12">
                     <div className="mb-8 md:mb-0 text-center md:text-left">
                         <h2 className="text-2xl font-display font-bold text-stone-100 mb-2">Let's Work Together.</h2>
-                        <p className="text-stone-500 text-sm">데이터 기반의 의사결정과 크리에이티브한 구현.</p>
+                        <p className="text-stone-500 text-sm">If you want</p>
                     </div>
 
                     <div className="flex gap-4">
