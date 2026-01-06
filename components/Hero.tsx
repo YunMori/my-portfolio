@@ -25,7 +25,7 @@ export default function Hero() {
                         You can call me "Mori"
                     </h2>
                     <p className="text-stone-500 text-base md:text-lg leading-relaxed max-w-xl mb-10 whitespace-pre-wrap">
-                        그냥 지금까지 했던 프로젝트 저장소 입니다.
+                        나도 내가 뭐 하고 싶은지 모릅니다. 재밌어 보이는거 만듭니다.
                     </p>
 
                     <div className="flex flex-wrap gap-4">
