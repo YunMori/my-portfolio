@@ -8,34 +8,11 @@ import Projects from '@/components/Projects';
 import Footer from '@/components/Footer';
 import { Project } from '@/types/database.types';
 
-// Fallback data if DB is empty
-const fallbackProjects = [
-    {
-        title: "Dark Mode Tech Blog",
-        description: "MDX 기반의 정적 블로그. 가독성을 위한 타이포그래피 설계.",
-        date: "2024.12",
-        stack: ["Next.js", "Tailwind", "Git"]
-    },
-    {
-        title: "Sales Admin Dashboard",
-        description: "매출 데이터 시각화 및 관리자 기능 구현.",
-        date: "2024.10",
-        stack: ["React", "Tailwind", "Node.js"]
-    },
-    {
-        title: "Anonymous Chat Service",
-        description: "Socket.io를 활용한 실시간 채팅 및 트래픽 처리.",
-        date: "2024.08",
-        stack: ["Node.js", "Socket.io", "Vue"]
-    }
-];
-
 interface HomeClientProps {
     initialProjects: Project[];
 }
 
 export default function HomeClient({ initialProjects }: HomeClientProps) {
-    const startProjects = initialProjects.length > 0 ? initialProjects : (fallbackProjects as any[]);
     const [projects, setProjects] = useState(startProjects);
 
     // Sync state with server data when it changes
