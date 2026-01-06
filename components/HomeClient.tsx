@@ -13,7 +13,7 @@ interface HomeClientProps {
 }
 
 export default function HomeClient({ initialProjects }: HomeClientProps) {
-    const [projects, setProjects] = useState(startProjects);
+    const [projects, setProjects] = useState(initialProjects);
 
     // Sync state with server data when it changes
     useEffect(() => {
