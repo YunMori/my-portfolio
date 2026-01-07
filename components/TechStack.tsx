@@ -37,7 +37,7 @@ export default function TechStack({ techStats, totalProjects }: TechStackProps) 
                         <h3 className="text-khaki-500 text-xs font-bold uppercase tracking-widest mb-2">Live Tech Stats</h3>
                         <h2 className="text-4xl md:text-5xl font-display font-bold text-stone-100">Most Used Tech</h2>
                     </div>
-                    <p className="text-stone-500 text-sm mt-2 md:mt-0">빈도수에 따라 실시간으로 재정렬됩니다.</p>
+
                 </div>
 
                 <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
