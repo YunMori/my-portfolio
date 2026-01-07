@@ -71,7 +71,7 @@ export default function Projects({ projects }: ProjectsProps) {
     return (
         <section id="projects" className="py-24 bg-main relative">
             <div className="max-w-7xl mx-auto px-6">
-                <div className="mb-20 space-y-4">
+                <div className="mb-20 space-y-4 text-center md:text-left">
                     <span className="text-khaki-500 font-bold tracking-widest text-xs uppercase">{t('projects.header')}</span>
                     <h2 className="text-4xl md:text-5xl font-display font-bold text-stone-100">
                         {t('projects.title')}
