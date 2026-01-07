@@ -32,7 +32,7 @@ export default function TechStack({ techStats, totalProjects }: TechStackProps) 
             <div className="absolute inset-0 opacity-5" style={{ backgroundImage: 'radial-gradient(#a3a948 1px, transparent 1px)', backgroundSize: '30px 30px' }}></div>
 
             <div className="max-w-7xl mx-auto px-6 relative z-10">
-                <div className="flex flex-col md:flex-row justify-between items-end mb-12 border-b border-stone-900 pb-6 fade-in-section opacity-0 translate-y-5 transition-all duration-700">
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-12 border-b border-stone-900 pb-6 fade-in-section opacity-0 translate-y-5 transition-all duration-700">
                     <div>
                         <h3 className="text-khaki-600 text-xs font-bold uppercase tracking-widest mb-2">Live Tech Stats</h3>
                         <h2 className="text-3xl font-display font-bold text-stone-100">Most Used Tech</h2>
