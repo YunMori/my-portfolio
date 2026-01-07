@@ -17,22 +17,30 @@ const spaceGrotesk = Space_Grotesk({
   variable: "--font-space-grotesk",
 });
 
+const baseUrl = process.env.NEXT_PUBLIC_VERCEL_URL
+  ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}`
+  : 'http://localhost:3000';
+
 export const metadata: Metadata = {
+  metadataBase: new URL(baseUrl),
   title: "My Portfolio | Yun Jong Seo",
   description: "Full Stack Developer Yun Jong Seo's Portfolio. Data driven design and scalable architecture.",
+  keywords: ["Full Stack Developer", "Next.js", "React", "Portfolio", "Web Development", "Yun Jong Seo"],
+  authors: [{ name: "Yun Jong Seo" }],
   icons: {
     icon: '/favicon.ico',
   },
   openGraph: {
     title: "Yun Jong Seo | Full Stack Developer",
     description: "Data driven design and scalable architecture.",
-    url: "https://my-portfolio.com", // Replace with actual URL
+    url: baseUrl,
     siteName: "Yun Jong Seo Portfolio",
     images: [
       {
-        url: "/og-image.jpg", // Needs to be added to public
+        url: "/hero-profile.jpg", // Valid existing image
         width: 1200,
         height: 630,
+        alt: "Yun Jong Seo Profile"
       },
     ],
     locale: "ko_KR",
@@ -42,7 +50,12 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Yun Jong Seo | Full Stack Developer",
     description: "Data driven design and scalable architecture.",
+    images: ["/hero-profile.jpg"],
   },
+  robots: {
+    index: true,
+    follow: true,
+  }
 };
 
 export default function RootLayout({
