@@ -34,8 +34,8 @@ export default function TechStack({ techStats, totalProjects }: TechStackProps) 
             <div className="max-w-7xl mx-auto px-6 relative z-10">
                 <div className="flex flex-col md:flex-row items-start gap-6 md:gap-12 mb-12 border-b border-stone-900 pb-6 fade-in-section opacity-0 translate-y-5 transition-all duration-700">
                     <div>
-                        <h3 className="text-khaki-600 text-xs font-bold uppercase tracking-widest mb-2">Live Tech Stats</h3>
-                        <h2 className="text-3xl font-display font-bold text-stone-100">Most Used Tech</h2>
+                        <h3 className="text-khaki-500 text-xs font-bold uppercase tracking-widest mb-2">Live Tech Stats</h3>
+                        <h2 className="text-4xl md:text-5xl font-display font-bold text-stone-100">Most Used Tech</h2>
                     </div>
                     <p className="text-stone-500 text-sm mt-2 md:mt-0">빈도수에 따라 실시간으로 재정렬됩니다.</p>
                 </div>
