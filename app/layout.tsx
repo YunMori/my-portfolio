@@ -23,7 +23,7 @@ const baseUrl = process.env.NEXT_PUBLIC_VERCEL_URL
 
 export const metadata: Metadata = {
   metadataBase: new URL(baseUrl),
-  title: "My Portfolio | Yun Jong Seo",
+  title: "Morifolio",
   description: "Full Stack Developer Yun Jong Seo's Portfolio. Data driven design and scalable architecture.",
   keywords: ["Full Stack Developer", "Next.js", "React", "Portfolio", "Web Development", "Yun Jong Seo"],
   authors: [{ name: "Yun Jong Seo" }],
