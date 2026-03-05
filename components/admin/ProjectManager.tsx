@@ -9,6 +9,42 @@ interface ProjectManagerProps {
     initialProjects: Project[]
 }
 
+function extractStackFromReadme(readmeContent: string): string {
+    if (!readmeContent) return '';
+    const stacks = new Set<string>();
+
+    const knownStacks = [
+        "React", "Next.js", "Vue", "Svelte", "Angular",
+        "Node.js", "Express", "NestJS", "TypeScript", "JavaScript",
+        "Python", "Java", "Spring", "Kotlin", "Go", "Rust",
+        "C++", "C#", "PHP", "Ruby", "Swift",
+        "Tailwind CSS", "TailwindCSS", "Tailwind", "Styled Components", "Sass",
+        "PostgreSQL", "MySQL", "MongoDB", "Redis", "SQLite",
+        "Supabase", "Firebase", "AWS", "Docker", "Kubernetes", "GraphQL",
+        "Prisma", "Vercel", "Framer Motion", "Redux", "Zustand", "React Query", "TRPC"
+    ];
+
+    const lowerReadme = readmeContent.toLowerCase();
+
+    for (const stack of knownStacks) {
+        const normalizedStack = (stack === "TailwindCSS" || stack === "Tailwind") ? "Tailwind CSS" : stack;
+        const isAlphabetic = /^[A-Za-z]+$/.test(stack);
+
+        if (isAlphabetic) {
+            const regex = new RegExp(`\\b${stack}\\b`, 'i');
+            if (regex.test(lowerReadme)) {
+                stacks.add(normalizedStack);
+            }
+        } else {
+            if (lowerReadme.includes(stack.toLowerCase())) {
+                stacks.add(normalizedStack);
+            }
+        }
+    }
+
+    return Array.from(stacks).join(', ');
+}
+
 export default function ProjectManager({ initialProjects }: ProjectManagerProps) {
     const [projects] = useState<Project[]>(initialProjects)
     const [editingId, setEditingId] = useState<string | null>(null)
@@ -80,7 +116,8 @@ export default function ProjectManager({ initialProjects }: ProjectManagerProps)
                 title: data.title,
                 description: data.description,
                 date: data.date,
-                content: data.content
+                content: data.content,
+                stack: extractStackFromReadme(data.content)
             }))
 
             toast.success('Fetched data from GitHub!')
@@ -102,13 +139,6 @@ export default function ProjectManager({ initialProjects }: ProjectManagerProps)
             submitData.append(key, value)
         })
 
-        // Rename description field to match action expectation if necessary
-        // The action expects 'desc', but state is 'description'. 
-        // Let's ensure we send what the action expects.
-        if (formData.description) {
-            submitData.append('desc', formData.description)
-        }
-
         // Determine which action to run
         const action = editingId ? updateProject : addProject
 
@@ -116,25 +146,35 @@ export default function ProjectManager({ initialProjects }: ProjectManagerProps)
             submitData.append('id', editingId)
         }
 
-        const result = await action(submitData)
+        try {
+            const result = await action(submitData)
 
-        if (!result.success) {
-            toast.error('Operation failed')
-        } else {
-            toast.success(editingId ? 'Project updated!' : 'Project added!')
-            window.location.reload()
+            if (!result.success) {
+                toast.error(result.error || 'Operation failed')
+            } else {
+                toast.success(editingId ? 'Project updated!' : 'Project added!')
+                window.location.reload()
+            }
+        } catch (err) {
+            console.error(err)
+            toast.error('An unexpected error occurred')
         }
     }
 
     const handleDelete = async (id: string) => {
         if (!confirm('Are you sure you want to delete this project?')) return;
 
-        const result = await deleteProject(id)
-        if (result.success) {
-            toast.success('Project deleted')
-            window.location.reload()
-        } else {
-            toast.error('Failed to delete')
+        try {
+            const result = await deleteProject(id)
+            if (result.success) {
+                toast.success('Project deleted')
+                window.location.reload()
+            } else {
+                toast.error(result.error || 'Failed to delete')
+            }
+        } catch (err) {
+            console.error(err)
+            toast.error('An unexpected error occurred deleting')
         }
     }
 
@@ -193,17 +233,6 @@ export default function ProjectManager({ initialProjects }: ProjectManagerProps)
                                 onChange={handleInputChange}
                                 className="w-full bg-stone-900 border border-stone-700 rounded p-2 text-stone-200 focus:border-khaki-500 outline-none"
                             />
-                        </div>
-                        <div>
-                            <label className="block text-xs uppercase tracking-wider text-stone-500 mb-1">Description</label>
-                            <textarea
-                                name="description"
-                                required
-                                rows={3}
-                                value={formData.description}
-                                onChange={handleInputChange}
-                                className="w-full bg-stone-900 border border-stone-700 rounded p-2 text-stone-200 focus:border-khaki-500 outline-none"
-                            ></textarea>
                         </div>
                         <div className="flex gap-4">
                             <div className="flex-1">
