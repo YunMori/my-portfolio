@@ -9,6 +9,35 @@ interface ProjectManagerProps {
     initialProjects: Project[]
 }
 
+function extractStackFromReadme(readmeContent: string): string {
+    if (!readmeContent) return '';
+    const stacks = new Set<string>();
+
+    // 1. Badge images
+    const badgeRegex = /badge\/([^-\?]+)/g;
+    let match;
+    while ((match = badgeRegex.exec(readmeContent)) !== null) {
+        try {
+            const name = decodeURIComponent(match[1]).trim();
+            if (name && name.length > 1) stacks.add(name);
+        } catch (e) { }
+    }
+
+    // 2. Keyword lists
+    const listSectionRegex = /##\s*(?:Tech\s*Stack|기술\s*스택|Skills)[\s\S]*?(?=##|$)/gi;
+    const sectionMatch = listSectionRegex.exec(readmeContent);
+    if (sectionMatch) {
+        const listItemsRegex = /^[*-]\s+(.+)$/gm;
+        let itemMatch;
+        while ((itemMatch = listItemsRegex.exec(sectionMatch[0])) !== null) {
+            const techName = itemMatch[1].replace(/<[^>]*>?/gm, '').trim();
+            if (techName) stacks.add(techName);
+        }
+    }
+
+    return Array.from(stacks).join(', ');
+}
+
 export default function ProjectManager({ initialProjects }: ProjectManagerProps) {
     const [projects] = useState<Project[]>(initialProjects)
     const [editingId, setEditingId] = useState<string | null>(null)
@@ -80,7 +109,8 @@ export default function ProjectManager({ initialProjects }: ProjectManagerProps)
                 title: data.title,
                 description: data.description,
                 date: data.date,
-                content: data.content
+                content: data.content,
+                stack: extractStackFromReadme(data.content)
             }))
 
             toast.success('Fetched data from GitHub!')
@@ -193,17 +223,6 @@ export default function ProjectManager({ initialProjects }: ProjectManagerProps)
                                 onChange={handleInputChange}
                                 className="w-full bg-stone-900 border border-stone-700 rounded p-2 text-stone-200 focus:border-khaki-500 outline-none"
                             />
-                        </div>
-                        <div>
-                            <label className="block text-xs uppercase tracking-wider text-stone-500 mb-1">Description</label>
-                            <textarea
-                                name="description"
-                                required
-                                rows={3}
-                                value={formData.description}
-                                onChange={handleInputChange}
-                                className="w-full bg-stone-900 border border-stone-700 rounded p-2 text-stone-200 focus:border-khaki-500 outline-none"
-                            ></textarea>
                         </div>
                         <div className="flex gap-4">
                             <div className="flex-1">
