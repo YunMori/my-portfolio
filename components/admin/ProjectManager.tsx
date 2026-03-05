@@ -13,25 +13,32 @@ function extractStackFromReadme(readmeContent: string): string {
     if (!readmeContent) return '';
     const stacks = new Set<string>();
 
-    // 1. Badge images
-    const badgeRegex = /badge\/([^-\?]+)/g;
-    let match;
-    while ((match = badgeRegex.exec(readmeContent)) !== null) {
-        try {
-            const name = decodeURIComponent(match[1]).trim();
-            if (name && name.length > 1) stacks.add(name);
-        } catch (e) { }
-    }
+    const knownStacks = [
+        "React", "Next.js", "Vue", "Svelte", "Angular",
+        "Node.js", "Express", "NestJS", "TypeScript", "JavaScript",
+        "Python", "Java", "Spring", "Kotlin", "Go", "Rust",
+        "C++", "C#", "PHP", "Ruby", "Swift",
+        "Tailwind CSS", "TailwindCSS", "Tailwind", "Styled Components", "Sass",
+        "PostgreSQL", "MySQL", "MongoDB", "Redis", "SQLite",
+        "Supabase", "Firebase", "AWS", "Docker", "Kubernetes", "GraphQL",
+        "Prisma", "Vercel", "Framer Motion", "Redux", "Zustand", "React Query", "TRPC"
+    ];
 
-    // 2. Keyword lists
-    const listSectionRegex = /##\s*(?:Tech\s*Stack|기술\s*스택|Skills)[\s\S]*?(?=##|$)/gi;
-    const sectionMatch = listSectionRegex.exec(readmeContent);
-    if (sectionMatch) {
-        const listItemsRegex = /^[*-]\s+(.+)$/gm;
-        let itemMatch;
-        while ((itemMatch = listItemsRegex.exec(sectionMatch[0])) !== null) {
-            const techName = itemMatch[1].replace(/<[^>]*>?/gm, '').trim();
-            if (techName) stacks.add(techName);
+    const lowerReadme = readmeContent.toLowerCase();
+
+    for (const stack of knownStacks) {
+        const normalizedStack = (stack === "TailwindCSS" || stack === "Tailwind") ? "Tailwind CSS" : stack;
+        const isAlphabetic = /^[A-Za-z]+$/.test(stack);
+
+        if (isAlphabetic) {
+            const regex = new RegExp(`\\b${stack}\\b`, 'i');
+            if (regex.test(lowerReadme)) {
+                stacks.add(normalizedStack);
+            }
+        } else {
+            if (lowerReadme.includes(stack.toLowerCase())) {
+                stacks.add(normalizedStack);
+            }
         }
     }
 
@@ -132,13 +139,6 @@ export default function ProjectManager({ initialProjects }: ProjectManagerProps)
             submitData.append(key, value)
         })
 
-        // Rename description field to match action expectation if necessary
-        // The action expects 'desc', but state is 'description'. 
-        // Let's ensure we send what the action expects.
-        if (formData.description) {
-            submitData.append('desc', formData.description)
-        }
-
         // Determine which action to run
         const action = editingId ? updateProject : addProject
 
@@ -146,25 +146,35 @@ export default function ProjectManager({ initialProjects }: ProjectManagerProps)
             submitData.append('id', editingId)
         }
 
-        const result = await action(submitData)
+        try {
+            const result = await action(submitData)
 
-        if (!result.success) {
-            toast.error('Operation failed')
-        } else {
-            toast.success(editingId ? 'Project updated!' : 'Project added!')
-            window.location.reload()
+            if (!result.success) {
+                toast.error(result.error || 'Operation failed')
+            } else {
+                toast.success(editingId ? 'Project updated!' : 'Project added!')
+                window.location.reload()
+            }
+        } catch (err) {
+            console.error(err)
+            toast.error('An unexpected error occurred')
         }
     }
 
     const handleDelete = async (id: string) => {
         if (!confirm('Are you sure you want to delete this project?')) return;
 
-        const result = await deleteProject(id)
-        if (result.success) {
-            toast.success('Project deleted')
-            window.location.reload()
-        } else {
-            toast.error('Failed to delete')
+        try {
+            const result = await deleteProject(id)
+            if (result.success) {
+                toast.success('Project deleted')
+                window.location.reload()
+            } else {
+                toast.error(result.error || 'Failed to delete')
+            }
+        } catch (err) {
+            console.error(err)
+            toast.error('An unexpected error occurred deleting')
         }
     }
 

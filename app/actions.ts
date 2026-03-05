@@ -99,7 +99,7 @@ export async function addProject(formData: FormData) {
 
     if (error) {
         console.error('Error adding project:', error)
-        return { success: false, error }
+        return { success: false, error: error.message }
     }
 
     revalidatePath('/')
@@ -129,7 +129,7 @@ export async function updateProject(formData: FormData) {
 
     if (error) {
         console.error('Error updating project:', error)
-        return { success: false, error }
+        return { success: false, error: error.message }
     }
 
     revalidatePath('/')
@@ -150,7 +150,7 @@ export async function deleteProject(id: string) {
 
     if (error) {
         console.error('Error deleting project:', error)
-        return { success: false, error }
+        return { success: false, error: error.message }
     }
 
     revalidatePath('/')
