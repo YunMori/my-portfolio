@@ -16,6 +16,14 @@ export default function Projects({ projects }: ProjectsProps) {
     const [isLoadingReadme, setIsLoadingReadme] = useState(false);
 
     useEffect(() => {
+        const handleEsc = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') setSelectedProject(null);
+        };
+        if (selectedProject) document.addEventListener('keydown', handleEsc);
+        return () => document.removeEventListener('keydown', handleEsc);
+    }, [selectedProject]);
+
+    useEffect(() => {
         if (selectedProject) {
             if (selectedProject.content) {
                 // Use stored content if available (Priority)
@@ -81,7 +89,7 @@ export default function Projects({ projects }: ProjectsProps) {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                     {projects.map((p, index) => (
                         <div
-                            key={index}
+                            key={p.id}
                             className="group rounded-2xl overflow-hidden bg-surface border border-highlight hover:border-khaki-500 transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl cursor-pointer fade-in-section opacity-0 translate-y-5 flex flex-col h-full"
                             style={{ transitionDelay: `${index * 100}ms` }}
                             onClick={() => setSelectedProject(p)}
@@ -128,7 +136,7 @@ export default function Projects({ projects }: ProjectsProps) {
 
             {/* Project Detail Modal */}
             {selectedProject && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="modal-title">
                     <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => setSelectedProject(null)}></div>
                     <div className="relative bg-[#1a1917] w-full max-w-3xl max-h-[90vh] overflow-y-auto rounded-3xl border border-stone-800 shadow-2xl p-8 md:p-12 animate-in fade-in zoom-in duration-300">
                         <button
@@ -140,7 +148,7 @@ export default function Projects({ projects }: ProjectsProps) {
 
                         <div className="mb-8">
                             <span className="text-khaki-500 text-xs font-bold tracking-widest uppercase mb-2 block">{selectedProject.date}</span>
-                            <h2 className="text-3xl md:text-4xl font-display font-bold text-white mb-6">{selectedProject.title}</h2>
+                            <h2 id="modal-title" className="text-3xl md:text-4xl font-display font-bold text-white mb-6">{selectedProject.title}</h2>
                             <div className="flex flex-wrap gap-2 mb-8">
                                 {selectedProject.stack.map(tech => (
                                     <span key={tech} className="px-3 py-1 bg-stone-800 rounded-full text-xs text-stone-300 border border-stone-700">
