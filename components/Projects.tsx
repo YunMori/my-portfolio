@@ -23,6 +23,7 @@ export default function Projects({ projects }: ProjectsProps) {
         ? projects
         : projects.filter(p => p.stack.includes(activeFilter));
 
+    // ESC 키로 모달 닫기
     useEffect(() => {
         const handleEsc = (e: KeyboardEvent) => {
             if (e.key === 'Escape') setSelectedProject(null);
@@ -30,6 +31,30 @@ export default function Projects({ projects }: ProjectsProps) {
         if (selectedProject) document.addEventListener('keydown', handleEsc);
         return () => document.removeEventListener('keydown', handleEsc);
     }, [selectedProject]);
+
+    // 필터 변경 시 새로 렌더링된 카드에 IntersectionObserver 재등록
+    // HomeClient.tsx의 Observer는 [projects] 의존성이라 필터 변경을 감지 못함 → 여기서 처리
+    useEffect(() => {
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('opacity-100', 'translate-y-0');
+                    entry.target.classList.remove('opacity-0', 'translate-y-5');
+                }
+            });
+        }, { threshold: 0.1 });
+
+        // React 렌더링 완료 후 DOM 조회
+        const timeoutId = setTimeout(() => {
+            document.querySelectorAll('#projects .fade-in-section')
+                .forEach(el => observer.observe(el));
+        }, 50);
+
+        return () => {
+            observer.disconnect();
+            clearTimeout(timeoutId);
+        };
+    }, [activeFilter]);
 
     useEffect(() => {
         if (selectedProject) {
