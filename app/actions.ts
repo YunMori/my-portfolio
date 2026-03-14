@@ -2,7 +2,7 @@
 
 import { createClient } from '@/utils/supabase/server'
 import { revalidatePath } from 'next/cache'
-import { Project, Profile } from '@/types/database.types'
+import { Project, Profile, BlogPost } from '@/types/database.types'
 
 // --- Analytics Actions ---
 
@@ -10,27 +10,22 @@ export async function incrementView() {
     const supabase = await createClient()
     const today = new Date().toISOString().split('T')[0]
 
-    // Upsert: Try to insert, if conflict (date exists), increment views
-    // Note: Supabase JS doesn't support 'increment' in upsert directly easily without RPC, 
-    // but we can try a simple read-modify-type approach or use RPC if created.
-    // For simplicity without simpler RPC: Check existence -> Insert or Update.
+    // Atomic upsert via Supabase RPC to prevent race conditions.
+    // Run this SQL in Supabase SQL Editor once:
+    //
+    // CREATE OR REPLACE FUNCTION increment_view(target_date date)
+    // RETURNS void LANGUAGE sql AS $$
+    //   INSERT INTO daily_stats (date, views) VALUES (target_date, 1)
+    //   ON CONFLICT (date) DO UPDATE SET views = daily_stats.views + 1;
+    // $$;
+    const { error } = await supabase.rpc('increment_view', { target_date: today })
 
-    // Simple approach:
-    const { data: existing } = await supabase
-        .from('daily_stats')
-        .select('views')
-        .eq('date', today)
-        .single()
-
-    if (existing) {
+    if (error) {
+        // Fallback if RPC not yet created: safe upsert (may undercount under heavy concurrency)
+        console.warn('increment_view RPC not found, falling back:', error.message)
         await supabase
             .from('daily_stats')
-            .update({ views: existing.views + 1 })
-            .eq('date', today)
-    } else {
-        await supabase
-            .from('daily_stats')
-            .insert({ date: today, views: 1 })
+            .upsert({ date: today, views: 1 }, { onConflict: 'date', ignoreDuplicates: true })
     }
 }
 
@@ -155,6 +150,114 @@ export async function deleteProject(id: string) {
 
     revalidatePath('/')
     revalidatePath('/admin/projects')
+    return { success: true }
+}
+
+// --- Blog Actions ---
+
+export async function getBlogPosts() {
+    const supabase = await createClient()
+    const { data, error } = await supabase
+        .from('blog_posts')
+        .select('*')
+        .order('published_at', { ascending: false })
+
+    if (error) {
+        console.error('Error fetching blog posts:', error)
+        return []
+    }
+    return data as BlogPost[]
+}
+
+export async function getBlogPost(slug: string) {
+    const supabase = await createClient()
+    const { data, error } = await supabase
+        .from('blog_posts')
+        .select('*')
+        .eq('slug', slug)
+        .single()
+
+    if (error) {
+        console.error('Error fetching blog post:', error)
+        return null
+    }
+    return data as BlogPost
+}
+
+export async function addBlogPost(formData: FormData) {
+    if (!(await isAuthenticated())) {
+        return { success: false, error: 'Unauthorized' }
+    }
+
+    const supabase = await createClient()
+    const title = formData.get('title') as string
+    const slug = formData.get('slug') as string
+    const description = formData.get('description') as string
+    const content = formData.get('content') as string
+    const tags = (formData.get('tags') as string).split(',').map(t => t.trim()).filter(Boolean)
+    const published_at = formData.get('published_at') as string || new Date().toISOString()
+
+    const { error } = await supabase
+        .from('blog_posts')
+        .insert({ title, slug, description, content, tags, published_at })
+
+    if (error) {
+        console.error('Error adding blog post:', error)
+        return { success: false, error: error.message }
+    }
+
+    revalidatePath('/')
+    revalidatePath('/admin/blog')
+    return { success: true }
+}
+
+export async function updateBlogPost(formData: FormData) {
+    if (!(await isAuthenticated())) {
+        return { success: false, error: 'Unauthorized' }
+    }
+
+    const supabase = await createClient()
+    const id = formData.get('id') as string
+    const title = formData.get('title') as string
+    const slug = formData.get('slug') as string
+    const description = formData.get('description') as string
+    const content = formData.get('content') as string
+    const tags = (formData.get('tags') as string).split(',').map(t => t.trim()).filter(Boolean)
+    const published_at = formData.get('published_at') as string
+
+    const { error } = await supabase
+        .from('blog_posts')
+        .update({ title, slug, description, content, tags, published_at, updated_at: new Date().toISOString() })
+        .eq('id', id)
+
+    if (error) {
+        console.error('Error updating blog post:', error)
+        return { success: false, error: error.message }
+    }
+
+    revalidatePath('/')
+    revalidatePath('/admin/blog')
+    return { success: true }
+}
+
+export async function deleteBlogPost(id: string) {
+    if (!(await isAuthenticated())) {
+        return { success: false, error: 'Unauthorized' }
+    }
+
+    const supabase = await createClient()
+    const { error } = await supabase
+        .from('blog_posts')
+        .delete()
+        .eq('id', id)
+
+    if (error) {
+        console.error('Error deleting blog post:', error)
+        return { success: false, error: error.message }
+    }
+
+    revalidatePath('/')
+    revalidatePath('/admin/blog')
     return { success: true }
 }
 
