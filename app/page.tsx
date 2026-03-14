@@ -1,13 +1,16 @@
-import { getProjects } from '@/app/actions';
+import { getProjects, getBlogPosts } from '@/app/actions';
 import HomeClient from '@/components/HomeClient';
 
 export default async function Home() {
-  // Fetch real data from Supabase
-  const projects = await getProjects();
+  const [projects, blogPosts] = await Promise.all([
+    getProjects(),
+    getBlogPosts(),
+  ]);
 
   return (
     <HomeClient
       initialProjects={projects}
+      initialBlogPosts={blogPosts}
     />
   );
 }
