@@ -5,14 +5,16 @@ import Navbar from '@/components/Navbar';
 import Hero from '@/components/Hero';
 import TechStack from '@/components/TechStack';
 import Projects from '@/components/Projects';
+import Blog from '@/components/Blog';
 import Footer from '@/components/Footer';
-import { Project } from '@/types/database.types';
+import { Project, BlogPost } from '@/types/database.types';
 
 interface HomeClientProps {
     initialProjects: Project[];
+    initialBlogPosts: BlogPost[];
 }
 
-export default function HomeClient({ initialProjects }: HomeClientProps) {
+export default function HomeClient({ initialProjects, initialBlogPosts }: HomeClientProps) {
     const [projects, setProjects] = useState(initialProjects);
 
     // Sync state with server data when it changes
@@ -24,7 +26,7 @@ export default function HomeClient({ initialProjects }: HomeClientProps) {
 
     // Track Page View
     useEffect(() => {
-        // Simple distinct check could be added here (sessionStorage), 
+        // Simple distinct check could be added here (sessionStorage),
         // but for now we just count every load as a view.
         import('@/app/actions').then(actions => {
             actions.incrementView();
@@ -73,6 +75,7 @@ export default function HomeClient({ initialProjects }: HomeClientProps) {
             <Hero />
             <TechStack techStats={techStats} totalProjects={projects.length} />
             <Projects projects={projects} />
+            <Blog posts={initialBlogPosts} />
             <Footer />
         </main>
     );
