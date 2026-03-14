@@ -39,12 +39,6 @@ export default async function AdminLayout({
                     >
                         <i className="fa-solid fa-folder-plus w-6 text-center"></i> Manage Projects
                     </Link>
-                    <Link
-                        href="/admin/blog"
-                        className="block px-4 py-3 rounded-lg hover:bg-stone-800 text-stone-400 hover:text-stone-200 transition-colors font-medium text-sm"
-                    >
-                        <i className="fa-solid fa-pen-nib w-6 text-center"></i> Manage Blog
-                    </Link>
                 </nav>
 
                 <div className="p-4 border-t border-stone-800">
