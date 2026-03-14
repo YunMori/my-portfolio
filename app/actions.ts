@@ -2,7 +2,7 @@
 
 import { createClient } from '@/utils/supabase/server'
 import { revalidatePath } from 'next/cache'
-import { Project, Profile, BlogPost } from '@/types/database.types'
+import { Project, Profile } from '@/types/database.types'
 
 // --- Analytics Actions ---
 
@@ -150,114 +150,6 @@ export async function deleteProject(id: string) {
 
     revalidatePath('/')
     revalidatePath('/admin/projects')
-    return { success: true }
-}
-
-// --- Blog Actions ---
-
-export async function getBlogPosts() {
-    const supabase = await createClient()
-    const { data, error } = await supabase
-        .from('blog_posts')
-        .select('*')
-        .order('published_at', { ascending: false })
-
-    if (error) {
-        console.error('Error fetching blog posts:', error)
-        return []
-    }
-    return data as BlogPost[]
-}
-
-export async function getBlogPost(slug: string) {
-    const supabase = await createClient()
-    const { data, error } = await supabase
-        .from('blog_posts')
-        .select('*')
-        .eq('slug', slug)
-        .single()
-
-    if (error) {
-        console.error('Error fetching blog post:', error)
-        return null
-    }
-    return data as BlogPost
-}
-
-export async function addBlogPost(formData: FormData) {
-    if (!(await isAuthenticated())) {
-        return { success: false, error: 'Unauthorized' }
-    }
-
-    const supabase = await createClient()
-    const title = formData.get('title') as string
-    const slug = formData.get('slug') as string
-    const description = formData.get('description') as string
-    const content = formData.get('content') as string
-    const tags = (formData.get('tags') as string).split(',').map(t => t.trim()).filter(Boolean)
-    const published_at = formData.get('published_at') as string || new Date().toISOString()
-
-    const { error } = await supabase
-        .from('blog_posts')
-        .insert({ title, slug, description, content, tags, published_at })
-
-    if (error) {
-        console.error('Error adding blog post:', error)
-        return { success: false, error: error.message }
-    }
-
-    revalidatePath('/')
-    revalidatePath('/admin/blog')
-    return { success: true }
-}
-
-export async function updateBlogPost(formData: FormData) {
-    if (!(await isAuthenticated())) {
-        return { success: false, error: 'Unauthorized' }
-    }
-
-    const supabase = await createClient()
-    const id = formData.get('id') as string
-    const title = formData.get('title') as string
-    const slug = formData.get('slug') as string
-    const description = formData.get('description') as string
-    const content = formData.get('content') as string
-    const tags = (formData.get('tags') as string).split(',').map(t => t.trim()).filter(Boolean)
-    const published_at = formData.get('published_at') as string
-
-    const { error } = await supabase
-        .from('blog_posts')
-        .update({ title, slug, description, content, tags, published_at, updated_at: new Date().toISOString() })
-        .eq('id', id)
-
-    if (error) {
-        console.error('Error updating blog post:', error)
-        return { success: false, error: error.message }
-    }
-
-    revalidatePath('/')
-    revalidatePath('/admin/blog')
-    return { success: true }
-}
-
-export async function deleteBlogPost(id: string) {
-    if (!(await isAuthenticated())) {
-        return { success: false, error: 'Unauthorized' }
-    }
-
-    const supabase = await createClient()
-    const { error } = await supabase
-        .from('blog_posts')
-        .delete()
-        .eq('id', id)
-
-    if (error) {
-        console.error('Error deleting blog post:', error)
-        return { success: false, error: error.message }
-    }
-
-    revalidatePath('/')
-    revalidatePath('/admin/blog')
     return { success: true }
 }
 

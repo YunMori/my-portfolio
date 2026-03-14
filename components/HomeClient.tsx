@@ -5,16 +5,14 @@ import Navbar from '@/components/Navbar';
 import Hero from '@/components/Hero';
 import TechStack from '@/components/TechStack';
 import Projects from '@/components/Projects';
-import Blog from '@/components/Blog';
 import Footer from '@/components/Footer';
-import { Project, BlogPost } from '@/types/database.types';
+import { Project } from '@/types/database.types';
 
 interface HomeClientProps {
     initialProjects: Project[];
-    initialBlogPosts: BlogPost[];
 }
 
-export default function HomeClient({ initialProjects, initialBlogPosts }: HomeClientProps) {
+export default function HomeClient({ initialProjects }: HomeClientProps) {
     const [projects, setProjects] = useState(initialProjects);
 
     // Sync state with server data when it changes
@@ -78,7 +76,6 @@ export default function HomeClient({ initialProjects, initialBlogPosts }: HomeCl
             <Hero />
             <TechStack techStats={techStats} totalProjects={projects.length} />
             <Projects projects={projects} />
-            <Blog posts={initialBlogPosts} />
             <Footer />
         </main>
     );
