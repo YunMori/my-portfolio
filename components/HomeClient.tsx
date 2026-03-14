@@ -47,6 +47,8 @@ export default function HomeClient({ initialProjects, initialBlogPosts }: HomeCl
     }, [projects]);
 
     // --- 스크롤 애니메이션 (Intersection Observer) ---
+    // Projects 섹션 외 다른 fade-in-section 요소들 (Hero, TechStack 등) 처리
+    // Projects 카드의 필터 연동 Observer는 Projects.tsx 내부에서 별도 관리
     useEffect(() => {
         const observer = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
@@ -58,8 +60,9 @@ export default function HomeClient({ initialProjects, initialBlogPosts }: HomeCl
         }, { threshold: 0.1 });
 
         const timeoutId = setTimeout(() => {
-            const fadeElems = document.querySelectorAll('.fade-in-section');
-            fadeElems.forEach(el => observer.observe(el));
+            // #projects 외부의 fade-in-section 요소만 여기서 처리
+            document.querySelectorAll('.fade-in-section:not(#projects .fade-in-section)')
+                .forEach(el => observer.observe(el));
         }, 100);
 
         return () => {
