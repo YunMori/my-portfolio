@@ -1,7 +1,7 @@
 'use client'
 
 import { Project } from '@/types/database.types';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
 import rehypeSanitize from 'rehype-sanitize';
 import { useLanguage } from '@/context/LanguageContext';
@@ -16,6 +16,9 @@ export default function Projects({ projects }: ProjectsProps) {
     const [readmeContent, setReadmeContent] = useState<string | null>(null);
     const [isLoadingReadme, setIsLoadingReadme] = useState(false);
     const [activeFilter, setActiveFilter] = useState<string>('__all__');
+    // 한 번 이상 뷰포트에 진입한 프로젝트 ID 기억 → 재등장 시 즉시 표시
+    const visibleIds = useRef(new Set<string>());
+    const [, forceUpdate] = useState(0);
 
     const ALL_KEY = '__all__';
     const allTechs = [ALL_KEY, ...Array.from(new Set(projects.flatMap(p => p.stack))).sort()];
@@ -23,6 +26,7 @@ export default function Projects({ projects }: ProjectsProps) {
         ? projects
         : projects.filter(p => p.stack.includes(activeFilter));
 
+    // ESC 키로 모달 닫기
     useEffect(() => {
         const handleEsc = (e: KeyboardEvent) => {
             if (e.key === 'Escape') setSelectedProject(null);
@@ -30,6 +34,35 @@ export default function Projects({ projects }: ProjectsProps) {
         if (selectedProject) document.addEventListener('keydown', handleEsc);
         return () => document.removeEventListener('keydown', handleEsc);
     }, [selectedProject]);
+
+    // 필터 변경 시 새 카드에 Observer 등록
+    // 핵심: JS classList 조작 대신 visibleIds Set + forceUpdate로 React가 직접 opacity 제어
+    // → 필터 전환 후 재등장하는 카드도 transitionDelay 없이 즉시 표시됨
+    useEffect(() => {
+        const observer = new IntersectionObserver((entries) => {
+            let changed = false;
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const id = (entry.target as HTMLElement).dataset.projectId;
+                    if (id && !visibleIds.current.has(id)) {
+                        visibleIds.current.add(id);
+                        changed = true;
+                    }
+                }
+            });
+            if (changed) forceUpdate(n => n + 1);
+        }, { threshold: 0.1 });
+
+        const timeoutId = setTimeout(() => {
+            document.querySelectorAll('#projects [data-project-id]')
+                .forEach(el => observer.observe(el));
+        }, 50);
+
+        return () => {
+            observer.disconnect();
+            clearTimeout(timeoutId);
+        };
+    }, [activeFilter]);
 
     useEffect(() => {
         if (selectedProject) {
@@ -112,11 +145,14 @@ export default function Projects({ projects }: ProjectsProps) {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                    {filteredProjects.map((p, index) => (
+                    {filteredProjects.map((p, index) => {
+                        const isVisible = visibleIds.current.has(p.id);
+                        return (
                         <div
                             key={p.id}
-                            className="group rounded-2xl overflow-hidden bg-surface border border-highlight hover:border-khaki-500 transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl cursor-pointer fade-in-section opacity-0 translate-y-5 flex flex-col h-full"
-                            style={{ transitionDelay: `${index * 100}ms` }}
+                            data-project-id={p.id}
+                            className={`group rounded-2xl overflow-hidden bg-surface border border-highlight hover:border-khaki-500 transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl cursor-pointer flex flex-col h-full ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-5'}`}
+                            style={{ transitionDelay: isVisible ? '0ms' : `${index * 100}ms` }}
                             onClick={() => setSelectedProject(p)}
                         >
                             <div className="h-52 bg-[#151412] relative flex items-center justify-center border-b border-stone-800 shrink-0">
@@ -155,7 +191,8 @@ export default function Projects({ projects }: ProjectsProps) {
                                 </div>
                             </div>
                         </div>
-                    ))}
+                        );
+                    })}
                 </div>
             </div>
 
