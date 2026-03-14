@@ -29,10 +29,14 @@ describe('Projects', () => {
         expect(screen.getByText('My Project')).toBeInTheDocument();
     });
 
-    it('renders filter buttons', () => {
+    it('renders filter buttons for each tech', () => {
         render(<Projects projects={mockProjects} />);
-        expect(screen.getByText('React')).toBeInTheDocument();
-        expect(screen.getByText('TypeScript')).toBeInTheDocument();
+        // Filter buttons appear alongside the tech badge spans on the card,
+        // so there may be multiple elements with the same text — use getAllByText.
+        const reactElements = screen.getAllByText('React');
+        expect(reactElements.length).toBeGreaterThan(0);
+        const tsElements = screen.getAllByText('TypeScript');
+        expect(tsElements.length).toBeGreaterThan(0);
     });
 
     it('opens modal on card click', () => {
