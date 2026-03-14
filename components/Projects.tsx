@@ -3,6 +3,7 @@
 import { Project } from '@/types/database.types';
 import { useState, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
+import rehypeSanitize from 'rehype-sanitize';
 import { useLanguage } from '@/context/LanguageContext';
 
 interface ProjectsProps {
@@ -172,7 +173,7 @@ export default function Projects({ projects }: ProjectsProps) {
                                     <div className="h-4 bg-stone-800 rounded w-5/6"></div>
                                 </div>
                             ) : readmeContent ? (
-                                <ReactMarkdown>{readmeContent}</ReactMarkdown>
+                                <ReactMarkdown rehypePlugins={[rehypeSanitize]}>{readmeContent}</ReactMarkdown>
                             ) : (
                                 <p className="text-stone-500 italic">{t('projects.noContent')}</p>
                             )}

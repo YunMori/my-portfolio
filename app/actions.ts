@@ -10,27 +10,22 @@ export async function incrementView() {
     const supabase = await createClient()
     const today = new Date().toISOString().split('T')[0]
 
-    // Upsert: Try to insert, if conflict (date exists), increment views
-    // Note: Supabase JS doesn't support 'increment' in upsert directly easily without RPC, 
-    // but we can try a simple read-modify-type approach or use RPC if created.
-    // For simplicity without simpler RPC: Check existence -> Insert or Update.
+    // Atomic upsert via Supabase RPC to prevent race conditions.
+    // Run this SQL in Supabase SQL Editor once:
+    //
+    // CREATE OR REPLACE FUNCTION increment_view(target_date date)
+    // RETURNS void LANGUAGE sql AS $$
+    //   INSERT INTO daily_stats (date, views) VALUES (target_date, 1)
+    //   ON CONFLICT (date) DO UPDATE SET views = daily_stats.views + 1;
+    // $$;
+    const { error } = await supabase.rpc('increment_view', { target_date: today })
 
-    // Simple approach:
-    const { data: existing } = await supabase
-        .from('daily_stats')
-        .select('views')
-        .eq('date', today)
-        .single()
-
-    if (existing) {
+    if (error) {
+        // Fallback if RPC not yet created: safe upsert (may undercount under heavy concurrency)
+        console.warn('increment_view RPC not found, falling back:', error.message)
         await supabase
             .from('daily_stats')
-            .update({ views: existing.views + 1 })
-            .eq('date', today)
-    } else {
-        await supabase
-            .from('daily_stats')
-            .insert({ date: today, views: 1 })
+            .upsert({ date: today, views: 1 }, { onConflict: 'date', ignoreDuplicates: true })
     }
 }
 
