@@ -1,9 +1,8 @@
 import { MetadataRoute } from 'next';
+import { getBaseUrl } from '@/utils/url';
 
 export default function sitemap(): MetadataRoute.Sitemap {
-    const baseUrl = process.env.NEXT_PUBLIC_VERCEL_URL
-        ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}`
-        : 'http://localhost:3000';
+    const baseUrl = getBaseUrl();
 
     return [
         {
