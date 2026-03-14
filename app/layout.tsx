@@ -4,6 +4,7 @@ import { Gowun_Dodum, Space_Grotesk } from "next/font/google";
 import { Toaster } from "sonner";
 import "./globals.css";
 import { Providers } from "@/components/Providers";
+import { getBaseUrl } from "@/utils/url";
 
 const gowunDodum = Gowun_Dodum({
   subsets: ["latin"],
@@ -17,9 +18,7 @@ const spaceGrotesk = Space_Grotesk({
   variable: "--font-space-grotesk",
 });
 
-const baseUrl = process.env.NEXT_PUBLIC_VERCEL_URL
-  ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}`
-  : 'http://localhost:3000';
+const baseUrl = getBaseUrl();
 
 export const metadata: Metadata = {
   metadataBase: new URL(baseUrl),
@@ -58,6 +57,16 @@ export const metadata: Metadata = {
   }
 };
 
+const personJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Person',
+  name: 'Yun Jong Seo',
+  jobTitle: 'Full Stack Developer',
+  url: baseUrl,
+  sameAs: [],
+  knowsAbout: ['Next.js', 'React', 'TypeScript', 'Supabase', 'Node.js'],
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -70,6 +79,10 @@ export default function RootLayout({
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
         {/* Devicon CDN for tech stack icons not in FontAwesome */}
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/devicon.min.css" />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(personJsonLd) }}
+        />
       </head>
       <body
         className={`${gowunDodum.variable} ${spaceGrotesk.variable} antialiased bg-main text-stone-200`}

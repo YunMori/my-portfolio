@@ -5,14 +5,16 @@ import Navbar from '@/components/Navbar';
 import Hero from '@/components/Hero';
 import TechStack from '@/components/TechStack';
 import Projects from '@/components/Projects';
+import Blog from '@/components/Blog';
 import Footer from '@/components/Footer';
-import { Project } from '@/types/database.types';
+import { Project, BlogPost } from '@/types/database.types';
 
 interface HomeClientProps {
     initialProjects: Project[];
+    initialBlogPosts: BlogPost[];
 }
 
-export default function HomeClient({ initialProjects }: HomeClientProps) {
+export default function HomeClient({ initialProjects, initialBlogPosts }: HomeClientProps) {
     const [projects, setProjects] = useState(initialProjects);
 
     // Sync state with server data when it changes
@@ -24,7 +26,7 @@ export default function HomeClient({ initialProjects }: HomeClientProps) {
 
     // Track Page View
     useEffect(() => {
-        // Simple distinct check could be added here (sessionStorage), 
+        // Simple distinct check could be added here (sessionStorage),
         // but for now we just count every load as a view.
         import('@/app/actions').then(actions => {
             actions.incrementView();
@@ -45,6 +47,8 @@ export default function HomeClient({ initialProjects }: HomeClientProps) {
     }, [projects]);
 
     // --- 스크롤 애니메이션 (Intersection Observer) ---
+    // Projects 섹션 외 다른 fade-in-section 요소들 (Hero, TechStack 등) 처리
+    // Projects 카드의 필터 연동 Observer는 Projects.tsx 내부에서 별도 관리
     useEffect(() => {
         const observer = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
@@ -56,8 +60,9 @@ export default function HomeClient({ initialProjects }: HomeClientProps) {
         }, { threshold: 0.1 });
 
         const timeoutId = setTimeout(() => {
-            const fadeElems = document.querySelectorAll('.fade-in-section');
-            fadeElems.forEach(el => observer.observe(el));
+            // #projects 외부의 fade-in-section 요소만 여기서 처리
+            document.querySelectorAll('.fade-in-section:not(#projects .fade-in-section)')
+                .forEach(el => observer.observe(el));
         }, 100);
 
         return () => {
@@ -73,6 +78,7 @@ export default function HomeClient({ initialProjects }: HomeClientProps) {
             <Hero />
             <TechStack techStats={techStats} totalProjects={projects.length} />
             <Projects projects={projects} />
+            <Blog posts={initialBlogPosts} />
             <Footer />
         </main>
     );
