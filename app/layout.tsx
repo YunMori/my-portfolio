@@ -4,6 +4,7 @@ import { Gowun_Dodum, Space_Grotesk } from "next/font/google";
 import { Toaster } from "sonner";
 import "./globals.css";
 import { Providers } from "@/components/Providers";
+import { getBaseUrl } from "@/utils/url";
 
 const gowunDodum = Gowun_Dodum({
   subsets: ["latin"],
@@ -17,9 +18,7 @@ const spaceGrotesk = Space_Grotesk({
   variable: "--font-space-grotesk",
 });
 
-const baseUrl = process.env.NEXT_PUBLIC_VERCEL_URL
-  ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}`
-  : 'http://localhost:3000';
+const baseUrl = getBaseUrl();
 
 export const metadata: Metadata = {
   metadataBase: new URL(baseUrl),
