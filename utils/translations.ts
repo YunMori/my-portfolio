@@ -43,7 +43,7 @@ export const translations = {
             admin: '관리자'
         },
         hero: {
-            greeting: 'Hello, I am',
+            greeting: '안녕하세요,',
             basedIn: '서울에서 활동하고 있습니다.',
             resume: '이력서 보기',
             contact: '연락하기'
@@ -61,7 +61,7 @@ export const translations = {
             noContent: '이 프로젝트에 대한 상세 내용이 아직 없습니다.'
         },
         footer: {
-            rights: 'All rights reserved.',
+            rights: '모든 권리 보유.',
             backToTop: '맨 위로'
         }
     }
