@@ -15,6 +15,13 @@ export default function Projects({ projects }: ProjectsProps) {
     const [selectedProject, setSelectedProject] = useState<Project | null>(null);
     const [readmeContent, setReadmeContent] = useState<string | null>(null);
     const [isLoadingReadme, setIsLoadingReadme] = useState(false);
+    const [activeFilter, setActiveFilter] = useState<string>('__all__');
+
+    const ALL_KEY = '__all__';
+    const allTechs = [ALL_KEY, ...Array.from(new Set(projects.flatMap(p => p.stack))).sort()];
+    const filteredProjects = activeFilter === ALL_KEY
+        ? projects
+        : projects.filter(p => p.stack.includes(activeFilter));
 
     useEffect(() => {
         const handleEsc = (e: KeyboardEvent) => {
@@ -87,8 +94,25 @@ export default function Projects({ projects }: ProjectsProps) {
                     </h2>
                 </div>
 
+                {/* Filter Buttons */}
+                <div className="flex flex-wrap gap-2 mb-12">
+                    {allTechs.map(tech => (
+                        <button
+                            key={tech}
+                            onClick={() => setActiveFilter(tech)}
+                            className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all duration-200 border ${
+                                activeFilter === tech
+                                    ? 'bg-khaki-500 text-black border-khaki-500'
+                                    : 'bg-transparent text-stone-400 border-stone-700 hover:border-khaki-500 hover:text-khaki-400'
+                            }`}
+                        >
+                            {tech === ALL_KEY ? t('projects.filterAll') : tech}
+                        </button>
+                    ))}
+                </div>
+
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                    {projects.map((p, index) => (
+                    {filteredProjects.map((p, index) => (
                         <div
                             key={p.id}
                             className="group rounded-2xl overflow-hidden bg-surface border border-highlight hover:border-khaki-500 transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl cursor-pointer fade-in-section opacity-0 translate-y-5 flex flex-col h-full"

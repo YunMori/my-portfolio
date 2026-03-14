@@ -30,6 +30,7 @@ export default function Navbar() {
           <a href="#about" className="hover:text-khaki-400 transition-colors">{t('nav.about')}</a>
           <a href="#skills" className="hover:text-khaki-400 transition-colors">{t('nav.skills')}</a>
           <a href="#projects" className="hover:text-khaki-400 transition-colors">{t('nav.projects')}</a>
+          <a href="#blog" className="hover:text-khaki-400 transition-colors">{t('nav.blog')}</a>
           <a href="#contact" className="px-6 py-2 bg-khaki-500 text-black font-bold text-xs uppercase tracking-wider rounded-full hover:bg-khaki-400 transition-colors shadow-lg shadow-khaki-900/50">{t('nav.contact')}</a>
           <button
             onClick={toggleLanguage}
@@ -66,6 +67,7 @@ export default function Navbar() {
           <a href="#about" onClick={handleNavClick} className="hover:text-khaki-400 transition-colors py-2">{t('nav.about')}</a>
           <a href="#skills" onClick={handleNavClick} className="hover:text-khaki-400 transition-colors py-2">{t('nav.skills')}</a>
           <a href="#projects" onClick={handleNavClick} className="hover:text-khaki-400 transition-colors py-2">{t('nav.projects')}</a>
+          <a href="#blog" onClick={handleNavClick} className="hover:text-khaki-400 transition-colors py-2">{t('nav.blog')}</a>
           <a href="#contact" onClick={handleNavClick} className="w-full text-center px-6 py-3 bg-khaki-500 text-black font-bold text-xs uppercase tracking-wider rounded-full hover:bg-khaki-400 transition-colors">{t('nav.contact')}</a>
         </div>
       )}
