@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 // 구글 폰트 최적화 로드
-import { Gowun_Dodum, Space_Grotesk } from "next/font/google";
+import { Gowun_Dodum, Syne } from "next/font/google";
 import { Toaster } from "sonner";
 import "./globals.css";
 import { Providers } from "@/components/Providers";
@@ -12,10 +12,10 @@ const gowunDodum = Gowun_Dodum({
   variable: "--font-gowun-dodum",
 });
 
-const spaceGrotesk = Space_Grotesk({
+const syne = Syne({
   subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700"],
-  variable: "--font-space-grotesk",
+  weight: ["400", "500", "600", "700", "800"],
+  variable: "--font-syne",
 });
 
 const baseUrl = getBaseUrl();
@@ -85,7 +85,7 @@ export default function RootLayout({
         />
       </head>
       <body
-        className={`${gowunDodum.variable} ${spaceGrotesk.variable} antialiased bg-main text-stone-200`}
+        className={`${gowunDodum.variable} ${syne.variable} antialiased bg-main text-stone-200 grain`}
       >
         <Providers>
           {children}
