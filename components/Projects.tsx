@@ -120,9 +120,10 @@ export default function Projects({ projects }: ProjectsProps) {
     return (
         <section id="projects" className="py-24 bg-main relative">
             <div className="max-w-7xl mx-auto px-6">
-                <div className="mb-20 space-y-4 text-center md:text-left">
-                    <span className="text-khaki-500 font-bold tracking-widest text-xs uppercase">{t('projects.header')}</span>
-                    <h2 className="text-4xl md:text-5xl font-display font-bold text-stone-100">
+                <div className="relative mb-20 space-y-4 text-center md:text-left">
+                    <span className="absolute -top-4 -left-2 text-8xl font-display font-bold text-stone-800/20 select-none hidden md:block">02</span>
+                    <span className="text-green-500 font-bold tracking-widest text-xs uppercase md:pl-16">{t('projects.header')}</span>
+                    <h2 className="text-4xl md:text-5xl font-display font-bold text-stone-100 md:pl-16">
                         {t('projects.title')}
                     </h2>
                 </div>
@@ -135,8 +136,8 @@ export default function Projects({ projects }: ProjectsProps) {
                             onClick={() => setActiveFilter(tech)}
                             className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all duration-200 border ${
                                 activeFilter === tech
-                                    ? 'bg-khaki-500 text-black border-khaki-500'
-                                    : 'bg-transparent text-stone-400 border-stone-700 hover:border-khaki-500 hover:text-khaki-400'
+                                    ? 'bg-green-500 text-black border-green-500'
+                                    : 'bg-transparent text-stone-400 border-stone-700 hover:border-green-500 hover:text-green-400'
                             }`}
                         >
                             {tech === ALL_KEY ? t('projects.filterAll') : tech}
@@ -151,13 +152,13 @@ export default function Projects({ projects }: ProjectsProps) {
                         <div
                             key={p.id}
                             data-project-id={p.id}
-                            className={`group rounded-2xl overflow-hidden bg-surface border border-highlight hover:border-khaki-500 transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl cursor-pointer flex flex-col h-full ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-5'}`}
-                            style={{ transitionDelay: isVisible ? '0ms' : `${index * 100}ms` }}
+                            className={`card-glow group rounded-2xl overflow-visible bg-surface border border-highlight hover:border-green-500 transition-all duration-500 hover:-translate-y-2 hover:shadow-[0_0_30px_rgba(74,124,89,0.15)] cursor-pointer flex flex-col h-full ${isVisible ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-10 scale-[0.95]'}`}
+                            style={{ transitionDelay: isVisible ? '0ms' : `${index * 150}ms` }}
                             onClick={() => setSelectedProject(p)}
                         >
                             <div className="h-52 bg-[#151412] relative flex items-center justify-center border-b border-stone-800 shrink-0">
                                 {/* Image Placeholder or Actual Image */}
-                                <div className="w-20 h-20 rounded-full bg-stone-800 flex items-center justify-center text-stone-600 group-hover:text-khaki-500 group-hover:scale-110 transition-all duration-500">
+                                <div className="w-20 h-20 rounded-full bg-stone-800 flex items-center justify-center text-stone-600 group-hover:text-green-500 group-hover:scale-[1.3] group-hover:rotate-12 transition-all duration-500">
                                     <i className="fa-solid fa-code text-3xl"></i>
                                 </div>
                                 <div className="absolute top-4 right-4 flex gap-2">
@@ -171,7 +172,7 @@ export default function Projects({ projects }: ProjectsProps) {
 
                             <div className="p-8 flex flex-col flex-grow">
                                 <div className="flex justify-between items-start mb-4">
-                                    <h3 className="text-xl font-bold text-stone-200 group-hover:text-khaki-500 transition-colors">
+                                    <h3 className="text-xl font-bold text-stone-200 group-hover:text-green-500 transition-colors">
                                         {p.title}
                                     </h3>
                                     <span className="text-xs font-mono text-stone-500">{p.date}</span>
@@ -180,8 +181,8 @@ export default function Projects({ projects }: ProjectsProps) {
                                     {p.description}
                                 </p>
                                 <div className="flex items-center gap-2 mt-auto">
-                                    <button className="text-xs font-bold text-stone-300 hover:text-white flex items-center gap-2 group-hover:gap-3 transition-all">
-                                        {t('projects.viewCase')} <i className="fa-solid fa-arrow-right text-khaki-500"></i>
+                                    <button className="text-xs font-bold text-stone-300 hover:text-white flex items-center gap-2 transition-all">
+                                        {t('projects.viewCase')} <i className="fa-solid fa-arrow-right text-green-500 group-hover:translate-x-1 transition-transform"></i>
                                     </button>
                                     {p.github_link && (
                                         <a href={p.github_link} target="_blank" rel="noopener noreferrer" className="ml-auto text-stone-500 hover:text-white" onClick={(e) => e.stopPropagation()}>
@@ -209,7 +210,7 @@ export default function Projects({ projects }: ProjectsProps) {
                         </button>
 
                         <div className="mb-8">
-                            <span className="text-khaki-500 text-xs font-bold tracking-widest uppercase mb-2 block">{selectedProject.date}</span>
+                            <span className="text-green-500 text-xs font-bold tracking-widest uppercase mb-2 block">{selectedProject.date}</span>
                             <h2 id="modal-title" className="text-3xl md:text-4xl font-display font-bold text-white mb-6">{selectedProject.title}</h2>
                             <div className="flex flex-wrap gap-2 mb-8">
                                 {selectedProject.stack.map(tech => (

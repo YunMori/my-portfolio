@@ -28,16 +28,19 @@ const techIcons: { [key: string]: string } = {
 
 export default function TechStack({ techStats, totalProjects }: TechStackProps) {
     return (
-        <section id="skills" className="py-20 bg-[#0f0f0c] border-y border-stone-900 relative">
-            <div className="absolute inset-0 opacity-5" style={{ backgroundImage: 'radial-gradient(#a3a948 1px, transparent 1px)', backgroundSize: '30px 30px' }}></div>
+        <section id="skills" className="py-20 bg-[#0f0d0a] relative">
+            <div className="absolute inset-0 opacity-5" style={{
+                backgroundImage: `radial-gradient(#4a7c59 0.5px, transparent 0.5px), linear-gradient(45deg, transparent 49.5%, rgba(74,124,89,0.03) 49.5%, rgba(74,124,89,0.03) 50.5%, transparent 50.5%)`,
+                backgroundSize: '30px 30px, 60px 60px'
+            }}></div>
 
             <div className="max-w-7xl mx-auto px-6 relative z-10">
-                <div className="flex flex-col md:flex-row items-center md:items-start gap-6 md:gap-12 mb-12 border-b border-stone-900 pb-6 fade-in-section opacity-0 translate-y-5 transition-all duration-700">
-                    <div className="text-center md:text-left">
-                        <h3 className="text-khaki-500 text-xs font-bold uppercase tracking-widest mb-2">Live Tech Stats</h3>
+                <div className="relative flex flex-col md:flex-row items-center md:items-start gap-6 md:gap-12 mb-12 border-b border-stone-900 pb-6 fade-in-section opacity-0 translate-y-5 transition-all duration-700">
+                    <span className="absolute -top-4 -left-2 text-8xl font-display font-bold text-stone-800/20 select-none hidden md:block">01</span>
+                    <div className="text-center md:text-left md:pl-16">
+                        <h3 className="text-green-500 text-xs font-bold uppercase tracking-widest mb-2">Live Tech Stats</h3>
                         <h2 className="text-4xl md:text-5xl font-display font-bold text-stone-100">Most Used Tech</h2>
                     </div>
-
                 </div>
 
                 <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
@@ -49,16 +52,16 @@ export default function TechStack({ techStats, totalProjects }: TechStackProps) 
                         let glow = "";
 
                         if (index === 0) {
-                            rankClass = "bg-gradient-to-br from-surface to-[#2a2a20] border-khaki-500";
-                            countColor = "text-black bg-khaki-500";
-                            iconColor = "text-khaki-400";
-                            glow = "shadow-[0_0_15px_rgba(163,169,72,0.1)]";
+                            rankClass = "bg-gradient-to-br from-surface to-[#2a2a20] border-green-500";
+                            countColor = "text-black bg-green-500";
+                            iconColor = "text-green-400";
+                            glow = "shadow-[0_0_15px_rgba(74,124,89,0.1)]";
                         } else if (index === 1) {
                             rankClass = "border-brown-500 bg-surface";
                         }
 
                         return (
-                            <div key={item.name} className={`p-5 rounded-2xl flex flex-col items-center justify-center text-center relative group border transition-all duration-300 hover:-translate-y-1 hover:border-khaki-500 hover:shadow-xl ${rankClass} ${glow}`}>
+                            <div key={item.name} className={`p-5 rounded-2xl flex flex-col items-center justify-center text-center relative group border transition-all duration-300 hover:-translate-y-1 hover:border-green-500 hover:shadow-xl ${rankClass} ${glow}`}>
                                 <div className={`text-3xl mb-3 transition-colors ${iconColor}`}>
                                     <i className={iconClass}></i>
                                 </div>
@@ -67,7 +70,7 @@ export default function TechStack({ techStats, totalProjects }: TechStackProps) 
                                 {/* Progress Bar */}
                                 <div className="w-full h-1 bg-stone-800 mt-1 rounded-full overflow-hidden">
                                     <div
-                                        className="h-full bg-khaki-600 transition-all duration-1000"
+                                        className="h-full bg-green-600 transition-all duration-1000"
                                         style={{ width: `${Math.round((item.count / totalProjects) * 100)}%` }}
                                     ></div>
                                 </div>

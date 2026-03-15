@@ -25,11 +25,11 @@ export default function VisitorChart() {
                 <div key={d.date} className="flex-1 flex flex-col items-center gap-2 group relative">
                     {/* Tooltip */}
                     <div className="opacity-0 group-hover:opacity-100 absolute -top-8 bg-stone-800 text-xs px-2 py-1 rounded border border-stone-700 transition-opacity whitespace-nowrap z-10">
-                        {d.date}: <span className="text-khaki-500 font-bold">{d.views}</span>
+                        {d.date}: <span className="text-green-500 font-bold">{d.views}</span>
                     </div>
                     {/* Bar */}
                     <div
-                        className="w-full bg-stone-800 hover:bg-khaki-500/50 transition-all rounded-t-sm relative group-hover:shadow-[0_0_10px_rgba(212,212,216,0.2)]"
+                        className="w-full bg-stone-800 hover:bg-green-500/50 transition-all rounded-t-sm relative group-hover:shadow-[0_0_10px_rgba(212,212,216,0.2)]"
                         style={{ height: `${(d.views / maxViews) * 100}%` }}
                     ></div>
                     {/* Label */}

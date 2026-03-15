@@ -208,7 +208,7 @@ export default function ProjectManager({ initialProjects }: ProjectManagerProps)
                                 placeholder="https://github.com/username/repo"
                                 value={formData.github_link}
                                 onChange={handleInputChange}
-                                className="w-full bg-stone-900 border border-stone-700 rounded p-2 text-stone-200 focus:border-khaki-500 outline-none"
+                                className="w-full bg-stone-900 border border-stone-700 rounded p-2 text-stone-200 focus:border-green-500 outline-none"
                             />
                             <button
                                 type="button"
@@ -231,7 +231,7 @@ export default function ProjectManager({ initialProjects }: ProjectManagerProps)
                                 required
                                 value={formData.title}
                                 onChange={handleInputChange}
-                                className="w-full bg-stone-900 border border-stone-700 rounded p-2 text-stone-200 focus:border-khaki-500 outline-none"
+                                className="w-full bg-stone-900 border border-stone-700 rounded p-2 text-stone-200 focus:border-green-500 outline-none"
                             />
                         </div>
                         <div className="flex gap-4">
@@ -243,7 +243,7 @@ export default function ProjectManager({ initialProjects }: ProjectManagerProps)
                                     placeholder="2025.01"
                                     value={formData.date}
                                     onChange={handleInputChange}
-                                    className="w-full bg-stone-900 border border-stone-700 rounded p-2 text-stone-200 focus:border-khaki-500 outline-none"
+                                    className="w-full bg-stone-900 border border-stone-700 rounded p-2 text-stone-200 focus:border-green-500 outline-none"
                                 />
                             </div>
                             <div className="flex-1">
@@ -254,7 +254,7 @@ export default function ProjectManager({ initialProjects }: ProjectManagerProps)
                                     placeholder="React, Node.js"
                                     value={formData.stack}
                                     onChange={handleInputChange}
-                                    className="w-full bg-stone-900 border border-stone-700 rounded p-2 text-stone-200 focus:border-khaki-500 outline-none"
+                                    className="w-full bg-stone-900 border border-stone-700 rounded p-2 text-stone-200 focus:border-green-500 outline-none"
                                 />
                             </div>
                         </div>
@@ -266,14 +266,14 @@ export default function ProjectManager({ initialProjects }: ProjectManagerProps)
                                 placeholder="# Project Details\n\nExplain your project methodology..."
                                 value={formData.content}
                                 onChange={handleInputChange}
-                                className="w-full bg-stone-900 border border-stone-700 rounded p-2 text-stone-200 focus:border-khaki-500 outline-none font-mono text-sm"
+                                className="w-full bg-stone-900 border border-stone-700 rounded p-2 text-stone-200 focus:border-green-500 outline-none font-mono text-sm"
                             ></textarea>
                         </div>
                     </div>
 
                     <button
                         type="submit"
-                        className={`w-full font-bold py-3 rounded transition-colors mt-2 ${editingId ? 'bg-khaki-600 hover:bg-khaki-500 text-black' : 'bg-stone-700 hover:bg-stone-600 text-white'}`}
+                        className={`w-full font-bold py-3 rounded transition-colors mt-2 ${editingId ? 'bg-green-600 hover:bg-green-500 text-black' : 'bg-stone-700 hover:bg-stone-600 text-white'}`}
                     >
                         {editingId ? 'Update Project' : 'Add Project'}
                     </button>
@@ -285,9 +285,9 @@ export default function ProjectManager({ initialProjects }: ProjectManagerProps)
                 <h2 className="text-xl font-bold mb-6 text-stone-400">Existing Projects ({projects.length})</h2>
                 <div className="space-y-4">
                     {projects.map((project) => (
-                        <div key={project.id} className={`p-4 rounded-lg border flex justify-between items-start transition-all ${editingId === project.id ? 'bg-khaki-500/10 border-khaki-500' : 'bg-stone-900 border-stone-800 hover:border-stone-600'}`}>
+                        <div key={project.id} className={`p-4 rounded-lg border flex justify-between items-start transition-all ${editingId === project.id ? 'bg-green-500/10 border-green-500' : 'bg-stone-900 border-stone-800 hover:border-stone-600'}`}>
                             <div>
-                                <h3 className={`font-bold ${editingId === project.id ? 'text-khaki-500' : 'text-stone-200'}`}>{project.title}</h3>
+                                <h3 className={`font-bold ${editingId === project.id ? 'text-green-500' : 'text-stone-200'}`}>{project.title}</h3>
                                 <p className="text-xs text-stone-500 mb-2">{project.date} | {project.stack?.join(', ')}</p>
                                 <p className="text-sm text-stone-400 line-clamp-2">{project.description}</p>
                             </div>

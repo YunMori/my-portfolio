@@ -6,6 +6,8 @@ import Hero from '@/components/Hero';
 import TechStack from '@/components/TechStack';
 import Projects from '@/components/Projects';
 import Footer from '@/components/Footer';
+import ScrollProgress from '@/components/ScrollProgress';
+import SocialProof from '@/components/SocialProof';
 import { Project } from '@/types/database.types';
 
 interface HomeClientProps {
@@ -15,7 +17,6 @@ interface HomeClientProps {
 export default function HomeClient({ initialProjects }: HomeClientProps) {
     const [projects, setProjects] = useState(initialProjects);
 
-    // Sync state with server data when it changes
     useEffect(() => {
         if (initialProjects.length > 0) {
             setProjects(initialProjects);
@@ -24,14 +25,11 @@ export default function HomeClient({ initialProjects }: HomeClientProps) {
 
     // Track Page View
     useEffect(() => {
-        // Simple distinct check could be added here (sessionStorage),
-        // but for now we just count every load as a view.
         import('@/app/actions').then(actions => {
             actions.incrementView();
         });
     }, []);
 
-    // --- 기술 스택 통계 계산 (useMemo로 최적화) ---
     const techStats = useMemo(() => {
         const stats: { [key: string]: number } = {};
         projects.forEach((p: any) => {
@@ -44,9 +42,7 @@ export default function HomeClient({ initialProjects }: HomeClientProps) {
             .sort((a, b) => b.count - a.count);
     }, [projects]);
 
-    // --- 스크롤 애니메이션 (Intersection Observer) ---
-    // Projects 섹션 외 다른 fade-in-section 요소들 (Hero, TechStack 등) 처리
-    // Projects 카드의 필터 연동 Observer는 Projects.tsx 내부에서 별도 관리
+    // Scroll animation (IntersectionObserver) for non-Projects sections
     useEffect(() => {
         const observer = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
@@ -58,7 +54,6 @@ export default function HomeClient({ initialProjects }: HomeClientProps) {
         }, { threshold: 0.1 });
 
         const timeoutId = setTimeout(() => {
-            // #projects 외부의 fade-in-section 요소만 여기서 처리
             document.querySelectorAll('.fade-in-section:not(#projects .fade-in-section)')
                 .forEach(el => observer.observe(el));
         }, 100);
@@ -70,12 +65,16 @@ export default function HomeClient({ initialProjects }: HomeClientProps) {
     }, [projects]);
 
     return (
-        <main className="min-h-screen selection:bg-khaki-900 selection:text-khaki-400 pb-0">
+        <main className="min-h-screen selection:bg-green-900 selection:text-green-400 pb-0">
+            <ScrollProgress />
             <Navbar />
-            {/* Hero Section (Hardcoded) */}
             <Hero />
+            <div className="section-divider" />
             <TechStack techStats={techStats} totalProjects={projects.length} />
+            <div className="section-divider" />
             <Projects projects={projects} />
+            <div className="section-divider" />
+            <SocialProof totalProjects={projects.length} totalTech={techStats.length} />
             <Footer />
         </main>
     );

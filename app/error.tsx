@@ -24,7 +24,7 @@ export default function Error({
             <p className="text-stone-500 mb-8 max-w-sm">We apologized for the inconvenience. Please try again later.</p>
             <button
                 onClick={() => reset()}
-                className="px-6 py-3 bg-khaki-600 text-black font-bold text-sm rounded hover:bg-khaki-500 transition-colors"
+                className="px-6 py-3 bg-green-600 text-black font-bold text-sm rounded hover:bg-green-500 transition-colors"
             >
                 Try again
             </button>
