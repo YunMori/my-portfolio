@@ -1,9 +1,5 @@
 # Morifolio
 
-**Yun Jong Seo (Mori)** 의 개인 포트폴리오입니다. Next.js + Supabase 기반의 에디토리얼 다크 포레스트 스타일 포트폴리오입니다.
-
-![hero](public/hero-profile.jpg)
-
 ## 기술 스택
 
 | 분류 | 기술 |
