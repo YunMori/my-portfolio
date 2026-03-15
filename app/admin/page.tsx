@@ -17,7 +17,7 @@ export default function AdminDashboard() {
             <div className="grid md:grid-cols-2 gap-6">
 
 
-                <Link href="/admin/projects" className="group bg-surface hover:bg-stone-800 border border-stone-800 p-8 rounded-2xl transition-all hover:-translate-y-1 hover:border-khaki-500/50 hover:shadow-xl">
+                <Link href="/admin/projects" className="group bg-surface hover:bg-stone-800 border border-stone-800 p-8 rounded-2xl transition-all hover:-translate-y-1 hover:border-green-500/50 hover:shadow-xl">
                     <div className="w-12 h-12 rounded-full bg-blue-500/10 flex items-center justify-center text-blue-500 mb-4 group-hover:bg-blue-500 group-hover:text-black transition-colors">
                         <i className="fa-solid fa-folder-plus text-xl"></i>
                     </div>
