@@ -45,7 +45,7 @@ export default function LoginPage() {
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                             required
-                            className="w-full bg-stone-900 border border-stone-700 rounded p-3 text-stone-200 focus:border-khaki-500 outline-none transition-colors"
+                            className="w-full bg-stone-900 border border-stone-700 rounded p-3 text-stone-200 focus:border-green-500 outline-none transition-colors"
                             placeholder="admin@example.com"
                         />
                     </div>
@@ -56,7 +56,7 @@ export default function LoginPage() {
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                             required
-                            className="w-full bg-stone-900 border border-stone-700 rounded p-3 text-stone-200 focus:border-khaki-500 outline-none transition-colors"
+                            className="w-full bg-stone-900 border border-stone-700 rounded p-3 text-stone-200 focus:border-green-500 outline-none transition-colors"
                             placeholder="••••••••"
                         />
                     </div>
@@ -70,7 +70,7 @@ export default function LoginPage() {
                     <button
                         type="submit"
                         disabled={loading}
-                        className="w-full bg-khaki-600 hover:bg-khaki-500 disabled:opacity-50 disabled:cursor-not-allowed text-black font-bold py-3 rounded transition-all mt-4"
+                        className="w-full bg-green-600 hover:bg-green-500 disabled:opacity-50 disabled:cursor-not-allowed text-black font-bold py-3 rounded transition-all mt-4"
                     >
                         {loading ? 'Authenticating...' : 'Login'}
                     </button>

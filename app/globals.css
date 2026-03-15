@@ -10,21 +10,160 @@
   --color-surface: #1c1917;
   --color-highlight: #292524;
 
-  --color-khaki-400: #d4c55e;
-  --color-khaki-500: #a3a948;
-  --color-khaki-600: #858a3a;
-  --color-khaki-900: #3f421b;
+  --color-green-400: #6b9b6b;
+  --color-green-500: #4a7c59;
+  --color-green-600: #3a6347;
+  --color-green-900: #1a2e1f;
 
+  --color-brown-300: #c4a882;
   --color-brown-400: #a18072;
   --color-brown-500: #8d6e63;
   --color-brown-600: #5d4037;
 
   --font-sans: var(--font-gowun-dodum);
-  --font-display: var(--font-space-grotesk);
+  --font-display: var(--font-syne);
 }
 
-/* 
-  Legacy variable support if needed, but we rely on utility classes 
-  defined in @theme.
-  Removed conflicting body styles to let layout.tsx classes control the theme.
-*/
+/* Transition timing functions */
+:root {
+  --transition-smooth: cubic-bezier(0.16, 1, 0.3, 1);
+  --transition-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --color-grain-opacity: 0.03;
+}
+
+/* Film grain overlay */
+.grain::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: none;
+  opacity: var(--color-grain-opacity);
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  background-size: 256px 256px;
+}
+
+/* Scroll-driven animation keyframes */
+@keyframes slide-up-fade {
+  from { opacity: 0; transform: translateY(40px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slide-in-left {
+  from { opacity: 0; transform: translateX(-60px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes scale-reveal {
+  from { opacity: 0; transform: scale(0.92); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+/* Hero staggered entry */
+.hero-stagger > * {
+  opacity: 0;
+  animation: slide-up-fade 0.8s var(--transition-smooth) forwards;
+}
+.hero-stagger > *:nth-child(1) { animation-delay: 0.1s; }
+.hero-stagger > *:nth-child(2) { animation-delay: 0.25s; }
+.hero-stagger > *:nth-child(3) { animation-delay: 0.4s; }
+.hero-stagger > *:nth-child(4) { animation-delay: 0.55s; }
+.hero-stagger > *:nth-child(5) { animation-delay: 0.7s; }
+
+/* Hero image reveal */
+.hero-image-reveal {
+  opacity: 0;
+  animation: scale-reveal 1s var(--transition-smooth) 0.3s forwards;
+}
+
+/* Shimmer effect for CTA buttons */
+@keyframes shimmer {
+  from { background-position: -200% 0; }
+  to { background-position: 200% 0; }
+}
+
+.btn-shimmer {
+  position: relative;
+  overflow: hidden;
+}
+.btn-shimmer::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    110deg,
+    transparent 25%,
+    rgba(255,255,255,0.15) 50%,
+    transparent 75%
+  );
+  background-size: 200% 100%;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.btn-shimmer:hover::after {
+  opacity: 1;
+  animation: shimmer 1.5s ease-in-out;
+}
+
+/* Card gradient border glow on hover */
+.card-glow {
+  position: relative;
+}
+.card-glow::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  background: conic-gradient(from 0deg, transparent, rgba(74,124,89,0.4), transparent 30%);
+  opacity: 0;
+  transition: opacity 0.5s;
+  z-index: -1;
+}
+.card-glow:hover::before {
+  opacity: 1;
+}
+
+/* Section gradient divider */
+.section-divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(74,124,89,0.2), transparent);
+  margin: 0 10%;
+}
+
+/* CSS Marquee */
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+.marquee-track {
+  display: flex;
+  animation: marquee 30s linear infinite;
+}
+
+/* Scroll progress bar */
+.scroll-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: var(--color-green-500);
+  transform-origin: left;
+  z-index: 100;
+  transform: scaleX(var(--scroll-progress, 0));
+}
+
+@supports (animation-timeline: scroll()) {
+  .scroll-progress {
+    animation: grow-width linear;
+    animation-timeline: scroll();
+    transform: none;
+  }
+}
+
+@keyframes grow-width {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}

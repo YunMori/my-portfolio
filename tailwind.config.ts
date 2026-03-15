@@ -1,7 +1,6 @@
 import type { Config } from "tailwindcss";
 
 const config: Config = {
-  // 다크모드 활성화
   darkMode: 'class',
   content: [
     "./pages/**/*.{js,ts,jsx,tsx,mdx}",
@@ -11,27 +10,26 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // 커스텀 컬러 팔레트 (Dark Khaki Theme)
-        main: '#0c0a09',    // Stone-950
-        surface: '#1c1917', // Stone-900
-        highlight: '#292524', // Stone-800
+        main: '#0c0a09',
+        surface: '#1c1917',
+        highlight: '#292524',
 
-        khaki: {
-          400: '#d4c55e',
-          500: '#a3a948',
-          600: '#858a3a',
-          900: '#3f421b',
+        green: {
+          400: '#6b9b6b',
+          500: '#4a7c59',
+          600: '#3a6347',
+          900: '#1a2e1f',
         },
         brown: {
+          300: '#c4a882',
           400: '#a18072',
           500: '#8d6e63',
           600: '#5d4037',
         }
       },
       fontFamily: {
-        // next/font와 연동될 변수명
-        sans: ['var(--font-noto-sans-kr)'],
-        display: ['var(--font-space-grotesk)'],
+        sans: ['var(--font-gowun-dodum)'],
+        display: ['var(--font-syne)'],
       },
       animation: {
         'fade-in': 'fadeIn 0.5s ease-out',

@@ -19,7 +19,7 @@ export default async function AdminLayout({
             {/* Sidebar */}
             <aside className="w-64 border-r border-stone-800 bg-surface flex flex-col fixed h-full z-10">
                 <div className="p-6 border-b border-stone-800">
-                    <Link href="/admin" className="text-xl font-display font-bold text-khaki-500 tracking-tighter">
+                    <Link href="/admin" className="text-xl font-display font-bold text-green-500 tracking-tighter">
                         ADMIN PANEL
                     </Link>
                 </div>
