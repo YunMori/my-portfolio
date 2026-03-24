@@ -5,6 +5,7 @@ import { useState, useEffect, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
 import rehypeSanitize from 'rehype-sanitize';
 import { useLanguage } from '@/context/LanguageContext';
+import { parseGithubPath } from '@/utils/github';
 
 interface ProjectsProps {
     projects: Project[];
@@ -76,26 +77,16 @@ export default function Projects({ projects }: ProjectsProps) {
                     setIsLoadingReadme(true);
                     setReadmeContent(null);
                     try {
-                        let path = selectedProject.github_link!.trim();
-                        // Robust URL parsing (matching admin logic)
-                        path = path.replace(/\/+$/, ""); // Remove trailing slash
-                        path = path.replace(/^https?:\/\//, ""); // Remove protocol
-                        path = path.replace(/^(www\.)?github\.com\//, ""); // Remove domain
-                        path = path.replace(/\.git$/, ""); // Remove .git
+                        const parsed = parseGithubPath(selectedProject.github_link!);
 
-                        const parts = path.split('/').filter(Boolean);
-
-                        if (parts.length >= 2) {
-                            const owner = parts[0];
-                            const repo = parts[1];
-
+                        if (parsed) {
+                            const { owner, repo } = parsed;
                             const res = await fetch(`https://api.github.com/repos/${owner}/${repo}/readme`, {
                                 headers: { 'Accept': 'application/vnd.github.v3+json' }
                             });
 
                             if (res.ok) {
                                 const data = await res.json();
-                                // GitHub content is base64
                                 const content = atob(data.content);
                                 setReadmeContent(content);
                             }

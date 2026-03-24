@@ -17,12 +17,6 @@ interface HomeClientProps {
 export default function HomeClient({ initialProjects }: HomeClientProps) {
     const [projects, setProjects] = useState(initialProjects);
 
-    useEffect(() => {
-        if (initialProjects.length > 0) {
-            setProjects(initialProjects);
-        }
-    }, [initialProjects]);
-
     // Track Page View
     useEffect(() => {
         import('@/app/actions').then(actions => {
@@ -32,7 +26,7 @@ export default function HomeClient({ initialProjects }: HomeClientProps) {
 
     const techStats = useMemo(() => {
         const stats: { [key: string]: number } = {};
-        projects.forEach((p: any) => {
+        projects.forEach((p: Project) => {
             p.stack.forEach((tech: string) => {
                 stats[tech] = (stats[tech] || 0) + 1;
             });

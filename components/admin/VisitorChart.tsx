@@ -8,7 +8,7 @@ export default function VisitorChart() {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        getAnalyticsData().then((res: any) => {
+        getAnalyticsData().then((res: { date: string; views: number }[]) => {
             setData(res || []);
             setLoading(false);
         });
