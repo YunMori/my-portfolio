@@ -112,9 +112,8 @@ export default function Projects({ projects }: ProjectsProps) {
         <section id="projects" className="py-24 bg-main relative">
             <div className="max-w-7xl mx-auto px-6">
                 <div className="relative mb-20 space-y-4 text-center md:text-left">
-                    <span className="absolute -top-4 -left-2 text-8xl font-display font-bold text-stone-800/20 select-none hidden md:block">02</span>
-                    <span className="text-green-500 font-bold tracking-widest text-xs uppercase md:pl-28">{t('projects.header')}</span>
-                    <h2 className="text-4xl md:text-5xl font-display font-bold text-stone-100 md:pl-28">
+                    <span className="text-green-500 font-bold tracking-widest text-xs uppercase">{t('projects.header')}</span>
+                    <h2 className="text-4xl md:text-5xl font-display font-bold text-stone-100">
                         {t('projects.title')}
                     </h2>
                 </div>
