@@ -113,8 +113,8 @@ export default function Projects({ projects }: ProjectsProps) {
             <div className="max-w-7xl mx-auto px-6">
                 <div className="relative mb-20 space-y-4 text-center md:text-left">
                     <span className="absolute -top-4 -left-2 text-8xl font-display font-bold text-stone-800/20 select-none hidden md:block">02</span>
-                    <span className="text-green-500 font-bold tracking-widest text-xs uppercase md:pl-16">{t('projects.header')}</span>
-                    <h2 className="text-4xl md:text-5xl font-display font-bold text-stone-100 md:pl-16">
+                    <span className="text-green-500 font-bold tracking-widest text-xs uppercase md:pl-28">{t('projects.header')}</span>
+                    <h2 className="text-4xl md:text-5xl font-display font-bold text-stone-100 md:pl-28">
                         {t('projects.title')}
                     </h2>
                 </div>
@@ -163,10 +163,10 @@ export default function Projects({ projects }: ProjectsProps) {
 
                             <div className="p-8 flex flex-col flex-grow">
                                 <div className="flex justify-between items-start mb-4">
-                                    <h3 className="text-xl font-bold text-stone-200 group-hover:text-green-500 transition-colors">
+                                    <h3 className="text-xl font-bold text-stone-200 group-hover:text-green-500 transition-colors flex-1 min-w-0 line-clamp-2">
                                         {p.title}
                                     </h3>
-                                    <span className="text-xs font-mono text-stone-500">{p.date}</span>
+                                    <span className="text-xs font-mono text-stone-500 shrink-0 ml-4">{p.date}</span>
                                 </div>
                                 <p className="text-stone-400 text-sm leading-relaxed mb-6 flex-grow">
                                     {p.description}
