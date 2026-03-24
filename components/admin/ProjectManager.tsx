@@ -234,6 +234,17 @@ export default function ProjectManager({ initialProjects }: ProjectManagerProps)
                                 className="w-full bg-stone-900 border border-stone-700 rounded p-2 text-stone-200 focus:border-green-500 outline-none"
                             />
                         </div>
+                        <div>
+                            <label className="block text-xs uppercase tracking-wider text-stone-500 mb-1">Description</label>
+                            <input
+                                name="description"
+                                type="text"
+                                placeholder="Short project description"
+                                value={formData.description}
+                                onChange={handleInputChange}
+                                className="w-full bg-stone-900 border border-stone-700 rounded p-2 text-stone-200 focus:border-green-500 outline-none"
+                            />
+                        </div>
                         <div className="flex gap-4">
                             <div className="flex-1">
                                 <label className="block text-xs uppercase tracking-wider text-stone-500 mb-1">Date</label>

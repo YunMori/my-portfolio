@@ -2,7 +2,8 @@
 
 import { createClient } from '@/utils/supabase/server'
 import { revalidatePath } from 'next/cache'
-import { Project, Profile } from '@/types/database.types'
+import { Project } from '@/types/database.types'
+import { parseGithubPath } from '@/utils/github'
 
 // --- Analytics Actions ---
 
@@ -10,14 +11,6 @@ export async function incrementView() {
     const supabase = await createClient()
     const today = new Date().toISOString().split('T')[0]
 
-    // Atomic upsert via Supabase RPC to prevent race conditions.
-    // Run this SQL in Supabase SQL Editor once:
-    //
-    // CREATE OR REPLACE FUNCTION increment_view(target_date date)
-    // RETURNS void LANGUAGE sql AS $$
-    //   INSERT INTO daily_stats (date, views) VALUES (target_date, 1)
-    //   ON CONFLICT (date) DO UPDATE SET views = daily_stats.views + 1;
-    // $$;
     const { error } = await supabase.rpc('increment_view', { target_date: today })
 
     if (error) {
@@ -82,7 +75,7 @@ export async function addProject(formData: FormData) {
     const supabase = await createClient()
 
     const title = formData.get('title') as string
-    const desc = formData.get('desc') as string
+    const description = formData.get('description') as string
     const date = formData.get('date') as string
     const stack = (formData.get('stack') as string).split(',').map(s => s.trim())
     const github_link = formData.get('github_link') as string
@@ -90,7 +83,7 @@ export async function addProject(formData: FormData) {
 
     const { error } = await supabase
         .from('projects')
-        .insert({ title, description: desc, date, stack, github_link, content })
+        .insert({ title, description, date, stack, github_link, content })
 
     if (error) {
         console.error('Error adding project:', error)
@@ -111,7 +104,7 @@ export async function updateProject(formData: FormData) {
 
     const id = formData.get('id') as string
     const title = formData.get('title') as string
-    const desc = formData.get('desc') as string
+    const description = formData.get('description') as string
     const date = formData.get('date') as string
     const stack = (formData.get('stack') as string).split(',').map(s => s.trim())
     const github_link = formData.get('github_link') as string
@@ -119,7 +112,7 @@ export async function updateProject(formData: FormData) {
 
     const { error } = await supabase
         .from('projects')
-        .update({ title, description: desc, date, stack, github_link, content })
+        .update({ title, description, date, stack, github_link, content })
         .eq('id', id)
 
     if (error) {
@@ -155,28 +148,14 @@ export async function deleteProject(id: string) {
 
 export async function fetchGithubRepo(url: string) {
     try {
-        let path = url.trim();
-        // 1. Remove trailing slashes
-        path = path.replace(/\/+$/, "");
-        // 2. Remove protocol (http:// or https://)
-        path = path.replace(/^https?:\/\//, "");
-        // 3. Remove domain (www.github.com/ or github.com/)
-        path = path.replace(/^(www\.)?github\.com\//, "");
-        // 4. Remove .git extension if present
-        path = path.replace(/\.git$/, "");
+        const parsed = parseGithubPath(url)
 
-        const parts = path.split('/').filter(Boolean);
-
-        let owner, repo;
-        if (parts.length >= 2) {
-            owner = parts[0];
-            repo = parts[1];
-        }
-
-        if (!owner || !repo) {
-            console.error('Invalid URL format derived:', path);
+        if (!parsed) {
+            console.error('Invalid URL format:', url);
             return { success: false, error: 'Invalid URL format' };
         }
+
+        const { owner, repo } = parsed
 
         // 1. Fetch Repo Info
         const repoRes = await fetch(`https://api.github.com/repos/${owner}/${repo}`, {

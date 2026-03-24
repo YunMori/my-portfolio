@@ -63,7 +63,9 @@ const personJsonLd = {
   name: 'Yun Jong Seo',
   jobTitle: 'Full Stack Developer',
   url: baseUrl,
-  sameAs: [],
+  sameAs: [
+    'https://github.com/YunMori',
+  ],
   knowsAbout: ['Next.js', 'React', 'TypeScript', 'Supabase', 'Node.js'],
 };
 
