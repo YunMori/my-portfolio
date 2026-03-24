@@ -37,7 +37,7 @@ export default function TechStack({ techStats, totalProjects }: TechStackProps) 
             <div className="max-w-7xl mx-auto px-6 relative z-10">
                 <div className="relative flex flex-col md:flex-row items-center md:items-start gap-6 md:gap-12 mb-12 border-b border-stone-900 pb-6 fade-in-section opacity-0 translate-y-5 transition-all duration-700">
                     <span className="absolute -top-4 -left-2 text-8xl font-display font-bold text-stone-800/20 select-none hidden md:block">01</span>
-                    <div className="text-center md:text-left md:pl-16">
+                    <div className="text-center md:text-left md:pl-28">
                         <h3 className="text-green-500 text-xs font-bold uppercase tracking-widest mb-2">Live Tech Stats</h3>
                         <h2 className="text-4xl md:text-5xl font-display font-bold text-stone-100">Most Used Tech</h2>
                     </div>
