@@ -164,7 +164,7 @@ export default function Hero() {
                         <div className="absolute inset-0 border-2 border-green-500/30 rounded-[2rem] rotate-3 scale-105"></div>
 
                         {/* Image container with card-glow on hover */}
-                        <div className="card-glow absolute inset-0 bg-stone-800 rounded-[2rem] -rotate-3 hover:rotate-0 transition-transform duration-500 overflow-hidden shadow-2xl group cursor-pointer">
+                        <div className="absolute inset-0 bg-stone-800 rounded-[2rem] -rotate-3 hover:rotate-0 transition-transform duration-500 overflow-hidden shadow-2xl group cursor-pointer">
                             <Image
                                 src="/hero-profile.jpg"
                                 alt="Jong Seo Yun"
