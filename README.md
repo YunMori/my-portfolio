@@ -14,12 +14,13 @@
 ## 주요 기능
 
 - **에디토리얼 디자인** — Forest Green(`#4a7c59`) + Warm Brown 컬러 팔레트, Syne 디스플레이 폰트, 필름 그레인 오버레이
+- **Hero 애니메이션** — Staggered 진입 애니메이션, 지형도(topographic) 배경 패턴
 - **동적 프로젝트 관리** — Admin 대시보드에서 프로젝트 추가/수정, GitHub README 자동 로드
 - **Live Tech Stats** — 등록된 프로젝트의 기술 스택을 집계해 실시간으로 표시
 - **방문자 통계** — 일별 페이지뷰 추적 + 차트 시각화 (관리자 전용)
 - **다국어 지원** — 한국어/영어 전환 (Context API + localStorage 유지)
-- **스크롤 애니메이션** — Staggered hero 진입, CSS scroll-driven animations, 카드 리빌 효과
 - **Scroll Progress Bar** — CSS `animation-timeline: scroll()` 기반 상단 프로그레스 바
+- **SEO** — `sitemap.ts`, `robots.ts` 자동 생성
 
 ## 시작하기
 
@@ -75,21 +76,35 @@ npm run dev
 app/
 ├── page.tsx              # 홈 (서버 컴포넌트, Supabase fetch)
 ├── admin/                # 관리자 페이지
+├── api/                  # API 라우트
+├── login/                # 로그인 페이지
 ├── globals.css           # 테마, 애니메이션, 그레인 효과
+├── sitemap.ts            # 사이트맵 자동 생성
 └── layout.tsx            # 폰트, 메타데이터
 
 components/
-├── Hero.tsx              # 히어로 섹션
+├── Hero.tsx              # 히어로 섹션 (지형도 배경 + 스태거 애니메이션)
 ├── TechStack.tsx         # 기술 스택 통계
 ├── Projects.tsx          # 프로젝트 그리드 + 모달
 ├── SocialProof.tsx       # 프로젝트/기술 수 통계 스트립
 ├── ScrollProgress.tsx    # 스크롤 프로그레스 바
+├── HomeClient.tsx        # 홈 클라이언트 래퍼
+├── Providers.tsx         # Context 프로바이더
 ├── Navbar.tsx            # 네비게이션
 └── Footer.tsx            # 푸터 + 마키
 
 utils/
 ├── translations.ts       # i18n 문자열 (ko/en)
+├── github.ts             # GitHub README 페칭
+├── url.ts                # 베이스 URL 유틸
 └── supabase/             # Supabase 클라이언트
+```
+
+## 테스트
+
+```bash
+npm test
+npm run test:watch
 ```
 
 ## 라이선스
