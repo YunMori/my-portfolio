@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 // 구글 폰트 최적화 로드
 import { Gowun_Dodum, Syne } from "next/font/google";
+import Script from "next/script";
 import { Toaster } from "sonner";
 import "./globals.css";
 import { Providers } from "@/components/Providers";
@@ -10,12 +11,14 @@ const gowunDodum = Gowun_Dodum({
   subsets: ["latin"],
   weight: "400",
   variable: "--font-gowun-dodum",
+  display: 'swap',
 });
 
 const syne = Syne({
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800"],
+  weight: ["400", "500", "700", "800"],
   variable: "--font-syne",
+  display: 'swap',
 });
 
 const baseUrl = getBaseUrl();
@@ -77,10 +80,9 @@ export default function RootLayout({
   return (
     <html lang="ko" className="dark">
       <head>
-        {/* 아이콘 사용을 위한 FontAwesome CDN (간편 적용) */}
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-        {/* Devicon CDN for tech stack icons not in FontAwesome */}
-        <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/devicon.min.css" />
+        {/* CDN 도메인 사전 연결 (DNS+TLS 핸드셰이크 미리 처리 → LCP 개선) */}
+        <link rel="preconnect" href="https://cdnjs.cloudflare.com" />
+        <link rel="preconnect" href="https://cdn.jsdelivr.net" />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(personJsonLd) }}
@@ -93,6 +95,17 @@ export default function RootLayout({
           {children}
           <Toaster position="top-center" richColors />
         </Providers>
+        {/* 아이콘 CDN — 비동기 로딩 (렌더 블로킹 제거 → LCP/Speed Index 개선) */}
+        <Script
+          id="load-icon-fonts"
+          strategy="afterInteractive"
+          dangerouslySetInnerHTML={{
+            __html: `
+              var fa=document.createElement('link');fa.rel='stylesheet';fa.href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css';document.head.appendChild(fa);
+              var di=document.createElement('link');di.rel='stylesheet';di.href='https://cdn.jsdelivr.net/gh/devicons/devicon@latest/devicon.min.css';document.head.appendChild(di);
+            `
+          }}
+        />
       </body>
     </html>
   );
