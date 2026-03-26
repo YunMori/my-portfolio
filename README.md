@@ -22,6 +22,24 @@
 - **Scroll Progress Bar** — CSS `animation-timeline: scroll()` 기반 상단 프로그레스 바
 - **SEO** — `sitemap.ts`, `robots.ts` 자동 생성
 
+## Lighthouse
+
+> 측정일: 2026-03-26 · 환경: Vercel Production (morifolio.vercel.app)
+
+| 항목 | 점수 |
+|---|---|
+| Performance | 99 |
+| Accessibility | 94 |
+| Best Practices | 100 |
+| SEO | 100 |
+
+| 지표 | 값 |
+|---|---|
+| FCP | 317ms |
+| LCP | 497ms |
+| TBT | 0ms |
+| CLS | 0 |
+
 ## 시작하기
 
 ### 요구사항
