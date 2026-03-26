@@ -17,7 +17,7 @@ export default function Footer() {
             <div className="mb-12 opacity-10 overflow-hidden">
                 <div className="marquee-track whitespace-nowrap">
                     {[...marqueeItems, ...marqueeItems].map((item, i) => (
-                        <span key={i} className="text-4xl md:text-6xl font-display font-bold text-stone-400 mx-8">
+                        <span key={i} className="text-4xl md:text-6xl font-display font-bold text-stone-300 mx-8">
                             {item}
                         </span>
                     ))}
@@ -48,10 +48,10 @@ export default function Footer() {
                 </div>
 
                 <div className="border-t border-stone-900 pt-8 flex flex-col md:flex-row justify-between items-center text-xs text-stone-600">
-                    <p>&copy; {new Date().getFullYear()} Yun Jong Seo. {t('footer.rights')}</p>
+                    <p className="text-stone-400">&copy; {new Date().getFullYear()} Yun Jong Seo. {t('footer.rights')}</p>
                     <button
                         onClick={scrollToTop}
-                        className="mt-4 md:mt-0 flex items-center hover:text-green-500 transition-colors"
+                        className="mt-4 md:mt-0 flex items-center text-stone-400 hover:text-green-500 transition-colors"
                     >
                         {t('footer.backToTop')} <i className="fa-solid fa-arrow-up ml-2"></i>
                     </button>
