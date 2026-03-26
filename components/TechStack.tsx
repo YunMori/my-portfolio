@@ -64,7 +64,7 @@ export default function TechStack({ techStats, totalProjects }: TechStackProps) 
                                 <div className={`text-3xl mb-3 transition-colors ${iconColor}`}>
                                     <i className={iconClass}></i>
                                 </div>
-                                <h4 className="font-bold text-sm text-stone-300 mb-2">{item.name}</h4>
+                                <h3 className="font-bold text-sm text-stone-300 mb-2">{item.name}</h3>
 
                                 {/* Progress Bar */}
                                 <div className="w-full h-1 bg-stone-800 mt-1 rounded-full overflow-hidden">

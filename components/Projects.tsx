@@ -112,7 +112,7 @@ export default function Projects({ projects }: ProjectsProps) {
         <section id="projects" className="py-24 bg-main relative">
             <div className="max-w-7xl mx-auto px-6">
                 <div className="relative mb-20 space-y-4 text-center md:text-left">
-                    <span className="text-green-500 font-bold tracking-widest text-xs uppercase">{t('projects.header')}</span>
+                    <span className="text-green-400 font-bold tracking-widest text-xs uppercase">{t('projects.header')}</span>
                     <h2 className="text-4xl md:text-5xl font-display font-bold text-stone-100">
                         {t('projects.title')}
                     </h2>
@@ -126,7 +126,7 @@ export default function Projects({ projects }: ProjectsProps) {
                             onClick={() => setActiveFilter(tech)}
                             className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all duration-200 border ${
                                 activeFilter === tech
-                                    ? 'bg-green-500 text-black border-green-500'
+                                    ? 'bg-green-400 text-black border-green-400'
                                     : 'bg-transparent text-stone-400 border-stone-700 hover:border-green-500 hover:text-green-400'
                             }`}
                         >
