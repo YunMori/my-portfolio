@@ -31,17 +31,17 @@ export default function Footer() {
                             Let&apos;s Build<br />
                             <span className="text-green-500">Something.</span>
                         </h2>
-                        <p className="text-stone-500 text-sm">If you want</p>
+                        <p className="text-stone-400 text-sm">If you want</p>
                     </div>
 
                     <div className="flex gap-5">
-                        <a href="https://github.com/YunMori" target="_blank" rel="noopener noreferrer" className="w-12 h-12 rounded-full bg-stone-900 flex items-center justify-center text-stone-500 hover:bg-green-500 hover:text-black hover:scale-110 transition-all duration-300">
+                        <a href="https://github.com/YunMori" target="_blank" rel="noopener noreferrer" aria-label="GitHub 프로필 방문" className="w-12 h-12 rounded-full bg-stone-900 flex items-center justify-center text-stone-400 hover:bg-green-500 hover:text-black hover:scale-110 transition-all duration-300">
                             <i className="fa-brands fa-github text-xl"></i>
                         </a>
-                        <a href="https://www.linkedin.com/in/종서1042" target="_blank" rel="noopener noreferrer" className="w-12 h-12 rounded-full bg-stone-900 flex items-center justify-center text-stone-500 hover:bg-green-500 hover:text-black hover:scale-110 transition-all duration-300">
+                        <a href="https://www.linkedin.com/in/종서1042" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn 프로필 방문" className="w-12 h-12 rounded-full bg-stone-900 flex items-center justify-center text-stone-400 hover:bg-green-500 hover:text-black hover:scale-110 transition-all duration-300">
                             <i className="fa-brands fa-linkedin text-xl"></i>
                         </a>
-                        <a href="mailto:sbok10422@gmail.com" className="w-12 h-12 rounded-full bg-stone-900 flex items-center justify-center text-stone-500 hover:bg-green-500 hover:text-black hover:scale-110 transition-all duration-300">
+                        <a href="mailto:sbok10422@gmail.com" aria-label="이메일 보내기" className="w-12 h-12 rounded-full bg-stone-900 flex items-center justify-center text-stone-400 hover:bg-green-500 hover:text-black hover:scale-110 transition-all duration-300">
                             <i className="fa-solid fa-envelope text-xl"></i>
                         </a>
                     </div>

@@ -165,7 +165,7 @@ export default function Projects({ projects }: ProjectsProps) {
                                     <h3 className="text-xl font-bold text-stone-200 group-hover:text-green-500 transition-colors flex-1 min-w-0 line-clamp-2">
                                         {p.title}
                                     </h3>
-                                    <span className="text-xs font-mono text-stone-500 shrink-0 ml-4">{p.date}</span>
+                                    <span className="text-xs font-mono text-stone-400 shrink-0 ml-4">{p.date}</span>
                                 </div>
                                 <p className="text-stone-400 text-sm leading-relaxed mb-6 flex-grow">
                                     {p.description}
@@ -175,7 +175,7 @@ export default function Projects({ projects }: ProjectsProps) {
                                         {t('projects.viewCase')} <i className="fa-solid fa-arrow-right text-green-500 group-hover:translate-x-1 transition-transform"></i>
                                     </button>
                                     {p.github_link && (
-                                        <a href={p.github_link} target="_blank" rel="noopener noreferrer" className="ml-auto text-stone-500 hover:text-white" onClick={(e) => e.stopPropagation()}>
+                                        <a href={p.github_link} target="_blank" rel="noopener noreferrer" aria-label={`${p.title} GitHub 저장소 보기`} className="ml-auto text-stone-400 hover:text-white" onClick={(e) => e.stopPropagation()}>
                                             <i className="fa-brands fa-github text-lg"></i>
                                         </a>
                                     )}
