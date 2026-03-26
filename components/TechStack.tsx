@@ -37,7 +37,7 @@ export default function TechStack({ techStats, totalProjects }: TechStackProps) 
             <div className="max-w-7xl mx-auto px-6 relative z-10">
                 <div className="relative flex flex-col md:flex-row items-center md:items-start gap-6 md:gap-12 mb-12 border-b border-stone-900 pb-6 fade-in-section opacity-0 translate-y-5 transition-all duration-700">
                     <div className="text-center md:text-left">
-                        <h3 className="text-green-500 text-xs font-bold uppercase tracking-widest mb-2">Live Tech Stats</h3>
+                        <span className="text-green-500 text-xs font-bold uppercase tracking-widest mb-2 block">Live Tech Stats</span>
                         <h2 className="text-4xl md:text-5xl font-display font-bold text-stone-100">Most Used Tech</h2>
                     </div>
                 </div>
@@ -46,7 +46,7 @@ export default function TechStack({ techStats, totalProjects }: TechStackProps) 
                     {techStats.map((item, index) => {
                         const iconClass = techIcons[item.name] || 'fa-solid fa-code text-stone-500';
                         let rankClass = "bg-surface border-stone-800";
-                        let countColor = "text-stone-500 bg-stone-800";
+                        let countColor = "text-stone-300 bg-stone-700";
                         let iconColor = "text-stone-400";
                         let glow = "";
 
