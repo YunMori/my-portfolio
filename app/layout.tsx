@@ -101,8 +101,8 @@ export default function RootLayout({
           strategy="afterInteractive"
           dangerouslySetInnerHTML={{
             __html: `
-              var fa=document.createElement('link');fa.rel='stylesheet';fa.href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css';document.head.appendChild(fa);
-              var di=document.createElement('link');di.rel='stylesheet';di.href='https://cdn.jsdelivr.net/gh/devicons/devicon@latest/devicon.min.css';document.head.appendChild(di);
+              var fa=document.createElement('link');fa.rel='stylesheet';fa.href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css';fa.integrity='sha384-iw3OoTErCYJJB9mCa8LNS2hbsQ7M3C0EpIsO/H5+EGAkPGc6rk+V8i04oW/K5xq0';fa.crossOrigin='anonymous';document.head.appendChild(fa);
+              var di=document.createElement('link');di.rel='stylesheet';di.href='https://cdn.jsdelivr.net/gh/devicons/devicon@2.17.0/devicon.min.css';di.integrity='sha384-6iv3tXABd3c9DYulXujJl8n22ahn/12f45MomxoPv6jBX4LBE4gNJjfkx5mAKIqR';di.crossOrigin='anonymous';document.head.appendChild(di);
             `
           }}
         />
