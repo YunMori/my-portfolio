@@ -155,7 +155,8 @@ export async function fetchGithubRepo(url: string) {
             return { success: false, error: 'Invalid URL format' };
         }
 
-        const { owner, repo } = parsed
+        const owner = encodeURIComponent(parsed.owner)
+        const repo = encodeURIComponent(parsed.repo)
 
         // 1. Fetch Repo Info
         const repoRes = await fetch(`https://api.github.com/repos/${owner}/${repo}`, {
