@@ -6,9 +6,17 @@ export const translations = {
             about: 'About',
             skills: 'Skills',
             projects: 'Projects',
+            blog: 'Blog',
             contact: 'Contact',
             login: 'Login',
             admin: 'Admin'
+        },
+        blog: {
+            header: 'Writing',
+            title: 'Tech Blog',
+            filterAll: 'All',
+            min: 'min read',
+            empty: 'No posts yet. Check back soon.'
         },
         hero: {
             greeting: 'Hello, I am',
@@ -39,9 +47,17 @@ export const translations = {
             about: '소개',
             skills: '기술 스택',
             projects: '프로젝트',
+            blog: '블로그',
             contact: '연락처',
             login: '로그인',
             admin: '관리자'
+        },
+        blog: {
+            header: '기록',
+            title: '기술 블로그',
+            filterAll: '전체',
+            min: '분',
+            empty: '아직 작성된 글이 없습니다. 곧 찾아뵐게요.'
         },
         hero: {
             greeting: '안녕하세요,',
