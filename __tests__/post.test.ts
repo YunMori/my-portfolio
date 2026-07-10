@@ -1,4 +1,4 @@
-import { slugify, extractHeadings, readingTime, nodeToText } from '@/utils/post';
+import { slugify, postSlug, extractHeadings, readingTime, nodeToText } from '@/utils/post';
 
 describe('slugify', () => {
     it('lowercases and dashes latin text', () => {
@@ -11,6 +11,17 @@ describe('slugify', () => {
 
     it('strips markdown emphasis and trims dashes', () => {
         expect(slugify('  **Getting** started!  ')).toBe('getting-started');
+    });
+});
+
+describe('postSlug', () => {
+    it('drops Korean and keeps ascii, dash-separated', () => {
+        expect(postSlug('CLI 와 git')).toBe('cli-git');
+        expect(postSlug('Hello World')).toBe('hello-world');
+    });
+
+    it('returns empty when nothing ascii survives (caller adds fallback)', () => {
+        expect(postSlug('왜 블로그인가')).toBe('');
     });
 });
 

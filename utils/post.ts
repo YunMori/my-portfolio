@@ -22,6 +22,21 @@ export function slugify(text: string): string {
 }
 
 /**
+ * URL-safe ASCII slug for post routes. Non-ASCII (incl. Korean) is dropped,
+ * so `<Link>` hrefs never carry multibyte chars that double-encode on soft nav.
+ * Distinct from `slugify`, which keeps Korean for in-page heading anchors.
+ */
+export function postSlug(text: string): string {
+    return text
+        .normalize('NFKD')
+        .replace(/[̀-ͯ]/g, '') // strip diacritics
+        .toLowerCase()
+        .replace(/[`*_~]/g, '') // strip markdown emphasis markers
+        .replace(/[^a-z0-9]+/g, '-') // non ascii-alnum → dash
+        .replace(/^-+|-+$/g, ''); // trim leading/trailing dashes
+}
+
+/**
  * Extract a nested-friendly flat list of h2/h3 headings from raw markdown,
  * skipping anything inside fenced code blocks.
  */
