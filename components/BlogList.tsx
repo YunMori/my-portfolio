@@ -87,7 +87,7 @@ export default function BlogList({ posts }: BlogListProps) {
                             return (
                                 <Link
                                     key={post.id}
-                                    href={`/blog/${post.slug}`}
+                                    href={`/blog/${encodeURIComponent(post.slug)}`}
                                     data-post-id={post.id}
                                     className={`group flex items-start justify-between gap-6 py-8 border-t border-highlight last:border-b transition-all duration-500 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}
                                     style={{ transitionDelay: isVisible ? '0ms' : `${index * 80}ms` }}

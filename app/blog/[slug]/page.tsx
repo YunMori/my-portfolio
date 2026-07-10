@@ -95,13 +95,13 @@ export default async function PostPage(
                 {(older || newer) && (
                     <nav className="mt-20 pt-10 border-t border-highlight grid sm:grid-cols-2 gap-4">
                         {older ? (
-                            <Link href={`/blog/${older.slug}`} className="group rounded-xl border border-highlight hover:border-green-500 bg-surface/50 p-5 transition-colors">
+                            <Link href={`/blog/${encodeURIComponent(older.slug)}`} className="group rounded-xl border border-highlight hover:border-green-500 bg-surface/50 p-5 transition-colors">
                                 <span className="text-[11px] font-mono uppercase tracking-widest text-stone-500">이전 글</span>
                                 <p className="mt-2 font-display font-bold text-stone-200 group-hover:text-green-400 transition-colors line-clamp-2">{older.title}</p>
                             </Link>
                         ) : <span />}
                         {newer ? (
-                            <Link href={`/blog/${newer.slug}`} className="group rounded-xl border border-highlight hover:border-green-500 bg-surface/50 p-5 transition-colors sm:text-right">
+                            <Link href={`/blog/${encodeURIComponent(newer.slug)}`} className="group rounded-xl border border-highlight hover:border-green-500 bg-surface/50 p-5 transition-colors sm:text-right">
                                 <span className="text-[11px] font-mono uppercase tracking-widest text-stone-500">다음 글</span>
                                 <p className="mt-2 font-display font-bold text-stone-200 group-hover:text-green-400 transition-colors line-clamp-2">{newer.title}</p>
                             </Link>

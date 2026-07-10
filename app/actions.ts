@@ -4,6 +4,7 @@ import { createClient } from '@/utils/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { Project, Post } from '@/types/database.types'
 import { parseGithubPath } from '@/utils/github'
+import { postSlug } from '@/utils/post'
 
 // --- Analytics Actions ---
 
@@ -199,7 +200,11 @@ export async function deleteProject(id: string) {
 
 function parsePostForm(formData: FormData) {
     const title = formData.get('title') as string
-    const slug = (formData.get('slug') as string).trim().toLowerCase()
+    // URL slug must be ASCII so `<Link>` hrefs don't double-encode on soft nav.
+    // Fall back to the title, then a random suffix if nothing survives (e.g. Korean-only title).
+    const rawSlug = (formData.get('slug') as string).trim() || title
+    let slug = postSlug(rawSlug)
+    if (!slug) slug = `post-${Math.random().toString(36).slice(2, 8)}`
     const description = formData.get('description') as string
     const date = formData.get('date') as string
     const tags = (formData.get('tags') as string)

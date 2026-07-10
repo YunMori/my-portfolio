@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { toast } from 'sonner'
 import { addPost, updatePost, deletePost } from '@/app/actions'
 import { Post } from '@/types/database.types'
-import { slugify } from '@/utils/post'
+import { postSlug } from '@/utils/post'
 
 interface PostManagerProps {
     initialPosts: Post[]
@@ -54,7 +54,7 @@ export default function PostManager({ initialPosts }: PostManagerProps) {
         e.preventDefault()
         const submitData = new FormData()
         submitData.append('title', formData.title)
-        submitData.append('slug', formData.slug.trim() || slugify(formData.title))
+        submitData.append('slug', formData.slug.trim() || postSlug(formData.title))
         submitData.append('description', formData.description)
         submitData.append('date', formData.date)
         submitData.append('tags', formData.tags)
