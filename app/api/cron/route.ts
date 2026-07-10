@@ -4,7 +4,14 @@ import { createClient } from '@supabase/supabase-js';
 // Vercel Cron이 접근할 수 있도록 동적 라우트로 설정
 export const dynamic = 'force-dynamic';
 
-export async function GET() {
+export async function GET(request: Request) {
+    // Vercel Cron은 CRON_SECRET 환경변수 설정 시 Authorization 헤더를 자동으로 붙여준다.
+    // 시크릿이 없거나 불일치하면 거부 (fail-closed)
+    const authHeader = request.headers.get('authorization');
+    if (!process.env.CRON_SECRET || authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     try {
         const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
         const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
