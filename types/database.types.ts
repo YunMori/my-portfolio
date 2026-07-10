@@ -26,6 +26,18 @@ export type Project = {
     created_at?: string;
 }
 
+export type Post = {
+    id: string;
+    title: string;
+    slug: string;
+    description: string;
+    content: string;
+    tags: string[];
+    published: boolean;
+    date: string;
+    created_at?: string;
+}
+
 export type Database = {
     public: {
         Tables: {
@@ -38,6 +50,11 @@ export type Database = {
                 Row: Project;
                 Insert: Omit<Project, 'id' | 'created_at'>;
                 Update: Partial<Omit<Project, 'id' | 'created_at'>>;
+            };
+            posts: {
+                Row: Post;
+                Insert: Omit<Post, 'id' | 'created_at'>;
+                Update: Partial<Omit<Post, 'id' | 'created_at'>>;
             };
             daily_stats: {
                 Row: {
