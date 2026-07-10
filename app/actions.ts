@@ -2,7 +2,7 @@
 
 import { createClient } from '@/utils/supabase/server'
 import { revalidatePath } from 'next/cache'
-import { Project } from '@/types/database.types'
+import { Project, Post } from '@/types/database.types'
 import { parseGithubPath } from '@/utils/github'
 
 // --- Analytics Actions ---
@@ -54,6 +54,55 @@ export async function getProjects() {
         return []
     }
     return data as Project[]
+}
+
+export async function getPosts() {
+    const supabase = await createClient()
+    const { data, error } = await supabase
+        .from('posts')
+        .select('*')
+        .eq('published', true)
+        .order('date', { ascending: false })
+
+    if (error) {
+        console.error('Error fetching posts:', error)
+        return []
+    }
+    return data as Post[]
+}
+
+export async function getPostBySlug(slug: string) {
+    const supabase = await createClient()
+    const { data, error } = await supabase
+        .from('posts')
+        .select('*')
+        .eq('slug', slug)
+        .eq('published', true)
+        .single()
+
+    if (error) {
+        // Not found is an expected case; don't spam the log for it.
+        if (error.code !== 'PGRST116') console.error('Error fetching post:', error)
+        return null
+    }
+    return data as Post
+}
+
+// Admin-only: includes unpublished drafts
+export async function getAllPostsAdmin() {
+    if (!(await isAuthenticated())) return []
+
+    const supabase = await createClient()
+    const { data, error } = await supabase
+        .from('posts')
+        .select('*')
+        .order('date', { ascending: false })
+
+    if (error) {
+        console.error('Error fetching posts (admin):', error)
+        return []
+    }
+    return data as Post[]
 }
 
 // --- Mutation Actions (Admin) ---
@@ -143,6 +192,80 @@ export async function deleteProject(id: string) {
 
     revalidatePath('/')
     revalidatePath('/admin/projects')
+    return { success: true }
+}
+
+// --- Blog Post Mutations (Admin) ---
+
+function parsePostForm(formData: FormData) {
+    const title = formData.get('title') as string
+    const slug = (formData.get('slug') as string).trim().toLowerCase()
+    const description = formData.get('description') as string
+    const date = formData.get('date') as string
+    const tags = (formData.get('tags') as string)
+        .split(',')
+        .map(s => s.trim())
+        .filter(Boolean)
+    const content = formData.get('content') as string
+    const published = formData.get('published') === 'on' || formData.get('published') === 'true'
+    return { title, slug, description, date, tags, content, published }
+}
+
+export async function addPost(formData: FormData) {
+    if (!(await isAuthenticated())) {
+        return { success: false, error: 'Unauthorized' }
+    }
+
+    const supabase = await createClient()
+    const { error } = await supabase.from('posts').insert(parsePostForm(formData))
+
+    if (error) {
+        console.error('Error adding post:', error)
+        return { success: false, error: error.message }
+    }
+
+    revalidatePath('/blog')
+    revalidatePath('/admin/posts')
+    return { success: true }
+}
+
+export async function updatePost(formData: FormData) {
+    if (!(await isAuthenticated())) {
+        return { success: false, error: 'Unauthorized' }
+    }
+
+    const supabase = await createClient()
+    const id = formData.get('id') as string
+    const { error } = await supabase
+        .from('posts')
+        .update(parsePostForm(formData))
+        .eq('id', id)
+
+    if (error) {
+        console.error('Error updating post:', error)
+        return { success: false, error: error.message }
+    }
+
+    revalidatePath('/blog')
+    revalidatePath('/admin/posts')
+    return { success: true }
+}
+
+export async function deletePost(id: string) {
+    if (!(await isAuthenticated())) {
+        return { success: false, error: 'Unauthorized' }
+    }
+
+    const supabase = await createClient()
+    const { error } = await supabase.from('posts').delete().eq('id', id)
+
+    if (error) {
+        console.error('Error deleting post:', error)
+        return { success: false, error: error.message }
+    }
+
+    revalidatePath('/blog')
+    revalidatePath('/admin/posts')
     return { success: true }
 }
 
