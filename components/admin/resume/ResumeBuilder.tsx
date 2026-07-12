@@ -8,10 +8,13 @@ import { toast } from 'sonner'
 import ResumePdfDocument from '@/components/resume/ResumePdfDocument'
 import { registerResumeFonts } from '@/utils/resume/pdfFonts'
 import {
-    buildResumeData, defaultSelections, ResumeSelections, BasicFieldKey, ToggleCategoryKey,
+    buildResumeData, defaultSelections, sanitizeSelections,
+    ResumeSelections, BasicFieldKey, ToggleCategoryKey,
 } from '@/utils/resume/buildResumeData'
 import { CATEGORY_MAP } from '@/utils/resume/config'
+import { savePreset, deletePreset } from '@/app/actions/presets'
 import type { ResumeBuilderData } from '@/app/actions/resume'
+import { ResumePreset } from '@/types/database.types'
 
 // 한글 폰트 등록 (클라이언트 모듈 로드 시 1회)
 registerResumeFonts()
@@ -75,10 +78,19 @@ function buildSections(data: ResumeBuilderData): BuilderSection[] {
     ]
 }
 
-export default function ResumeBuilder({ data }: { data: ResumeBuilderData }) {
+export default function ResumeBuilder({ data, initialPresets }: {
+    data: ResumeBuilderData
+    initialPresets: ResumePreset[]
+}) {
     // 초기 토글 상태 = 각 항목의 include_in_resume_default
     const [selections, setSelections] = useState<ResumeSelections>(() => defaultSelections(data))
     const [isExporting, setIsExporting] = useState(false)
+
+    // 프리셋 상태
+    const [presets, setPresets] = useState<ResumePreset[]>(initialPresets)
+    const [selectedPresetId, setSelectedPresetId] = useState('')
+    const [presetName, setPresetName] = useState('')
+    const [isSavingPreset, setIsSavingPreset] = useState(false)
 
     // 미리보기 재렌더 디바운스 (~400ms): 토글 연타 시 PDF 렌더 부하 방지
     const [debouncedSelections, setDebouncedSelections] = useState(selections)
@@ -112,6 +124,61 @@ export default function ResumeBuilder({ data }: { data: ResumeBuilderData }) {
         }))
     }
 
+    // 프리셋 저장: 현재 토글 상태를 이름으로 저장 (동명 프리셋은 덮어쓰기)
+    const handleSavePreset = async () => {
+        const name = presetName.trim()
+        if (!name) {
+            toast.error('프리셋 이름을 입력하세요')
+            return
+        }
+        setIsSavingPreset(true)
+        try {
+            const result = await savePreset(name, selections)
+            if (result.success && result.preset) {
+                const saved = result.preset
+                setPresets(prev => {
+                    const others = prev.filter(p => p.id !== saved.id)
+                    return [saved, ...others]
+                })
+                setSelectedPresetId(saved.id)
+                setPresetName('')
+                toast.success(`프리셋 "${name}" 저장 완료`)
+            } else {
+                toast.error(result.error || '프리셋 저장에 실패했습니다')
+            }
+        } catch (err) {
+            console.error(err)
+            toast.error('예기치 못한 오류가 발생했습니다')
+        } finally {
+            setIsSavingPreset(false)
+        }
+    }
+
+    // 프리셋 불러오기: 삭제된 항목 id는 sanitizeSelections가 조용히 필터
+    const handleLoadPreset = (presetId: string) => {
+        setSelectedPresetId(presetId)
+        if (!presetId) return
+        const preset = presets.find(p => p.id === presetId)
+        if (!preset) return
+        setSelections(sanitizeSelections(preset.selections as Partial<ResumeSelections>, data))
+        toast.success(`프리셋 "${preset.name}" 적용됨`)
+    }
+
+    const handleDeletePreset = async () => {
+        if (!selectedPresetId) return
+        const preset = presets.find(p => p.id === selectedPresetId)
+        if (!preset || !confirm(`프리셋 "${preset.name}"을(를) 삭제하시겠습니까?`)) return
+
+        const result = await deletePreset(selectedPresetId)
+        if (result.success) {
+            setPresets(prev => prev.filter(p => p.id !== selectedPresetId))
+            setSelectedPresetId('')
+            toast.success('프리셋이 삭제되었습니다')
+        } else {
+            toast.error(result.error || '삭제에 실패했습니다')
+        }
+    }
+
     // PDF export: 현재 토글 상태(디바운스 미적용) 기준으로 즉시 생성
     const handleExport = async () => {
         setIsExporting(true)
@@ -139,8 +206,47 @@ export default function ResumeBuilder({ data }: { data: ResumeBuilderData }) {
 
     return (
         <div className="flex flex-col gap-6">
-            {/* 상단 바: export */}
-            <div className="flex flex-wrap items-center justify-end gap-3">
+            {/* 상단 바: 프리셋 + export */}
+            <div className="flex flex-wrap items-center gap-3 bg-surface border border-stone-800 rounded-xl p-4">
+                <div className="flex items-center gap-2 flex-wrap flex-1">
+                    <i className="fa-solid fa-bookmark text-stone-500"></i>
+                    <select
+                        value={selectedPresetId}
+                        onChange={e => handleLoadPreset(e.target.value)}
+                        className="bg-stone-900 border border-stone-700 rounded p-2 text-sm text-stone-200 focus:border-green-500 outline-none min-w-40"
+                    >
+                        <option value="">프리셋 불러오기...</option>
+                        {presets.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                    </select>
+                    {selectedPresetId && (
+                        <button
+                            onClick={handleDeletePreset}
+                            className="text-xs px-3 py-2 bg-red-900/20 hover:bg-red-900/40 text-red-500 rounded border border-red-900/30"
+                            title="선택된 프리셋 삭제"
+                        >
+                            <i className="fa-solid fa-trash"></i>
+                        </button>
+                    )}
+
+                    <span className="w-px h-6 bg-stone-800 mx-1 hidden sm:block"></span>
+
+                    <input
+                        type="text"
+                        value={presetName}
+                        onChange={e => setPresetName(e.target.value)}
+                        onKeyDown={e => { if (e.key === 'Enter') handleSavePreset() }}
+                        placeholder='프리셋 이름 (예: "백엔드 지원용")'
+                        className="bg-stone-900 border border-stone-700 rounded p-2 text-sm text-stone-200 focus:border-green-500 outline-none flex-1 min-w-48"
+                    />
+                    <button
+                        onClick={handleSavePreset}
+                        disabled={isSavingPreset}
+                        className="text-sm px-4 py-2 bg-stone-700 hover:bg-stone-600 text-white font-bold rounded disabled:opacity-50 whitespace-nowrap"
+                    >
+                        {isSavingPreset ? <i className="fa-solid fa-spinner fa-spin"></i> : '현재 조합 저장'}
+                    </button>
+                </div>
+
                 <button
                     onClick={handleExport}
                     disabled={isExporting}
