@@ -9,14 +9,20 @@ const Projects = dynamic(() => import('@/components/Projects'), { ssr: false });
 import Footer from '@/components/Footer';
 import ScrollProgress from '@/components/ScrollProgress';
 import SocialProof from '@/components/SocialProof';
+import CareerSections from '@/components/CareerSections';
 import { Project } from '@/types/database.types';
+import { PublicResumeData } from '@/app/actions/resume';
 
 interface HomeClientProps {
     initialProjects: Project[];
+    resumeData: PublicResumeData;
 }
 
-export default function HomeClient({ initialProjects }: HomeClientProps) {
+export default function HomeClient({ initialProjects, resumeData }: HomeClientProps) {
     const [projects, setProjects] = useState(initialProjects);
+
+    // 공개된 이력 항목이 하나라도 있어야 Career 섹션(+구분선) 렌더
+    const hasCareerData = Object.values(resumeData).some(items => items.length > 0);
 
     // Track Page View
     useEffect(() => {
@@ -69,6 +75,12 @@ export default function HomeClient({ initialProjects }: HomeClientProps) {
             <div className="section-divider" />
             <Projects projects={projects} />
             <div className="section-divider" />
+            {hasCareerData && (
+                <>
+                    <CareerSections data={resumeData} />
+                    <div className="section-divider" />
+                </>
+            )}
             <SocialProof totalProjects={projects.length} totalTech={techStats.length} />
             <Footer />
         </main>
