@@ -15,6 +15,8 @@ const contentSecurityPolicy = [
   "base-uri 'self'",
   "form-action 'self'",
   "frame-ancestors 'none'",
+  // 이력서 빌더의 PDF 미리보기(<PDFViewer>)가 <iframe src="blob:...">로 렌더되므로 blob 프레임 허용
+  "frame-src 'self' blob:",
 ].join("; ");
 
 const securityHeaders = [
