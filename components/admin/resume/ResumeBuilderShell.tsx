@@ -4,6 +4,7 @@
 // (HomeClient의 Projects dynamic 패턴과 동일)
 import dynamic from 'next/dynamic'
 import type { ResumeBuilderData } from '@/app/actions/resume'
+import { ResumePreset } from '@/types/database.types'
 
 const ResumeBuilder = dynamic(() => import('./ResumeBuilder'), {
     ssr: false,
@@ -14,6 +15,9 @@ const ResumeBuilder = dynamic(() => import('./ResumeBuilder'), {
     ),
 })
 
-export default function ResumeBuilderShell({ data }: { data: ResumeBuilderData }) {
-    return <ResumeBuilder data={data} />
+export default function ResumeBuilderShell({ data, initialPresets }: {
+    data: ResumeBuilderData
+    initialPresets: ResumePreset[]
+}) {
+    return <ResumeBuilder data={data} initialPresets={initialPresets} />
 }

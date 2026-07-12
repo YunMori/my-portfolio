@@ -149,9 +149,11 @@ export type CoverLetter = ResumeMeta & {
     char_limit: number | null;
 }
 
-// 이력서 프리셋 선택 상태: 카테고리 키 → 선택된 항목 id 목록 + 기본정보 필드 토글
+// 이력서 프리셋 선택 상태 (utils/resume/buildResumeData.ts 의 ResumeSelections와 구조 호환)
+// items: 카테고리 키 → 선택된 항목 id 목록 / basicFields: 기본정보 필드 단위 토글
 export type PresetSelections = {
-    [category: string]: string[] | { [field: string]: boolean };
+    items?: { [category: string]: string[] };
+    basicFields?: { [field: string]: boolean };
 }
 
 // 이력서 프리셋
