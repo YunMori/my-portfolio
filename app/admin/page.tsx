@@ -24,6 +24,22 @@ export default function AdminDashboard() {
                     <h2 className="text-xl font-bold text-stone-200 mb-2">Manage Projects</h2>
                     <p className="text-sm text-stone-500 group-hover:text-stone-400">Add new portfolio items, update descriptions, or change technology stacks.</p>
                 </Link>
+
+                <Link href="/admin/archive" className="group bg-surface hover:bg-stone-800 border border-stone-800 p-8 rounded-2xl transition-all hover:-translate-y-1 hover:border-green-500/50 hover:shadow-xl">
+                    <div className="w-12 h-12 rounded-full bg-amber-500/10 flex items-center justify-center text-amber-500 mb-4 group-hover:bg-amber-500 group-hover:text-black transition-colors">
+                        <i className="fa-solid fa-box-archive text-xl"></i>
+                    </div>
+                    <h2 className="text-xl font-bold text-stone-200 mb-2">Resume Archive</h2>
+                    <p className="text-sm text-stone-500 group-hover:text-stone-400">학력, 경력, 자격증 등 이력서에 들어갈 모든 정보를 관리합니다.</p>
+                </Link>
+
+                <Link href="/admin/resume" className="group bg-surface hover:bg-stone-800 border border-stone-800 p-8 rounded-2xl transition-all hover:-translate-y-1 hover:border-green-500/50 hover:shadow-xl">
+                    <div className="w-12 h-12 rounded-full bg-green-500/10 flex items-center justify-center text-green-500 mb-4 group-hover:bg-green-500 group-hover:text-black transition-colors">
+                        <i className="fa-solid fa-file-pdf text-xl"></i>
+                    </div>
+                    <h2 className="text-xl font-bold text-stone-200 mb-2">Resume Builder</h2>
+                    <p className="text-sm text-stone-500 group-hover:text-stone-400">항목을 토글로 선택해 이력서를 구성하고 PDF로 내보냅니다.</p>
+                </Link>
             </div>
 
             <div className="mt-12 p-6 rounded-xl bg-stone-900/50 border border-stone-800 text-sm text-stone-500">

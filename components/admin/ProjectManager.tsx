@@ -51,14 +51,22 @@ export default function ProjectManager({ initialProjects }: ProjectManagerProps)
     const [isFetching, setIsFetching] = useState(false)
 
     // Form State for Controlled Inputs
-    const [formData, setFormData] = useState({
+    const emptyForm = {
         title: '',
         description: '',
         date: '',
         stack: '',
         github_link: '',
-        content: ''
-    })
+        content: '',
+        // 이력서 확장 필드
+        role: '',
+        period_start: '',
+        period_end: '',
+        tags: '',
+        is_public: 'on',
+        include_in_resume_default: 'on'
+    }
+    const [formData, setFormData] = useState(emptyForm)
 
     // Update form when editingId changes
     useEffect(() => {
@@ -71,25 +79,26 @@ export default function ProjectManager({ initialProjects }: ProjectManagerProps)
                     date: project.date,
                     stack: project.stack.join(', '),
                     github_link: project.github_link || '',
-                    content: project.content || ''
+                    content: project.content || '',
+                    role: project.role || '',
+                    period_start: project.period_start || '',
+                    period_end: project.period_end || '',
+                    tags: project.tags?.join(', ') || '',
+                    is_public: project.is_public === false ? '' : 'on',
+                    include_in_resume_default: project.include_in_resume_default === false ? '' : 'on'
                 })
             }
         } else {
             // Reset form for new project
-            setFormData({
-                title: '',
-                description: '',
-                date: '',
-                stack: '',
-                github_link: '',
-                content: ''
-            })
+            setFormData(emptyForm)
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [editingId, projects])
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-        const { name, value } = e.target
-        setFormData(prev => ({ ...prev, [name]: value }))
+        const { name, value, type } = e.target
+        const checked = (e.target as HTMLInputElement).checked
+        setFormData(prev => ({ ...prev, [name]: type === 'checkbox' ? (checked ? 'on' : '') : value }))
     }
 
     const handleFetchGithub = async () => {
@@ -268,6 +277,77 @@ export default function ProjectManager({ initialProjects }: ProjectManagerProps)
                                     className="w-full bg-stone-900 border border-stone-700 rounded p-2 text-stone-200 focus:border-green-500 outline-none"
                                 />
                             </div>
+                        </div>
+                        {/* 이력서 확장 필드 */}
+                        <div className="flex gap-4">
+                            <div className="flex-1">
+                                <label className="block text-xs uppercase tracking-wider text-stone-500 mb-1">Role (이력서용 역할)</label>
+                                <input
+                                    name="role"
+                                    type="text"
+                                    placeholder="백엔드 개발 (팀 4인)"
+                                    value={formData.role}
+                                    onChange={handleInputChange}
+                                    className="w-full bg-stone-900 border border-stone-700 rounded p-2 text-stone-200 focus:border-green-500 outline-none"
+                                />
+                            </div>
+                        </div>
+                        <div className="flex gap-4">
+                            <div className="flex-1">
+                                <label className="block text-xs uppercase tracking-wider text-stone-500 mb-1">Period Start</label>
+                                <input
+                                    name="period_start"
+                                    type="text"
+                                    placeholder="2025.01"
+                                    value={formData.period_start}
+                                    onChange={handleInputChange}
+                                    className="w-full bg-stone-900 border border-stone-700 rounded p-2 text-stone-200 focus:border-green-500 outline-none"
+                                />
+                            </div>
+                            <div className="flex-1">
+                                <label className="block text-xs uppercase tracking-wider text-stone-500 mb-1">Period End (진행중이면 비움)</label>
+                                <input
+                                    name="period_end"
+                                    type="text"
+                                    placeholder="2025.06"
+                                    value={formData.period_end}
+                                    onChange={handleInputChange}
+                                    className="w-full bg-stone-900 border border-stone-700 rounded p-2 text-stone-200 focus:border-green-500 outline-none"
+                                />
+                            </div>
+                        </div>
+                        <div>
+                            <label className="block text-xs uppercase tracking-wider text-stone-500 mb-1">Tags (쉼표 구분 — 직무/용도 필터링)</label>
+                            <input
+                                name="tags"
+                                type="text"
+                                placeholder="백엔드, AI"
+                                value={formData.tags}
+                                onChange={handleInputChange}
+                                className="w-full bg-stone-900 border border-stone-700 rounded p-2 text-stone-200 focus:border-green-500 outline-none"
+                            />
+                        </div>
+                        <div className="flex gap-6 text-sm text-stone-400">
+                            <label className="flex items-center gap-2 cursor-pointer">
+                                <input
+                                    name="is_public"
+                                    type="checkbox"
+                                    checked={formData.is_public === 'on'}
+                                    onChange={handleInputChange}
+                                    className="accent-green-500"
+                                />
+                                웹 포트폴리오 공개
+                            </label>
+                            <label className="flex items-center gap-2 cursor-pointer">
+                                <input
+                                    name="include_in_resume_default"
+                                    type="checkbox"
+                                    checked={formData.include_in_resume_default === 'on'}
+                                    onChange={handleInputChange}
+                                    className="accent-green-500"
+                                />
+                                이력서 기본 포함
+                            </label>
                         </div>
                         <div>
                             <label className="block text-xs uppercase tracking-wider text-stone-500 mb-1">Detailed Content (Markdown)</label>
