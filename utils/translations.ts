@@ -37,6 +37,17 @@ export const translations = {
             noContent: 'No detailed content available for this project yet.',
             filterAll: 'All'
         },
+        career: {
+            header: 'Background',
+            title: 'Career & Education',
+            experience: 'Experience',
+            education: 'Education',
+            courses: 'Courses',
+            certifications: 'Certifications',
+            awards: 'Awards',
+            activities: 'Language & Activities',
+            present: 'Present'
+        },
         footer: {
             rights: 'All rights reserved.',
             backToTop: 'Back to Top'
@@ -77,6 +88,17 @@ export const translations = {
             viewSource: '소스 코드',
             noContent: '이 프로젝트에 대한 상세 내용이 아직 없습니다.',
             filterAll: '전체'
+        },
+        career: {
+            header: '이력',
+            title: '경력 & 학력',
+            experience: '경력',
+            education: '학력',
+            courses: '교육 이수',
+            certifications: '자격증',
+            awards: '수상',
+            activities: '어학 & 활동',
+            present: '현재'
         },
         footer: {
             rights: '모든 권리 보유.',
