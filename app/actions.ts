@@ -117,6 +117,23 @@ async function isAuthenticated() {
 
 
 
+// 프로젝트 이력서 확장 필드 파싱 (resume_platform_migration.sql)
+function parseProjectResumeFields(formData: FormData) {
+    const str = (name: string) => ((formData.get(name) as string) || '').trim() || null
+    return {
+        role: str('role'),
+        period_start: str('period_start'),
+        period_end: str('period_end'),
+        tags: ((formData.get('tags') as string) || '')
+            .split(',')
+            .map(s => s.trim())
+            .filter(Boolean),
+        is_public: formData.get('is_public') === 'on' || formData.get('is_public') === 'true',
+        include_in_resume_default:
+            formData.get('include_in_resume_default') === 'on' || formData.get('include_in_resume_default') === 'true',
+    }
+}
+
 export async function addProject(formData: FormData) {
     if (!(await isAuthenticated())) {
         return { success: false, error: 'Unauthorized' }
@@ -133,7 +150,7 @@ export async function addProject(formData: FormData) {
 
     const { error } = await supabase
         .from('projects')
-        .insert({ title, description, date, stack, github_link, content })
+        .insert({ title, description, date, stack, github_link, content, ...parseProjectResumeFields(formData) })
 
     if (error) {
         console.error('Error adding project:', error)
@@ -162,7 +179,7 @@ export async function updateProject(formData: FormData) {
 
     const { error } = await supabase
         .from('projects')
-        .update({ title, description, date, stack, github_link, content })
+        .update({ title, description, date, stack, github_link, content, ...parseProjectResumeFields(formData) })
         .eq('id', id)
 
     if (error) {
