@@ -26,18 +26,27 @@ export async function incrementView() {
 
 export async function getAnalyticsData() {
     const supabase = await createClient()
-    // Get last 7 days
+    // Last 7 calendar days in UTC, matching the dates incrementView writes.
+    const days = [...Array(7)].map((_, i) => {
+        const d = new Date()
+        d.setUTCDate(d.getUTCDate() - (6 - i))
+        return d.toISOString().split('T')[0]
+    })
+
     const { data, error } = await supabase
         .from('daily_stats')
-        .select('*')
+        .select('date, views')
+        .gte('date', days[0])
         .order('date', { ascending: true })
-        .limit(7)
 
     if (error) {
         console.error('Error fetching analytics:', error)
         return []
     }
-    return data
+
+    // Days without visits have no row; fill them with 0 so the chart always spans a full week.
+    const viewsByDate = new Map(data.map(d => [d.date, d.views]))
+    return days.map(date => ({ date, views: viewsByDate.get(date) ?? 0 }))
 }
 
 // --- Fetch Actions ---
