@@ -71,6 +71,8 @@ Supabase SQL Editor에서 순서대로 실행:
 1. `schema.sql` — 기본 테이블 생성
 2. `migration.sql` — 추가 컬럼
 3. `secure_policies.sql` — RLS 보안 정책
+4. `blog_migration.sql` — 블로그(posts) 테이블
+5. `resume_platform_migration.sql` — 이력서 아카이브/빌더 테이블 (⚠️ 이력서 기능 사용 전 필수 실행)
 
 ### 개발 서버
 
@@ -87,6 +89,17 @@ npm run dev
 |---|---|
 | `/admin` | 방문자 통계 대시보드 |
 | `/admin/projects` | 프로젝트 CRUD |
+| `/admin/posts` | 블로그 글 CRUD |
+| `/admin/archive` | 이력서 아카이브 (학력/경력/자격증 등 카테고리별 CRUD + 드래그 정렬) |
+| `/admin/archive/basic` | 기본 정보 · 인적 사항(비공개) 편집 |
+| `/admin/resume` | 이력서 빌더 — 토글 선택 → 실시간 PDF 미리보기 → PDF 내보내기, 프리셋 저장 |
+
+### 이력서 빌더
+
+- 항목별 토글 초기값은 각 레코드의 `include_in_resume_default`
+- 인적 사항(생년월일/주소/병역/전화번호)과 자기소개서는 RLS로 익명 조회가 차단되며, 빌더에서도 기본 제외
+- 토글 조합은 프리셋(예: "백엔드 지원용")으로 저장/재사용 가능
+- PDF는 NanumGothic 임베딩으로 한글이 보장되는 A4 벡터 문서로 생성됩니다
 
 ## 프로젝트 구조
 
