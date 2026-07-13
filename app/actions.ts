@@ -2,6 +2,7 @@
 
 import { createClient } from '@/utils/supabase/server'
 import { revalidatePath } from 'next/cache'
+import { redirect } from 'next/navigation'
 import { Project, Post } from '@/types/database.types'
 import { parseGithubPath } from '@/utils/github'
 import { postSlug } from '@/utils/post'
@@ -113,6 +114,12 @@ async function isAuthenticated() {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
     return !!user
+}
+
+export async function signOut() {
+    const supabase = await createClient()
+    await supabase.auth.signOut()
+    redirect('/login')
 }
 
 
