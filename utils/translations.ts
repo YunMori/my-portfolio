@@ -15,6 +15,7 @@ export const translations = {
             header: 'Writing',
             title: 'Tech Blog',
             filterAll: 'All',
+            uncategorized: 'Uncategorized',
             min: 'min read',
             empty: 'No posts yet. Check back soon.'
         },
@@ -56,6 +57,7 @@ export const translations = {
             header: '기록',
             title: '기술 블로그',
             filterAll: '전체',
+            uncategorized: '미분류',
             min: '분',
             empty: '아직 작성된 글이 없습니다. 곧 찾아뵐게요.'
         },

@@ -3,11 +3,12 @@
 import { useState, useEffect } from 'react'
 import { toast } from 'sonner'
 import { addPost, updatePost, deletePost } from '@/app/actions'
-import { Post } from '@/types/database.types'
+import { Post, Category } from '@/types/database.types'
 import { postSlug } from '@/utils/post'
 
 interface PostManagerProps {
     initialPosts: Post[]
+    categories: Category[]
 }
 
 const EMPTY = {
@@ -15,12 +16,12 @@ const EMPTY = {
     slug: '',
     description: '',
     date: '',
-    tags: '',
+    category_id: '',
     content: '',
     published: true,
 }
 
-export default function PostManager({ initialPosts }: PostManagerProps) {
+export default function PostManager({ initialPosts, categories }: PostManagerProps) {
     const [posts] = useState<Post[]>(initialPosts)
     const [editingId, setEditingId] = useState<string | null>(null)
     const [formData, setFormData] = useState({ ...EMPTY })
@@ -34,7 +35,7 @@ export default function PostManager({ initialPosts }: PostManagerProps) {
                     slug: post.slug,
                     description: post.description || '',
                     date: post.date || '',
-                    tags: (post.tags ?? []).join(', '),
+                    category_id: post.category_id ?? '',
                     content: post.content || '',
                     published: post.published,
                 })
@@ -44,7 +45,7 @@ export default function PostManager({ initialPosts }: PostManagerProps) {
         }
     }, [editingId, posts])
 
-    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { name, value, type } = e.target
         const checked = (e.target as HTMLInputElement).checked
         setFormData(prev => ({ ...prev, [name]: type === 'checkbox' ? checked : value }))
@@ -57,7 +58,7 @@ export default function PostManager({ initialPosts }: PostManagerProps) {
         submitData.append('slug', formData.slug.trim() || postSlug(formData.title))
         submitData.append('description', formData.description)
         submitData.append('date', formData.date)
-        submitData.append('tags', formData.tags)
+        submitData.append('category_id', formData.category_id)
         submitData.append('content', formData.content)
         submitData.append('published', formData.published ? 'true' : 'false')
 
@@ -161,15 +162,18 @@ export default function PostManager({ initialPosts }: PostManagerProps) {
                             />
                         </div>
                         <div className="flex-1">
-                            <label className="block text-xs uppercase tracking-wider text-stone-500 mb-1">Tags (CSV)</label>
-                            <input
-                                name="tags"
-                                type="text"
-                                placeholder="Next.js, 회고"
-                                value={formData.tags}
+                            <label className="block text-xs uppercase tracking-wider text-stone-500 mb-1">Category</label>
+                            <select
+                                name="category_id"
+                                value={formData.category_id}
                                 onChange={handleInputChange}
                                 className="w-full bg-stone-900 border border-stone-700 rounded p-2 text-stone-200 focus:border-green-500 outline-none"
-                            />
+                            >
+                                <option value="">— Uncategorized —</option>
+                                {categories.map(category => (
+                                    <option key={category.id} value={category.id}>{category.name}</option>
+                                ))}
+                            </select>
                         </div>
                     </div>
                     <div>
@@ -214,7 +218,7 @@ export default function PostManager({ initialPosts }: PostManagerProps) {
                                     {post.title}
                                     {!post.published && <span className="ml-2 text-[10px] font-mono uppercase text-amber-400 border border-amber-500/40 rounded px-1.5 py-0.5">draft</span>}
                                 </h3>
-                                <p className="text-xs text-stone-500 mb-2 font-mono">/{post.slug} · {post.date} · {(post.tags ?? []).join(', ')}</p>
+                                <p className="text-xs text-stone-500 mb-2 font-mono">/{post.slug} · {post.date} · {post.category?.name ?? 'Uncategorized'}</p>
                                 <p className="text-sm text-stone-400 line-clamp-2">{post.description}</p>
                             </div>
                             <div className="flex flex-col gap-2 ml-4 shrink-0">
