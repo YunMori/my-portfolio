@@ -59,13 +59,14 @@ export default async function PostPage(
                     {post.description && (
                         <p className="text-stone-400 text-lg leading-relaxed">{post.description}</p>
                     )}
-                    {(post.tags ?? []).length > 0 && (
-                        <div className="flex flex-wrap gap-2 mt-6">
-                            {post.tags.map(tag => (
-                                <span key={tag} className="text-[11px] font-mono text-green-400 bg-green-900/40 border border-green-600/60 rounded px-2.5 py-1">
-                                    {tag}
-                                </span>
-                            ))}
+                    {post.category && (
+                        <div className="mt-6">
+                            <Link
+                                href={`/blog?category=${encodeURIComponent(post.category.slug)}`}
+                                className="inline-block text-[11px] font-mono text-green-400 bg-green-900/40 border border-green-600/60 rounded px-2.5 py-1 hover:border-green-400 hover:bg-green-900/60 transition-colors"
+                            >
+                                {post.category.name}
+                            </Link>
                         </div>
                     )}
                 </header>

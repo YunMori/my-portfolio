@@ -3,7 +3,7 @@
 import { createClient } from '@/utils/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
-import { Project, Post } from '@/types/database.types'
+import { Project, Post, Category } from '@/types/database.types'
 import { parseGithubPath } from '@/utils/github'
 import { postSlug } from '@/utils/post'
 
@@ -67,13 +67,54 @@ export async function getProjects() {
     return data as Project[]
 }
 
-export async function getPosts() {
+// Joined shape used by every post query, so `post.category` is always available.
+const POST_SELECT = '*, category:categories(id, name, slug)'
+
+export async function getCategories() {
     const supabase = await createClient()
     const { data, error } = await supabase
-        .from('posts')
+        .from('categories')
         .select('*')
+        .order('sort_order', { ascending: true })
+        .order('name', { ascending: true })
+
+    if (error) {
+        console.error('Error fetching categories:', error)
+        return []
+    }
+    return data as Category[]
+}
+
+/**
+ * Published posts, newest first. Passing a category slug narrows the list.
+ * Called with no argument it must behave exactly as before — the sitemap and
+ * the prev/next links on a post page both rely on the full list.
+ */
+export async function getPosts(categorySlug?: string) {
+    const supabase = await createClient()
+
+    let categoryId: string | null = null
+    if (categorySlug) {
+        // Resolve slug → id first rather than filtering on the embedded resource;
+        // an unknown slug should yield an empty list, not every post.
+        const { data: category } = await supabase
+            .from('categories')
+            .select('id')
+            .eq('slug', categorySlug)
+            .maybeSingle()
+
+        if (!category) return []
+        categoryId = category.id
+    }
+
+    let query = supabase
+        .from('posts')
+        .select(POST_SELECT)
         .eq('published', true)
-        .order('date', { ascending: false })
+
+    if (categoryId) query = query.eq('category_id', categoryId)
+
+    const { data, error } = await query.order('date', { ascending: false })
 
     if (error) {
         console.error('Error fetching posts:', error)
@@ -86,7 +127,7 @@ export async function getPostBySlug(slug: string) {
     const supabase = await createClient()
     const { data, error } = await supabase
         .from('posts')
-        .select('*')
+        .select(POST_SELECT)
         .eq('slug', slug)
         .eq('published', true)
         .single()
@@ -106,7 +147,7 @@ export async function getAllPostsAdmin() {
     const supabase = await createClient()
     const { data, error } = await supabase
         .from('posts')
-        .select('*')
+        .select(POST_SELECT)
         .order('date', { ascending: false })
 
     if (error) {
@@ -223,13 +264,11 @@ function parsePostForm(formData: FormData) {
     if (!slug) slug = `post-${Math.random().toString(36).slice(2, 8)}`
     const description = formData.get('description') as string
     const date = formData.get('date') as string
-    const tags = (formData.get('tags') as string)
-        .split(',')
-        .map(s => s.trim())
-        .filter(Boolean)
+    // Empty select value means "uncategorized" — the FK column is nullable.
+    const category_id = (formData.get('category_id') as string) || null
     const content = formData.get('content') as string
     const published = formData.get('published') === 'on' || formData.get('published') === 'true'
-    return { title, slug, description, date, tags, content, published }
+    return { title, slug, description, date, category_id, content, published }
 }
 
 export async function addPost(formData: FormData) {
@@ -287,6 +326,81 @@ export async function deletePost(id: string) {
 
     revalidatePath('/blog')
     revalidatePath('/admin/posts')
+    return { success: true }
+}
+
+// --- Category Mutations (Admin) ---
+
+function parseCategoryForm(formData: FormData) {
+    const name = (formData.get('name') as string).trim()
+    // Same slug rules as posts: ASCII only, fall back to the name, then random.
+    const rawSlug = (formData.get('slug') as string).trim() || name
+    let slug = postSlug(rawSlug)
+    if (!slug) slug = `category-${Math.random().toString(36).slice(2, 8)}`
+    const sort_order = Number(formData.get('sort_order')) || 0
+    return { name, slug, sort_order }
+}
+
+// Category changes alter the filter row on the public blog, so both paths revalidate.
+function revalidateCategories() {
+    revalidatePath('/blog')
+    revalidatePath('/admin/categories')
+    revalidatePath('/admin/posts')
+}
+
+export async function addCategory(formData: FormData) {
+    if (!(await isAuthenticated())) {
+        return { success: false, error: 'Unauthorized' }
+    }
+
+    const supabase = await createClient()
+    const { error } = await supabase.from('categories').insert(parseCategoryForm(formData))
+
+    if (error) {
+        console.error('Error adding category:', error)
+        return { success: false, error: error.message }
+    }
+
+    revalidateCategories()
+    return { success: true }
+}
+
+export async function updateCategory(formData: FormData) {
+    if (!(await isAuthenticated())) {
+        return { success: false, error: 'Unauthorized' }
+    }
+
+    const id = formData.get('id') as string
+    const supabase = await createClient()
+    const { error } = await supabase
+        .from('categories')
+        .update(parseCategoryForm(formData))
+        .eq('id', id)
+
+    if (error) {
+        console.error('Error updating category:', error)
+        return { success: false, error: error.message }
+    }
+
+    revalidateCategories()
+    return { success: true }
+}
+
+export async function deleteCategory(id: string) {
+    if (!(await isAuthenticated())) {
+        return { success: false, error: 'Unauthorized' }
+    }
+
+    const supabase = await createClient()
+    // posts.category_id is ON DELETE SET NULL, so posts survive as uncategorized.
+    const { error } = await supabase.from('categories').delete().eq('id', id)
+
+    if (error) {
+        console.error('Error deleting category:', error)
+        return { success: false, error: error.message }
+    }
+
+    revalidateCategories()
     return { success: true }
 }
 

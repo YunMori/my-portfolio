@@ -71,6 +71,10 @@ Supabase SQL Editor에서 순서대로 실행:
 1. `schema.sql` — 기본 테이블 생성
 2. `migration.sql` — 추가 컬럼
 3. `secure_policies.sql` — RLS 보안 정책
+4. `analytics_migration.sql` — 방문자 통계 테이블
+5. `blog_migration.sql` — 블로그 posts 테이블
+6. `category_migration.sql` — 카테고리 테이블 + posts.tags → category_id 이관
+   (4번 `DROP COLUMN tags`는 이관 결과를 확인한 뒤 실행)
 
 ### 개발 서버
 
