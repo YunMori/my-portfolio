@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { toast } from 'sonner'
 import { addCategory, updateCategory, deleteCategory } from '@/app/actions'
 import { Category } from '@/types/database.types'
@@ -23,20 +23,22 @@ export default function CategoryManager({ initialCategories, postCounts }: Categ
     const [editingId, setEditingId] = useState<string | null>(null)
     const [formData, setFormData] = useState({ ...EMPTY })
 
-    useEffect(() => {
-        if (editingId) {
-            const category = categories.find(c => c.id === editingId)
-            if (category) {
-                setFormData({
-                    name: category.name,
-                    slug: category.slug,
-                    sort_order: String(category.sort_order ?? 0),
-                })
-            }
-        } else {
-            setFormData({ ...EMPTY })
-        }
-    }, [editingId, categories])
+    // Form population happens on the transition, not in an effect reacting to it.
+    // An effect would render once with the stale form, then immediately re-render
+    // with the right values — a cascading render for something the click already knows.
+    const startEdit = (category: Category) => {
+        setEditingId(category.id)
+        setFormData({
+            name: category.name,
+            slug: category.slug,
+            sort_order: String(category.sort_order ?? 0),
+        })
+    }
+
+    const cancelEdit = () => {
+        setEditingId(null)
+        setFormData({ ...EMPTY })
+    }
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target
@@ -99,7 +101,7 @@ export default function CategoryManager({ initialCategories, postCounts }: Categ
                     </h2>
                     {editingId && (
                         <button
-                            onClick={() => setEditingId(null)}
+                            onClick={cancelEdit}
                             className="text-xs text-red-400 hover:text-red-300 underline"
                         >
                             Cancel Edit
@@ -171,7 +173,7 @@ export default function CategoryManager({ initialCategories, postCounts }: Categ
                             </div>
                             <div className="flex flex-col gap-2 ml-4 shrink-0">
                                 <button
-                                    onClick={() => setEditingId(category.id)}
+                                    onClick={() => startEdit(category)}
                                     className="text-xs px-3 py-1 bg-stone-800 hover:bg-stone-700 text-stone-300 rounded border border-stone-700"
                                 >
                                     Edit

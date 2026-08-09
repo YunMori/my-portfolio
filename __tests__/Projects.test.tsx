@@ -10,7 +10,11 @@ jest.mock('@/context/LanguageContext', () => ({
     }),
 }));
 
-jest.mock('react-markdown', () => ({ children }: { children: string }) => <div>{children}</div>);
+jest.mock('react-markdown', () => {
+    const MockMarkdown = ({ children }: { children: string }) => <div>{children}</div>;
+    MockMarkdown.displayName = 'MockMarkdown';
+    return MockMarkdown;
+});
 jest.mock('rehype-sanitize', () => ({}));
 
 const mockProjects: Project[] = [

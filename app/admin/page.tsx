@@ -1,9 +1,13 @@
-'use client'
-
 import Link from 'next/link'
+import { getAnalyticsData } from '@/app/actions'
 import VisitorChart from '@/components/admin/VisitorChart'
 
-export default function AdminDashboard() {
+export default async function AdminDashboard() {
+    // Fetched here rather than from inside the chart: this page already renders
+    // on the server, so a client-side fetch on mount only added a round trip and
+    // a loading state for data that could ship with the HTML.
+    const analytics = await getAnalyticsData()
+
     return (
         <div>
             <h1 className="text-4xl font-display font-bold mb-2 text-stone-100">Welcome back.</h1>
@@ -11,7 +15,7 @@ export default function AdminDashboard() {
 
             <div className="mb-8 p-6 rounded-2xl bg-stone-900/50 border border-stone-800">
                 <h2 className="text-sm font-bold text-stone-400 mb-4 uppercase tracking-wider">Visitor Trends (Last 7 Days)</h2>
-                <VisitorChart />
+                <VisitorChart data={analytics} />
             </div>
 
             <div className="grid md:grid-cols-2 gap-6">

@@ -1,15 +1,11 @@
-'use client';
-
-import { useLanguage } from '@/context/LanguageContext';
-
 interface SocialProofProps {
     totalProjects: number;
     totalTech: number;
 }
 
+// Server component: the labels are already English, so nothing here needs the
+// language context and nothing needs to run in the browser.
 export default function SocialProof({ totalProjects, totalTech }: SocialProofProps) {
-    const { t } = useLanguage();
-
     const stats = [
         { value: `${totalProjects}+`, label: 'Projects' },
         { value: `${totalTech}`, label: 'Technologies' },
