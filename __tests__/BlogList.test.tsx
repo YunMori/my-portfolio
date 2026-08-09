@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import BlogList from '@/components/BlogList';
 import { Post, Category } from '@/types/database.types';
 
@@ -22,8 +22,10 @@ const mockPosts: Post[] = [
         slug: 'first-post',
         description: 'About Next.js',
         content: '## Intro\n\nHello',
-        category_id: 'cat-1',
-        category: { id: 'cat-1', name: 'Frontend', slug: 'frontend' },
+        categories: [
+            { id: 'cat-1', name: 'Frontend', slug: 'frontend', sort_order: 1 },
+            { id: 'cat-2', name: 'Backend', slug: 'backend', sort_order: 2 },
+        ],
         published: true,
         date: '2026.07.01',
     },
@@ -33,8 +35,7 @@ const mockPosts: Post[] = [
         slug: 'second-post',
         description: 'About Supabase',
         content: 'Some content',
-        category_id: null,
-        category: null,
+        categories: [],
         published: true,
         date: '2026.06.01',
     },
@@ -47,11 +48,19 @@ describe('BlogList', () => {
         expect(link).toHaveAttribute('href', '/blog/first-post');
     });
 
-    it('renders a category badge only for posts that have one', () => {
+    it('renders a badge for every category on a post', () => {
         render(<BlogList posts={mockPosts} categories={mockCategories} activeCategory={null} />);
-        // 'Frontend' appears twice: once as a filter pill, once as the post-1 badge.
+        // post-1 carries both categories, so each name appears twice:
+        // once as a filter pill, once as a badge. post-2 has none.
         expect(screen.getAllByText('Frontend')).toHaveLength(2);
-        expect(screen.getAllByText('Backend')).toHaveLength(1);
+        expect(screen.getAllByText('Backend')).toHaveLength(2);
+
+        const postCard = screen.getByText('First Post').closest('a')!;
+        expect(within(postCard).getByText('Frontend')).toBeInTheDocument();
+        expect(within(postCard).getByText('Backend')).toBeInTheDocument();
+
+        const uncategorized = screen.getByText('Second Post').closest('a')!;
+        expect(within(uncategorized).queryByText('Frontend')).not.toBeInTheDocument();
     });
 
     // Filtering happens on the server via ?category=, so the pills are links, not buttons.

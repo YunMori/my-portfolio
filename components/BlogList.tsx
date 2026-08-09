@@ -1,13 +1,13 @@
 'use client'
 
-import { Post, Category } from '@/types/database.types';
-import { useState, useEffect, useRef } from 'react';
+import { PostListItem, Category } from '@/types/database.types';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useLanguage } from '@/context/LanguageContext';
-import { readingTime } from '@/utils/post';
+import { formatPostDate } from '@/utils/post';
 
 interface BlogListProps {
-    posts: Post[];
+    posts: PostListItem[];
     categories: Category[];
     /** Active category slug from ?category=, or null for "all". Filtering happens on the server. */
     activeCategory: string | null;
@@ -15,23 +15,26 @@ interface BlogListProps {
 
 export default function BlogList({ posts, categories, activeCategory }: BlogListProps) {
     const { t } = useLanguage();
-    // 한 번 이상 뷰포트에 진입한 글 ID 기억 → 재등장 시 즉시 표시 (Projects 패턴과 동일)
-    const visibleIds = useRef(new Set<string>());
-    const [, forceUpdate] = useState(0);
+    // 한 번 이상 뷰포트에 진입한 글 ID 기억 → 재등장 시 즉시 표시 (Projects 패턴과 동일).
+    // ref가 아니라 state인 이유: 아래 목록이 렌더 중에 이 값을 읽는다. ref를 렌더 중
+    // 읽으면 동시성 렌더링에서 값이 어긋날 수 있어 React가 금지하는 패턴이다.
+    const [visibleIds, setVisibleIds] = useState<ReadonlySet<string>>(() => new Set());
 
     useEffect(() => {
         const observer = new IntersectionObserver((entries) => {
-            let changed = false;
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    const id = (entry.target as HTMLElement).dataset.postId;
-                    if (id && !visibleIds.current.has(id)) {
-                        visibleIds.current.add(id);
-                        changed = true;
-                    }
-                }
+            const seen = entries
+                .filter(entry => entry.isIntersecting)
+                .map(entry => (entry.target as HTMLElement).dataset.postId)
+                .filter((id): id is string => !!id);
+
+            if (seen.length === 0) return;
+
+            setVisibleIds(prev => {
+                const next = new Set(prev);
+                seen.forEach(id => next.add(id));
+                // 이미 전부 표시된 상태면 같은 참조를 돌려줘 불필요한 리렌더를 막는다.
+                return next.size === prev.size ? prev : next;
             });
-            if (changed) forceUpdate(n => n + 1);
         }, { threshold: 0.1 });
 
         const timeoutId = setTimeout(() => {
@@ -91,7 +94,7 @@ export default function BlogList({ posts, categories, activeCategory }: BlogList
                 ) : (
                     <div id="blog-list" className="flex flex-col">
                         {posts.map((post, index) => {
-                            const isVisible = visibleIds.current.has(post.id);
+                            const isVisible = visibleIds.has(post.id);
                             return (
                                 <Link
                                     key={post.id}
@@ -102,9 +105,9 @@ export default function BlogList({ posts, categories, activeCategory }: BlogList
                                 >
                                     <div className="min-w-0">
                                         <div className="flex items-center gap-3 mb-3 text-[11px] font-mono text-stone-500 uppercase tracking-wider">
-                                            <span>{post.date}</span>
+                                            <span>{formatPostDate(post.date)}</span>
                                             <span className="text-stone-700">·</span>
-                                            <span>{readingTime(post.content)} {t('blog.min')}</span>
+                                            <span>{post.readingMinutes} {t('blog.min')}</span>
                                         </div>
                                         <h2 className="text-xl md:text-2xl font-display font-bold text-stone-200 group-hover:text-green-400 transition-colors leading-snug mb-2">
                                             {post.title}
@@ -112,10 +115,17 @@ export default function BlogList({ posts, categories, activeCategory }: BlogList
                                         <p className="text-stone-400 text-sm leading-relaxed line-clamp-2 mb-3">
                                             {post.description}
                                         </p>
-                                        {post.category && (
-                                            <span className="inline-block text-[10px] font-mono text-green-400 bg-green-900/40 border border-green-600/60 rounded px-2 py-0.5">
-                                                {post.category.name}
-                                            </span>
+                                        {post.categories.length > 0 && (
+                                            <div className="flex flex-wrap gap-1.5">
+                                                {post.categories.map(category => (
+                                                    <span
+                                                        key={category.id}
+                                                        className="inline-block text-[10px] font-mono text-green-400 bg-green-900/40 border border-green-600/60 rounded px-2 py-0.5"
+                                                    >
+                                                        {category.name}
+                                                    </span>
+                                                ))}
+                                            </div>
                                         )}
                                     </div>
                                     <i className="fa-solid fa-arrow-right text-green-500 opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all mt-2 shrink-0"></i>
