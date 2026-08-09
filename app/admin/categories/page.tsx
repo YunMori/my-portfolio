@@ -1,14 +1,10 @@
-import { getCategories, getAllPostsAdmin } from '@/app/actions'
+import { getCategories, getCategoryPostCounts } from '@/app/actions'
 import CategoryManager from '@/components/admin/CategoryManager'
 
 export default async function CategoriesPage() {
-    const [categories, posts] = await Promise.all([getCategories(), getAllPostsAdmin()])
-
-    // Post counts (drafts included) so the delete confirmation can say what it affects.
-    const postCounts = posts.reduce<Record<string, number>>((acc, post) => {
-        if (post.category_id) acc[post.category_id] = (acc[post.category_id] ?? 0) + 1
-        return acc
-    }, {})
+    // Post counts (drafts included) so the delete confirmation can say what it
+    // affects. A post with several categories counts once toward each of them.
+    const [categories, postCounts] = await Promise.all([getCategories(), getCategoryPostCounts()])
 
     return (
         <div>

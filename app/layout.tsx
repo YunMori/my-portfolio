@@ -39,9 +39,11 @@ export const metadata: Metadata = {
     siteName: "Yun Jong Seo Portfolio",
     images: [
       {
-        url: "/hero-profile.jpg", // Valid existing image
-        width: 1200,
-        height: 630,
+        // public/hero-profile.jpg 의 실제 크기. 선언값이 파일과 다르면 일부 플랫폼이
+        // 미리보기를 잘못 자르거나 아예 버린다.
+        url: "/hero-profile.jpg",
+        width: 413,
+        height: 531,
         alt: "Yun Jong Seo Profile"
       },
     ],
