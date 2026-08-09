@@ -15,7 +15,7 @@ const addPost = jest.fn().mockResolvedValue({ success: true });
 const updatePost = jest.fn().mockResolvedValue({ success: true });
 const deletePost = jest.fn().mockResolvedValue({ success: true });
 
-jest.mock('@/app/actions', () => ({
+jest.mock('@/app/actions/posts', () => ({
     addPost: (fd: FormData) => addPost(fd),
     updatePost: (fd: FormData) => updatePost(fd),
     deletePost: (id: string) => deletePost(id),

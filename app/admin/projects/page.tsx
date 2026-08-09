@@ -1,4 +1,4 @@
-import { getProjects } from '@/app/actions'
+import { getProjects } from '@/app/actions/projects'
 import ProjectManager from '@/components/admin/ProjectManager'
 
 export default async function ProjectsPage() {

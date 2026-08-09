@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { toast } from 'sonner'
-import { addCategory, updateCategory, deleteCategory } from '@/app/actions'
+import { addCategory, updateCategory, deleteCategory } from '@/app/actions/categories'
 import { Category } from '@/types/database.types'
 import { postSlug } from '@/utils/post'
 

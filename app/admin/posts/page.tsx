@@ -1,4 +1,5 @@
-import { getAllPostsAdmin, getCategories } from '@/app/actions'
+import { getAllPostsAdmin } from '@/app/actions/posts'
+import { getCategories } from '@/app/actions/categories'
 import PostManager from '@/components/admin/PostManager'
 
 export default async function PostsPage() {

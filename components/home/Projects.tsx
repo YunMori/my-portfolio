@@ -4,7 +4,7 @@ import { Project } from '@/types/database.types';
 import { useState, useEffect, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
 import rehypeSanitize from 'rehype-sanitize';
-import { useLanguage } from '@/context/LanguageContext';
+import { useLanguage } from '@/i18n/LanguageContext';
 import { parseGithubPath } from '@/utils/github';
 
 interface ProjectsProps {
