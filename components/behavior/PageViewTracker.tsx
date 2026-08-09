@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect } from 'react'
-import { incrementView } from '@/app/actions'
+import { incrementView } from '@/app/actions/analytics'
 
 /**
  * Records one view per page load. Renders nothing.
