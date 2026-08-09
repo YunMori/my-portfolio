@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useCallback, useContext, useMemo, useSyncExternalStore } from 'react';
 import { translations, Language } from '@/utils/translations';
 
 type LanguageContextType = {
@@ -11,40 +11,73 @@ type LanguageContextType = {
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
-export function LanguageProvider({ children }: { children: React.ReactNode }) {
-    const [language, setLanguage] = useState<Language>('en');
+const STORAGE_KEY = 'portfolio-lang';
+const DEFAULT_LANGUAGE: Language = 'en';
 
-    // Load saved language on mount
-    useEffect(() => {
-        const saved = localStorage.getItem('portfolio-lang') as Language;
-        if (saved && (saved === 'en' || saved === 'ko')) {
-            setLanguage(saved);
-        }
-    }, []);
+function isLanguage(value: string | null): value is Language {
+    return value === 'en' || value === 'ko';
+}
 
-    const toggleLanguage = () => {
-        const newLang = language === 'en' ? 'ko' : 'en';
-        setLanguage(newLang);
-        localStorage.setItem('portfolio-lang', newLang);
+// localStorage is an external store, so React reads it through
+// useSyncExternalStore rather than a setState-in-effect. That keeps the server
+// snapshot ('en') and the first client render consistent — no hydration
+// mismatch — and re-renders only the subscribers when the value actually changes.
+const listeners = new Set<() => void>();
+
+function subscribe(onChange: () => void) {
+    listeners.add(onChange);
+    // Keep tabs in sync: `storage` fires in *other* tabs when one of them writes.
+    window.addEventListener('storage', onChange);
+    return () => {
+        listeners.delete(onChange);
+        window.removeEventListener('storage', onChange);
     };
+}
 
-    // Helper to access nested keys string 'hero.greeting'
-    const t = (key: string): string => {
-        const keys = key.split('.');
-        let current: any = translations[language];
+function getSnapshot(): Language {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    return isLanguage(saved) ? saved : DEFAULT_LANGUAGE;
+}
 
-        for (const k of keys) {
-            if (current[k] === undefined) {
+// The server has no localStorage, so it always renders the default.
+function getServerSnapshot(): Language {
+    return DEFAULT_LANGUAGE;
+}
+
+export function LanguageProvider({ children }: { children: React.ReactNode }) {
+    const language = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+
+    const toggleLanguage = useCallback(() => {
+        const next: Language = language === 'en' ? 'ko' : 'en';
+        localStorage.setItem(STORAGE_KEY, next);
+        // `storage` does not fire in the tab that wrote, so notify this one directly.
+        listeners.forEach(listener => listener());
+    }, [language]);
+
+    const t = useCallback((key: string): string => {
+        // Walk a dotted path like 'hero.greeting' through the translation tree.
+        let current: unknown = translations[language];
+
+        for (const segment of key.split('.')) {
+            if (typeof current !== 'object' || current === null || !(segment in current)) {
                 console.warn(`Missing translation for key: ${key}`);
                 return key;
             }
-            current = current[k];
+            current = (current as Record<string, unknown>)[segment];
         }
-        return current;
-    };
+
+        return typeof current === 'string' ? current : key;
+    }, [language]);
+
+    // Memoised: an inline object here would be a new reference on every render,
+    // re-rendering every consumer of this context whether or not the language changed.
+    const value = useMemo(
+        () => ({ language, toggleLanguage, t }),
+        [language, toggleLanguage, t]
+    );
 
     return (
-        <LanguageContext.Provider value={{ language, toggleLanguage, t }}>
+        <LanguageContext.Provider value={value}>
             {children}
         </LanguageContext.Provider>
     );

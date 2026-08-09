@@ -34,19 +34,40 @@ export type Category = {
     created_at?: string;
 }
 
+// The slice of a category carried on a post. `sort_order` comes along so chips
+// render in the same order as the blog filter row.
+export type PostCategory = Pick<Category, 'id' | 'name' | 'slug' | 'sort_order'>
+
 export type Post = {
     id: string;
     title: string;
     slug: string;
     description: string;
     content: string;
-    category_id: string | null;
     published: boolean;
-    date: string;
+    // `date` column, so the API always returns 'YYYY-MM-DD'. Nullable: the admin
+    // form allows leaving it blank. Render it through formatPostDate().
+    date: string | null;
     created_at?: string;
-    // Populated by the `category:categories(...)` join in getPosts/getAllPostsAdmin.
-    // Not a real column — must be excluded from Insert/Update payloads.
-    category?: Pick<Category, 'id' | 'name' | 'slug'> | null;
+    // Built from the post_categories join by normalizePost() in app/actions.ts, so
+    // it is always present (possibly empty). Not a real column — excluded from
+    // Insert/Update payloads.
+    categories: PostCategory[];
+}
+
+// A post as the blog list renders it: everything except the markdown body,
+// which is replaced by the reading-time estimate derived from it server-side.
+// Returned by getPosts().
+export type PostListItem = Omit<Post, 'content'> & { readingMinutes: number };
+
+// Just enough of a post to list or link to it, without dragging the markdown
+// body along. Returned by getPostSummaries().
+export type PostSummary = Pick<Post, 'slug' | 'title' | 'date' | 'created_at'>;
+
+// Many-to-many link between posts and categories. See supabase/migrations/20260809_02_multi_category.sql.
+export type PostCategoryLink = {
+    post_id: string;
+    category_id: string;
 }
 
 export type Database = {
@@ -69,8 +90,13 @@ export type Database = {
             };
             posts: {
                 Row: Post;
-                Insert: Omit<Post, 'id' | 'created_at' | 'category'>;
-                Update: Partial<Omit<Post, 'id' | 'created_at' | 'category'>>;
+                Insert: Omit<Post, 'id' | 'created_at' | 'categories'>;
+                Update: Partial<Omit<Post, 'id' | 'created_at' | 'categories'>>;
+            };
+            post_categories: {
+                Row: PostCategoryLink;
+                Insert: PostCategoryLink;
+                Update: Partial<PostCategoryLink>;
             };
             daily_stats: {
                 Row: {

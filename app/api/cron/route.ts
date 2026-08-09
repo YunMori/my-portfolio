@@ -25,8 +25,9 @@ export async function GET(request: Request) {
 
         const supabase = createClient(supabaseUrl, supabaseKey);
 
-        // Supabase DB가 잠들지 않도록(Sleep 방지) 아무 테이블이나 가볍게 1건 조회
-        const { data, error } = await supabase
+        // Supabase DB가 잠들지 않도록(Sleep 방지) 아무 테이블이나 가볍게 1건 조회.
+        // 결과 자체는 쓰지 않고, 쿼리가 성공했다는 사실만 확인한다.
+        const { error } = await supabase
             .from('profile')
             .select('id')
             .limit(1);

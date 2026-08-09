@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Toaster, toast } from 'sonner'
+import { toast } from 'sonner'
 import { addProject, updateProject, deleteProject, fetchGithubRepo } from '@/app/actions'
 import { Project } from '@/types/database.types'
 
@@ -122,9 +122,9 @@ export default function ProjectManager({ initialProjects }: ProjectManagerProps)
 
             toast.success('Fetched data from GitHub!')
 
-        } catch (error: any) {
+        } catch (error) {
             console.error(error)
-            toast.error(error.message || 'Failed to fetch from GitHub.')
+            toast.error(error instanceof Error ? error.message : 'Failed to fetch from GitHub.')
         } finally {
             setIsFetching(false)
         }

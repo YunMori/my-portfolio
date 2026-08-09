@@ -66,15 +66,11 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 
 ### DB 설정
 
-Supabase SQL Editor에서 순서대로 실행:
+`supabase/migrations/` 의 파일을 **이름순 그대로** Supabase SQL Editor에서 실행하면 됩니다.
+파일명 앞의 `YYYYMMDD_NN` 이 곧 적용 순서입니다.
 
-1. `schema.sql` — 기본 테이블 생성
-2. `migration.sql` — 추가 컬럼
-3. `secure_policies.sql` — RLS 보안 정책
-4. `analytics_migration.sql` — 방문자 통계 테이블
-5. `blog_migration.sql` — 블로그 posts 테이블
-6. `category_migration.sql` — 카테고리 테이블 + posts.tags → category_id 이관
-   (4번 `DROP COLUMN tags`는 이관 결과를 확인한 뒤 실행)
+각 파일이 무엇을 하는지, 어떤 단계가 파괴적이라 확인 후 실행해야 하는지는
+[`supabase/migrations/README.md`](supabase/migrations/README.md) 에 정리돼 있습니다.
 
 ### 개발 서버
 

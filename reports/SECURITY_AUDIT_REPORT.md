@@ -65,7 +65,7 @@
 |---|---|
 | 시크릿 관리 | git 전체 이력에 `.env`/키 파일 커밋 없음. `.gitignore`가 `.env*` 커버. 코드에 service_role 키 등 비밀값 없음 (anon 키는 공개 전제 설계) |
 | 인증/인가 | 3중 방어 — `middleware.ts`(경로 차단) + `app/admin/layout.tsx`(서버 검증) + 모든 변경 Server Action의 개별 `isAuthenticated()` 재검증 |
-| `profile`/`projects` RLS | `secure_policies.sql` 이미 적용됨 — 공개 읽기 / authenticated만 쓰기 |
+| `profile`/`projects` RLS | `20260104_02_secure_policies.sql` 이미 적용됨 — 공개 읽기 / authenticated만 쓰기 |
 | XSS | README 마크다운은 `rehype-sanitize` 적용, `dangerouslySetInnerHTML` 2곳 모두 정적 데이터만 사용, `eval`/`document.write` 없음 |
 | 링크 | 모든 `target="_blank"`에 `rel="noopener noreferrer"` |
 | CI | GitHub Actions는 Secrets로 환경변수 주입 (하드코딩 없음) |

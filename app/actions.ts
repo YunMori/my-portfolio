@@ -1,11 +1,13 @@
 'use server'
 
+import { cache } from 'react'
 import { createClient } from '@/utils/supabase/server'
+import { createPublicClient } from '@/utils/supabase/public'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
-import { Project, Post, Category } from '@/types/database.types'
+import { Project, Post, PostListItem, PostSummary, Category, PostCategory } from '@/types/database.types'
 import { parseGithubPath } from '@/utils/github'
-import { postSlug } from '@/utils/post'
+import { postSlug, readingTime } from '@/utils/post'
 
 // --- Analytics Actions ---
 
@@ -16,11 +18,20 @@ export async function incrementView() {
     const { error } = await supabase.rpc('increment_view', { target_date: today })
 
     if (error) {
-        // Fallback if RPC not yet created: safe upsert (may undercount under heavy concurrency)
-        console.warn('increment_view RPC not found, falling back:', error.message)
+        // Fallback if the RPC is missing (see supabase/migrations/20260809_01_analytics_rpc.sql).
+        // Read-modify-write, so it may undercount under concurrency — but unlike the
+        // previous `ignoreDuplicates` upsert it does not silently drop every view
+        // after the day's first one.
+        console.warn('increment_view RPC failed, falling back:', error.message)
+        const { data: row } = await supabase
+            .from('daily_stats')
+            .select('views')
+            .eq('date', today)
+            .maybeSingle()
+
         await supabase
             .from('daily_stats')
-            .upsert({ date: today, views: 1 }, { onConflict: 'date', ignoreDuplicates: true })
+            .upsert({ date: today, views: (row?.views ?? 0) + 1 }, { onConflict: 'date' })
     }
 }
 
@@ -54,7 +65,7 @@ export async function getAnalyticsData() {
 
 
 export async function getProjects() {
-    const supabase = await createClient()
+    const supabase = createPublicClient()
     const { data, error } = await supabase
         .from('projects')
         .select('*')
@@ -67,11 +78,41 @@ export async function getProjects() {
     return data as Project[]
 }
 
-// Joined shape used by every post query, so `post.category` is always available.
-const POST_SELECT = '*, category:categories(id, name, slug)'
+// Joined shape used by every post query, so `post.categories` is always available.
+const POST_SELECT = '*, post_categories(category:categories(id, name, slug, sort_order))'
+
+type PostRow = Record<string, unknown> & {
+    post_categories?: ({ category: PostCategory | null } | null)[] | null
+}
+
+/**
+ * Flattens the post_categories join into a plain `categories` array and drops the
+ * raw join rows, so nothing downstream has to know the table exists.
+ */
+function normalizePost(row: PostRow): Post {
+    const { post_categories, ...rest } = row
+    const categories = (post_categories ?? [])
+        .map(link => link?.category)
+        .filter((c): c is PostCategory => !!c)
+        // Same ordering as the blog filter row, so chips read consistently.
+        .sort((a, b) => a.sort_order - b.sort_order || a.name.localeCompare(b.name))
+
+    return { ...(rest as Omit<Post, 'categories'>), categories }
+}
+
+/**
+ * Drops the markdown body and replaces it with the one number the list actually
+ * renders. `content` is 30KB across the current posts and grows with every new
+ * one; the reading-time estimate it feeds is a single integer, so computing it
+ * here keeps that payload on the server.
+ */
+function toListItem(post: Post): PostListItem {
+    const { content, ...rest } = post
+    return { ...rest, readingMinutes: readingTime(content) }
+}
 
 export async function getCategories() {
-    const supabase = await createClient()
+    const supabase = createPublicClient()
     const { data, error } = await supabase
         .from('categories')
         .select('*')
@@ -86,25 +127,31 @@ export async function getCategories() {
 }
 
 /**
- * Published posts, newest first. Passing a category slug narrows the list.
- * Called with no argument it must behave exactly as before — the sitemap and
- * the prev/next links on a post page both rely on the full list.
+ * Published posts for the blog list, newest first, with categories and a
+ * reading-time estimate but no markdown body. Passing a category slug narrows
+ * the list. For callers that only need slugs and titles, use getPostSummaries().
  */
-export async function getPosts(categorySlug?: string) {
-    const supabase = await createClient()
+export async function getPosts(categorySlug?: string): Promise<PostListItem[]> {
+    const supabase = createPublicClient()
 
-    let categoryId: string | null = null
+    let postIds: string[] | null = null
     if (categorySlug) {
-        // Resolve slug → id first rather than filtering on the embedded resource;
-        // an unknown slug should yield an empty list, not every post.
-        const { data: category } = await supabase
-            .from('categories')
-            .select('id')
-            .eq('slug', categorySlug)
-            .maybeSingle()
+        // Collect matching post ids up front instead of filtering the embed on the
+        // posts query with `!inner`. An inner join + eq would trim each post's
+        // embedded array down to the one matching category, so cards would show a
+        // single chip. Resolving the slug through an inner-joined embed here keeps
+        // it to one round trip, and an unknown slug yields no rows — so it falls
+        // through to an empty list rather than matching every post.
+        // Cast because the hand-written Database type carries no relationship
+        // metadata, so supabase-js cannot infer the shape of the embedded select.
+        const { data: links } = await supabase
+            .from('post_categories')
+            .select('post_id, categories!inner(slug)')
+            .eq('categories.slug', categorySlug)
+            .overrideTypes<{ post_id: string }[]>()
 
-        if (!category) return []
-        categoryId = category.id
+        postIds = (links ?? []).map(l => l.post_id)
+        if (postIds.length === 0) return []
     }
 
     let query = supabase
@@ -112,7 +159,7 @@ export async function getPosts(categorySlug?: string) {
         .select(POST_SELECT)
         .eq('published', true)
 
-    if (categoryId) query = query.eq('category_id', categoryId)
+    if (postIds) query = query.in('id', postIds)
 
     const { data, error } = await query.order('date', { ascending: false })
 
@@ -120,11 +167,32 @@ export async function getPosts(categorySlug?: string) {
         console.error('Error fetching posts:', error)
         return []
     }
-    return data as Post[]
+    return (data as PostRow[]).map(normalizePost).map(toListItem)
+}
+
+/**
+ * Published posts, newest first, without the markdown body or the category join.
+ * For callers that only need to enumerate posts — prev/next links and the
+ * sitemap — where `getPosts()` would pull every post's full content across the
+ * wire on every render.
+ */
+export async function getPostSummaries(): Promise<PostSummary[]> {
+    const supabase = createPublicClient()
+    const { data, error } = await supabase
+        .from('posts')
+        .select('slug, title, date, created_at')
+        .eq('published', true)
+        .order('date', { ascending: false })
+
+    if (error) {
+        console.error('Error fetching post summaries:', error)
+        return []
+    }
+    return data as PostSummary[]
 }
 
 export async function getPostBySlug(slug: string) {
-    const supabase = await createClient()
+    const supabase = createPublicClient()
     const { data, error } = await supabase
         .from('posts')
         .select(POST_SELECT)
@@ -137,7 +205,30 @@ export async function getPostBySlug(slug: string) {
         if (error.code !== 'PGRST116') console.error('Error fetching post:', error)
         return null
     }
-    return data as Post
+    return normalizePost(data as PostRow)
+}
+
+/**
+ * How many posts (drafts included) sit in each category, keyed by category id.
+ * The categories admin only needs these counts for its delete confirmation;
+ * deriving them from getAllPostsAdmin() used to drag every post's markdown body
+ * along for the ride. The join table holds two uuids per row instead.
+ */
+export async function getCategoryPostCounts(): Promise<Record<string, number>> {
+    if (!(await isAuthenticated())) return {}
+
+    const supabase = await createClient()
+    const { data, error } = await supabase.from('post_categories').select('category_id')
+
+    if (error) {
+        console.error('Error fetching category post counts:', error)
+        return {}
+    }
+
+    return data.reduce<Record<string, number>>((acc, { category_id }) => {
+        acc[category_id] = (acc[category_id] ?? 0) + 1
+        return acc
+    }, {})
 }
 
 // Admin-only: includes unpublished drafts
@@ -154,16 +245,28 @@ export async function getAllPostsAdmin() {
         console.error('Error fetching posts (admin):', error)
         return []
     }
-    return data as Post[]
+    return (data as PostRow[]).map(normalizePost)
 }
 
 // --- Mutation Actions (Admin) ---
 
-// Helper to check authentication
-async function isAuthenticated() {
+/**
+ * The signed-in user, or null.
+ *
+ * `getUser()` validates the token against the Supabase Auth server rather than
+ * trusting the cookie, so it is a network round trip. A single admin page used
+ * to make three of them — middleware, the admin layout, and whichever fetcher
+ * the page called. React's `cache` collapses every call within one request into
+ * one, leaving the middleware's check as the only separate one.
+ */
+export const getCurrentUser = cache(async () => {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
-    return !!user
+    return user
+})
+
+async function isAuthenticated() {
+    return !!(await getCurrentUser())
 }
 
 export async function signOut() {
@@ -263,12 +366,44 @@ function parsePostForm(formData: FormData) {
     let slug = postSlug(rawSlug)
     if (!slug) slug = `post-${Math.random().toString(36).slice(2, 8)}`
     const description = formData.get('description') as string
-    const date = formData.get('date') as string
-    // Empty select value means "uncategorized" — the FK column is nullable.
-    const category_id = (formData.get('category_id') as string) || null
+    // `date` is a real date column now, so an empty field has to become NULL —
+    // posting '' would be rejected as an invalid date literal.
+    const date = (formData.get('date') as string) || null
     const content = formData.get('content') as string
     const published = formData.get('published') === 'on' || formData.get('published') === 'true'
-    return { title, slug, description, date, category_id, content, published }
+    // Category links live in a separate table, so they are returned alongside the
+    // column payload rather than inside it — inserting them would fail on an
+    // unknown column. No checkboxes ticked means "uncategorized".
+    const category_ids = (formData.getAll('category_id') as string[]).filter(Boolean)
+    return {
+        fields: { title, slug, description, date, content, published },
+        category_ids,
+    }
+}
+
+/**
+ * Replaces a post's category links wholesale. Not transactional with the post
+ * write itself — matching the rest of this single-admin app, a failure here is
+ * surfaced as an error rather than rolled back.
+ */
+async function setPostCategories(
+    supabase: Awaited<ReturnType<typeof createClient>>,
+    postId: string,
+    categoryIds: string[]
+) {
+    const { error: deleteError } = await supabase
+        .from('post_categories')
+        .delete()
+        .eq('post_id', postId)
+
+    if (deleteError) return deleteError
+    if (categoryIds.length === 0) return null
+
+    const { error: insertError } = await supabase
+        .from('post_categories')
+        .insert(categoryIds.map(category_id => ({ post_id: postId, category_id })))
+
+    return insertError
 }
 
 export async function addPost(formData: FormData) {
@@ -277,11 +412,22 @@ export async function addPost(formData: FormData) {
     }
 
     const supabase = await createClient()
-    const { error } = await supabase.from('posts').insert(parsePostForm(formData))
+    const { fields, category_ids } = parsePostForm(formData)
+    const { data, error } = await supabase
+        .from('posts')
+        .insert(fields)
+        .select('id')
+        .single()
 
     if (error) {
         console.error('Error adding post:', error)
         return { success: false, error: error.message }
+    }
+
+    const linkError = await setPostCategories(supabase, data.id, category_ids)
+    if (linkError) {
+        console.error('Error linking post categories:', linkError)
+        return { success: false, error: `Post saved, but categories failed: ${linkError.message}` }
     }
 
     revalidatePath('/blog')
@@ -296,14 +442,21 @@ export async function updatePost(formData: FormData) {
 
     const supabase = await createClient()
     const id = formData.get('id') as string
+    const { fields, category_ids } = parsePostForm(formData)
     const { error } = await supabase
         .from('posts')
-        .update(parsePostForm(formData))
+        .update(fields)
         .eq('id', id)
 
     if (error) {
         console.error('Error updating post:', error)
         return { success: false, error: error.message }
+    }
+
+    const linkError = await setPostCategories(supabase, id, category_ids)
+    if (linkError) {
+        console.error('Error linking post categories:', linkError)
+        return { success: false, error: `Post saved, but categories failed: ${linkError.message}` }
     }
 
     revalidatePath('/blog')
@@ -392,7 +545,8 @@ export async function deleteCategory(id: string) {
     }
 
     const supabase = await createClient()
-    // posts.category_id is ON DELETE SET NULL, so posts survive as uncategorized.
+    // post_categories rows are ON DELETE CASCADE, so posts survive and simply lose
+    // this one chip.
     const { error } = await supabase.from('categories').delete().eq('id', id)
 
     if (error) {

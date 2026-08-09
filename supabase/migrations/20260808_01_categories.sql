@@ -1,6 +1,6 @@
 -- 🗂️ BLOG CATEGORIES MIGRATION 🗂️
 -- Run this in your Supabase SQL Editor to replace post tags with categories.
--- Mirrors the conventions in blog_migration.sql (posts table).
+-- Mirrors the conventions in 20260710_01_blog.sql (posts table).
 --
 -- ⚠️ Run this BEFORE deploying the matching code. The app expects `category_id`
 --    and no longer sends `tags`, so deploying first breaks post saving.

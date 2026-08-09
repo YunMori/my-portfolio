@@ -1,9 +1,20 @@
 import { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { getPosts, getPostBySlug } from '@/app/actions'
-import { extractHeadings, readingTime } from '@/utils/post'
+import { getPostSummaries, getPostBySlug } from '@/app/actions'
+import { extractHeadings, formatPostDate, readingTime } from '@/utils/post'
 import PostBody from '@/components/PostBody'
+
+/**
+ * Prerender every published post at build time. Combined with the cookie-free
+ * public Supabase client, this makes post pages static — a visitor reads HTML
+ * off the CDN instead of triggering a database query, and `revalidatePath` in
+ * the admin actions refreshes them on publish.
+ */
+export async function generateStaticParams() {
+    const posts = await getPostSummaries()
+    return posts.map(post => ({ slug: post.slug }))
+}
 
 export async function generateMetadata(
     { params }: { params: Promise<{ slug: string }> }
@@ -32,8 +43,9 @@ export default async function PostPage(
 
     const headings = extractHeadings(post.content)
 
-    // Prev/next from the published, date-desc ordered list.
-    const posts = await getPosts()
+    // Prev/next from the published, date-desc ordered list. Summaries only —
+    // the links need a slug and a title, not every post's markdown body.
+    const posts = await getPostSummaries()
     const idx = posts.findIndex(p => p.slug === slug)
     const newer = idx > 0 ? posts[idx - 1] : null // more recent
     const older = idx >= 0 && idx < posts.length - 1 ? posts[idx + 1] : null
@@ -49,7 +61,7 @@ export default async function PostPage(
                 {/* Header */}
                 <header className="mb-10">
                     <div className="flex items-center gap-3 text-[11px] font-mono text-stone-500 uppercase tracking-wider mb-4">
-                        <span>{post.date}</span>
+                        <span>{formatPostDate(post.date)}</span>
                         <span className="text-stone-700">·</span>
                         <span>{readingTime(post.content)}분</span>
                     </div>
@@ -59,14 +71,17 @@ export default async function PostPage(
                     {post.description && (
                         <p className="text-stone-400 text-lg leading-relaxed">{post.description}</p>
                     )}
-                    {post.category && (
-                        <div className="mt-6">
-                            <Link
-                                href={`/blog?category=${encodeURIComponent(post.category.slug)}`}
-                                className="inline-block text-[11px] font-mono text-green-400 bg-green-900/40 border border-green-600/60 rounded px-2.5 py-1 hover:border-green-400 hover:bg-green-900/60 transition-colors"
-                            >
-                                {post.category.name}
-                            </Link>
+                    {post.categories.length > 0 && (
+                        <div className="mt-6 flex flex-wrap gap-2">
+                            {post.categories.map(category => (
+                                <Link
+                                    key={category.id}
+                                    href={`/blog?category=${encodeURIComponent(category.slug)}`}
+                                    className="inline-block text-[11px] font-mono text-green-400 bg-green-900/40 border border-green-600/60 rounded px-2.5 py-1 hover:border-green-400 hover:bg-green-900/60 transition-colors"
+                                >
+                                    {category.name}
+                                </Link>
+                            ))}
                         </div>
                     )}
                 </header>

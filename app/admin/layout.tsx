@@ -1,17 +1,16 @@
 import Link from 'next/link'
-import { createClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
-import { signOut } from '@/app/actions'
+import { getCurrentUser, signOut } from '@/app/actions'
 
 export default async function AdminLayout({
     children,
 }: {
     children: React.ReactNode
 }) {
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-
-    if (!user) {
+    // Middleware already gates /admin; this is the second line of defence for
+    // anything that reaches the layout directly. Shares the middleware-independent
+    // per-request cache with the fetchers below it, so it costs no extra round trip.
+    if (!(await getCurrentUser())) {
         redirect('/login')
     }
 
@@ -62,9 +61,9 @@ export default async function AdminLayout({
                             <i className="fa-solid fa-arrow-right-from-bracket w-6 text-center group-hover:-translate-x-1 transition-transform"></i> Logout
                         </button>
                     </form>
-                    <a href="/" className="block px-4 py-3 rounded-lg hover:bg-stone-800 text-stone-500 hover:text-stone-300 transition-colors font-medium text-sm">
+                    <Link href="/" className="block px-4 py-3 rounded-lg hover:bg-stone-800 text-stone-500 hover:text-stone-300 transition-colors font-medium text-sm">
                         <i className="fa-solid fa-house w-6 text-center"></i> Exit to Site
-                    </a>
+                    </Link>
                 </div>
             </aside>
 

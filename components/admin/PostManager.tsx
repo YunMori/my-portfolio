@@ -1,10 +1,11 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { toast } from 'sonner'
 import { addPost, updatePost, deletePost } from '@/app/actions'
 import { Post, Category } from '@/types/database.types'
-import { postSlug } from '@/utils/post'
+import { formatPostDate, postSlug } from '@/utils/post'
+import PostBody from '@/components/PostBody'
 
 interface PostManagerProps {
     initialPosts: Post[]
@@ -16,7 +17,6 @@ const EMPTY = {
     slug: '',
     description: '',
     date: '',
-    category_id: '',
     content: '',
     published: true,
 }
@@ -25,30 +25,41 @@ export default function PostManager({ initialPosts, categories }: PostManagerPro
     const [posts] = useState<Post[]>(initialPosts)
     const [editingId, setEditingId] = useState<string | null>(null)
     const [formData, setFormData] = useState({ ...EMPTY })
+    // Kept out of formData: it's a list, not a single input value, so it doesn't
+    // flow through handleInputChange.
+    const [categoryIds, setCategoryIds] = useState<string[]>([])
+    const [contentTab, setContentTab] = useState<'write' | 'preview'>('write')
 
-    useEffect(() => {
-        if (editingId) {
-            const post = posts.find(p => p.id === editingId)
-            if (post) {
-                setFormData({
-                    title: post.title,
-                    slug: post.slug,
-                    description: post.description || '',
-                    date: post.date || '',
-                    category_id: post.category_id ?? '',
-                    content: post.content || '',
-                    published: post.published,
-                })
-            }
-        } else {
-            setFormData({ ...EMPTY })
-        }
-    }, [editingId, posts])
+    // Form population happens on the transition, not in an effect reacting to it.
+    // An effect would render once with the stale form, then immediately re-render
+    // with the right values — a cascading render for something the click already knows.
+    const startEdit = (post: Post) => {
+        setEditingId(post.id)
+        setFormData({
+            title: post.title,
+            slug: post.slug,
+            description: post.description || '',
+            date: post.date || '',
+            content: post.content || '',
+            published: post.published,
+        })
+        setCategoryIds(post.categories.map(c => c.id))
+    }
+
+    const cancelEdit = () => {
+        setEditingId(null)
+        setFormData({ ...EMPTY })
+        setCategoryIds([])
+    }
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { name, value, type } = e.target
         const checked = (e.target as HTMLInputElement).checked
         setFormData(prev => ({ ...prev, [name]: type === 'checkbox' ? checked : value }))
+    }
+
+    const toggleCategory = (id: string) => {
+        setCategoryIds(prev => prev.includes(id) ? prev.filter(c => c !== id) : [...prev, id])
     }
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -58,7 +69,8 @@ export default function PostManager({ initialPosts, categories }: PostManagerPro
         submitData.append('slug', formData.slug.trim() || postSlug(formData.title))
         submitData.append('description', formData.description)
         submitData.append('date', formData.date)
-        submitData.append('category_id', formData.category_id)
+        // One entry per selected category; the action reads them with getAll().
+        categoryIds.forEach(id => submitData.append('category_id', id))
         submitData.append('content', formData.content)
         submitData.append('published', formData.published ? 'true' : 'false')
 
@@ -107,7 +119,7 @@ export default function PostManager({ initialPosts, categories }: PostManagerPro
                     </h2>
                     {editingId && (
                         <button
-                            onClick={() => setEditingId(null)}
+                            onClick={cancelEdit}
                             className="text-xs text-red-400 hover:text-red-300 underline"
                         >
                             Cancel Edit
@@ -117,8 +129,9 @@ export default function PostManager({ initialPosts, categories }: PostManagerPro
 
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div>
-                        <label className="block text-xs uppercase tracking-wider text-stone-500 mb-1">Title</label>
+                        <label htmlFor="post-title" className="block text-xs uppercase tracking-wider text-stone-500 mb-1">Title</label>
                         <input
+                            id="post-title"
                             name="title"
                             type="text"
                             required
@@ -128,8 +141,9 @@ export default function PostManager({ initialPosts, categories }: PostManagerPro
                         />
                     </div>
                     <div>
-                        <label className="block text-xs uppercase tracking-wider text-stone-500 mb-1">Slug (URL)</label>
+                        <label htmlFor="post-slug" className="block text-xs uppercase tracking-wider text-stone-500 mb-1">Slug (URL)</label>
                         <input
+                            id="post-slug"
                             name="slug"
                             type="text"
                             placeholder="auto from title if empty"
@@ -139,8 +153,9 @@ export default function PostManager({ initialPosts, categories }: PostManagerPro
                         />
                     </div>
                     <div>
-                        <label className="block text-xs uppercase tracking-wider text-stone-500 mb-1">Description</label>
+                        <label htmlFor="post-description" className="block text-xs uppercase tracking-wider text-stone-500 mb-1">Description</label>
                         <input
+                            id="post-description"
                             name="description"
                             type="text"
                             placeholder="Short summary shown in the list"
@@ -149,43 +164,95 @@ export default function PostManager({ initialPosts, categories }: PostManagerPro
                             className="w-full bg-stone-900 border border-stone-700 rounded p-2 text-stone-200 focus:border-green-500 outline-none"
                         />
                     </div>
-                    <div className="flex gap-4">
-                        <div className="flex-1">
-                            <label className="block text-xs uppercase tracking-wider text-stone-500 mb-1">Date</label>
-                            <input
-                                name="date"
-                                type="text"
-                                placeholder="2026.07.10"
-                                value={formData.date}
-                                onChange={handleInputChange}
-                                className="w-full bg-stone-900 border border-stone-700 rounded p-2 text-stone-200 focus:border-green-500 outline-none"
-                            />
-                        </div>
-                        <div className="flex-1">
-                            <label className="block text-xs uppercase tracking-wider text-stone-500 mb-1">Category</label>
-                            <select
-                                name="category_id"
-                                value={formData.category_id}
-                                onChange={handleInputChange}
-                                className="w-full bg-stone-900 border border-stone-700 rounded p-2 text-stone-200 focus:border-green-500 outline-none"
-                            >
-                                <option value="">— Uncategorized —</option>
-                                {categories.map(category => (
-                                    <option key={category.id} value={category.id}>{category.name}</option>
-                                ))}
-                            </select>
-                        </div>
+                    <div>
+                        <label htmlFor="post-date" className="block text-xs uppercase tracking-wider text-stone-500 mb-1">Date</label>
+                        <input
+                            id="post-date"
+                            name="date"
+                            type="date"
+                            value={formData.date}
+                            onChange={handleInputChange}
+                            className="w-full bg-stone-900 border border-stone-700 rounded p-2 text-stone-200 focus:border-green-500 outline-none"
+                        />
                     </div>
                     <div>
-                        <label className="block text-xs uppercase tracking-wider text-stone-500 mb-1">Content (Markdown)</label>
+                        <label className="block text-xs uppercase tracking-wider text-stone-500 mb-1">
+                            Categories <span className="normal-case tracking-normal text-stone-600">(여러 개 선택 가능)</span>
+                        </label>
+                        {categories.length === 0 ? (
+                            <p className="text-xs text-stone-600 italic py-2">
+                                No categories yet — add some in Manage Categories.
+                            </p>
+                        ) : (
+                            <div className="flex flex-wrap gap-2">
+                                {categories.map(category => {
+                                    const selected = categoryIds.includes(category.id)
+                                    return (
+                                        <label
+                                            key={category.id}
+                                            className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs border cursor-pointer transition-colors ${
+                                                selected
+                                                    ? 'bg-green-500/15 text-green-400 border-green-600/60'
+                                                    : 'bg-stone-900 text-stone-400 border-stone-700 hover:border-stone-600'
+                                            }`}
+                                        >
+                                            <input
+                                                type="checkbox"
+                                                checked={selected}
+                                                onChange={() => toggleCategory(category.id)}
+                                                className="accent-green-500 w-3.5 h-3.5"
+                                            />
+                                            {category.name}
+                                        </label>
+                                    )
+                                })}
+                            </div>
+                        )}
+                        {categoryIds.length === 0 && categories.length > 0 && (
+                            <p className="text-[11px] text-stone-600 mt-2">선택하지 않으면 Uncategorized로 저장됩니다.</p>
+                        )}
+                    </div>
+                    <div>
+                        <div className="flex justify-between items-center mb-1">
+                            <label htmlFor="post-content" className="block text-xs uppercase tracking-wider text-stone-500">Content (Markdown)</label>
+                            {/* Preview reuses PostBody, so what you see here is exactly what /blog/<slug> renders. */}
+                            <div className="flex gap-1 text-[11px]">
+                                {(['write', 'preview'] as const).map(tab => (
+                                    <button
+                                        key={tab}
+                                        type="button"
+                                        onClick={() => setContentTab(tab)}
+                                        className={`px-2 py-0.5 rounded border transition-colors ${
+                                            contentTab === tab
+                                                ? 'bg-stone-700 text-stone-100 border-stone-600'
+                                                : 'bg-transparent text-stone-500 border-transparent hover:text-stone-300'
+                                        }`}
+                                    >
+                                        {tab === 'write' ? 'Write' : 'Preview'}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                        {/*
+                            Hidden rather than unmounted: swapping tabs would otherwise throw away
+                            the textarea's caret position and scroll offset.
+                        */}
                         <textarea
+                            id="post-content"
                             name="content"
                             rows={12}
                             placeholder={"## 섹션 제목\n\n본문을 마크다운으로 작성하세요..."}
                             value={formData.content}
                             onChange={handleInputChange}
-                            className="w-full bg-stone-900 border border-stone-700 rounded p-2 text-stone-200 focus:border-green-500 outline-none font-mono text-sm"
+                            className={`w-full bg-stone-900 border border-stone-700 rounded p-2 text-stone-200 focus:border-green-500 outline-none font-mono text-sm ${contentTab === 'preview' ? 'hidden' : ''}`}
                         ></textarea>
+                        {contentTab === 'preview' && (
+                            <div className="w-full min-h-[19rem] max-h-[32rem] overflow-y-auto bg-stone-900 border border-stone-700 rounded p-4">
+                                {formData.content.trim()
+                                    ? <PostBody content={formData.content} />
+                                    : <p className="text-sm text-stone-600 italic">미리볼 내용이 없습니다.</p>}
+                            </div>
+                        )}
                     </div>
                     <label className="flex items-center gap-2 text-sm text-stone-300 cursor-pointer">
                         <input
@@ -218,12 +285,12 @@ export default function PostManager({ initialPosts, categories }: PostManagerPro
                                     {post.title}
                                     {!post.published && <span className="ml-2 text-[10px] font-mono uppercase text-amber-400 border border-amber-500/40 rounded px-1.5 py-0.5">draft</span>}
                                 </h3>
-                                <p className="text-xs text-stone-500 mb-2 font-mono">/{post.slug} · {post.date} · {post.category?.name ?? 'Uncategorized'}</p>
+                                <p className="text-xs text-stone-500 mb-2 font-mono">/{post.slug} · {formatPostDate(post.date)} · {post.categories.map(c => c.name).join(', ') || 'Uncategorized'}</p>
                                 <p className="text-sm text-stone-400 line-clamp-2">{post.description}</p>
                             </div>
                             <div className="flex flex-col gap-2 ml-4 shrink-0">
                                 <button
-                                    onClick={() => setEditingId(post.id)}
+                                    onClick={() => startEdit(post)}
                                     className="text-xs px-3 py-1 bg-stone-800 hover:bg-stone-700 text-stone-300 rounded border border-stone-700"
                                 >
                                     Edit

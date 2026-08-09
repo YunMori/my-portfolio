@@ -170,7 +170,9 @@ export default function Hero() {
                                 alt="Jong Seo Yun"
                                 fill
                                 className="object-cover opacity-90 group-hover:opacity-100 transition-opacity"
-                                sizes="(max-width: 768px) 100vw, 50vw"
+                                // 실제 렌더 박스는 w-72(288px) / md:w-96(384px) 고정이다.
+                                // 뷰포트 기준(100vw/50vw)으로 두면 필요 없이 큰 후보를 고른다.
+                                sizes="(max-width: 768px) 288px, 384px"
                                 priority
                             />
                             {/* CRT scanline texture */}

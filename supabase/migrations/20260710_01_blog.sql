@@ -1,6 +1,6 @@
 -- 📝 BLOG (posts) TABLE MIGRATION 📝
 -- Run this in your Supabase SQL Editor to enable the tech blog feature.
--- Mirrors the conventions in schema.sql / secure_policies.sql (projects table).
+-- Mirrors the conventions in 20260102_01_initial_schema.sql / 20260104_02_secure_policies.sql (projects table).
 
 -- 1. Create Posts Table -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS public.posts (

@@ -82,13 +82,26 @@ export function readingTime(content: string): number {
     return Math.max(1, Math.round(units / 200));
 }
 
+/**
+ * Render a post date for display. `posts.date` is a real `date` column, so the
+ * API hands back 'YYYY-MM-DD'; this is the one place that decides how it reads.
+ * Formatted manually rather than via `new Date()` so a bare date string is never
+ * shifted a day by the viewer's timezone.
+ */
+export function formatPostDate(date: string | null): string {
+    if (!date) return '';
+    const match = /^(\d{4})-(\d{2})-(\d{2})/.exec(date);
+    return match ? `${match[1]}.${match[2]}.${match[3]}` : date;
+}
+
 /** Extract a plain string from react-markdown heading children (for id generation). */
 export function nodeToText(node: unknown): string {
     if (node == null || typeof node === 'boolean') return '';
     if (typeof node === 'string' || typeof node === 'number') return String(node);
     if (Array.isArray(node)) return node.map(nodeToText).join('');
-    if (typeof node === 'object' && 'props' in (node as any)) {
-        return nodeToText((node as any).props?.children);
+    if (typeof node === 'object' && 'props' in node) {
+        const { props } = node as { props?: { children?: unknown } };
+        return nodeToText(props?.children);
     }
     return '';
 }
