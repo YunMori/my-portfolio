@@ -1,14 +1,14 @@
-import { getProjects } from '@/app/actions';
+import { getProjects } from '@/app/actions/projects';
 import { computeTechStats } from '@/utils/projects';
-import Navbar from '@/components/Navbar';
-import Hero from '@/components/Hero';
-import TechStack from '@/components/TechStack';
-import Projects from '@/components/Projects';
-import SocialProof from '@/components/SocialProof';
-import Footer from '@/components/Footer';
-import ScrollProgress from '@/components/ScrollProgress';
-import ScrollReveal from '@/components/ScrollReveal';
-import PageViewTracker from '@/components/PageViewTracker';
+import Navbar from '@/components/layout/Navbar';
+import Hero from '@/components/home/Hero';
+import TechStack from '@/components/home/TechStack';
+import Projects from '@/components/home/Projects';
+import SocialProof from '@/components/home/SocialProof';
+import Footer from '@/components/layout/Footer';
+import ScrollProgress from '@/components/behavior/ScrollProgress';
+import ScrollReveal from '@/components/behavior/ScrollReveal';
+import PageViewTracker from '@/components/behavior/PageViewTracker';
 
 export default async function Home() {
   const projects = await getProjects();

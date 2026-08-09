@@ -3,7 +3,7 @@
 import { PostListItem, Category } from '@/types/database.types';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useLanguage } from '@/context/LanguageContext';
+import { useLanguage } from '@/i18n/LanguageContext';
 import { formatPostDate } from '@/utils/post';
 
 interface BlogListProps {

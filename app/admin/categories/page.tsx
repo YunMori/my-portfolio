@@ -1,4 +1,4 @@
-import { getCategories, getCategoryPostCounts } from '@/app/actions'
+import { getCategories, getCategoryPostCounts } from '@/app/actions/categories'
 import CategoryManager from '@/components/admin/CategoryManager'
 
 export default async function CategoriesPage() {

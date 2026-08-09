@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
-import { getCurrentUser, signOut } from '@/app/actions'
+import { getCurrentUser } from '@/utils/auth'
+import { signOut } from '@/app/actions/auth'
 
 export default async function AdminLayout({
     children,

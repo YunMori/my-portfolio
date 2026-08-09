@@ -4,7 +4,7 @@ import { Gowun_Dodum, Syne } from "next/font/google";
 import Script from "next/script";
 import { Toaster } from "sonner";
 import "./globals.css";
-import { Providers } from "@/components/Providers";
+import { Providers } from "@/components/layout/Providers";
 import { getBaseUrl } from "@/utils/url";
 
 const gowunDodum = Gowun_Dodum({

@@ -1,9 +1,9 @@
 import { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { getPostSummaries, getPostBySlug } from '@/app/actions'
+import { getPostSummaries, getPostBySlug } from '@/app/actions/posts'
 import { extractHeadings, formatPostDate, readingTime } from '@/utils/post'
-import PostBody from '@/components/PostBody'
+import PostBody from '@/components/blog/PostBody'
 
 /**
  * Prerender every published post at build time. Combined with the cookie-free

@@ -1,6 +1,6 @@
 import { MetadataRoute } from 'next';
 import { getBaseUrl } from '@/utils/url';
-import { getPostSummaries } from '@/app/actions';
+import { getPostSummaries } from '@/app/actions/posts';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     const baseUrl = getBaseUrl();

@@ -92,30 +92,47 @@ npm run dev
 
 ```
 app/
-├── page.tsx              # 홈 (서버 컴포넌트, Supabase fetch)
+├── page.tsx              # 홈 (서버 컴포넌트, 정적 생성)
+├── actions/              # 서버 액션 — 도메인별로 분리
+│   ├── analytics.ts      #   방문자 카운트
+│   ├── auth.ts           #   로그아웃
+│   ├── categories.ts     #   카테고리 조회/CRUD
+│   ├── posts.ts          #   글 조회/CRUD
+│   └── projects.ts       #   프로젝트 조회/CRUD + GitHub 연동
 ├── admin/                # 관리자 페이지
-├── api/                  # API 라우트
+├── api/cron/             # Supabase sleep 방지 핑
+├── blog/                 # 블로그 목록 + 글 상세
 ├── login/                # 로그인 페이지
 ├── globals.css           # 테마, 애니메이션, 그레인 효과
 ├── sitemap.ts            # 사이트맵 자동 생성
 └── layout.tsx            # 폰트, 메타데이터
 
-components/
-├── Hero.tsx              # 히어로 섹션 (지형도 배경 + 스태거 애니메이션)
-├── TechStack.tsx         # 기술 스택 통계
-├── Projects.tsx          # 프로젝트 그리드 + 모달
-├── SocialProof.tsx       # 프로젝트/기술 수 통계 스트립
-├── ScrollProgress.tsx    # 스크롤 프로그레스 바
-├── HomeClient.tsx        # 홈 클라이언트 래퍼
-├── Providers.tsx         # Context 프로바이더
-├── Navbar.tsx            # 네비게이션
-└── Footer.tsx            # 푸터 + 마키
+components/               # 쓰이는 화면 기준으로 묶음
+├── home/                 # Hero, TechStack, Projects, SocialProof
+├── blog/                 # BlogList, PostBody
+├── admin/                # 관리자 폼/차트
+├── layout/               # Navbar, Footer, Providers
+└── behavior/             # 렌더 결과가 없는 동작 전용 컴포넌트
+                          #   ScrollProgress, ScrollReveal, PageViewTracker
+
+i18n/                     # 언어 전환 기능 한 곳에
+├── LanguageContext.tsx
+└── translations.ts       # ko/en 문자열
 
 utils/
-├── translations.ts       # i18n 문자열 (ko/en)
+├── auth.ts               # 요청 단위로 캐시되는 현재 사용자
+├── post.ts               # 슬러그, 목차, 읽기시간, 날짜 포맷
+├── projects.ts           # 기술 스택 집계
 ├── github.ts             # GitHub README 페칭
 ├── url.ts                # 베이스 URL 유틸
-└── supabase/             # Supabase 클라이언트
+└── supabase/             # 클라이언트 4종
+    ├── client.ts         #   브라우저용
+    ├── server.ts         #   쿠키 기반 (관리자·인증)
+    ├── public.ts         #   쿠키 없음 (공개 읽기 — 정적 렌더 유지)
+    └── session.ts        #   미들웨어 세션 갱신
+
+supabase/migrations/      # 적용 순서대로 번호가 붙은 SQL
+docs/                     # 감사 리포트 등 문서
 ```
 
 ## 테스트

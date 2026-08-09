@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { toast } from 'sonner'
-import { addProject, updateProject, deleteProject, fetchGithubRepo } from '@/app/actions'
+import { addProject, updateProject, deleteProject, fetchGithubRepo } from '@/app/actions/projects'
 import { Project } from '@/types/database.types'
 
 interface ProjectManagerProps {

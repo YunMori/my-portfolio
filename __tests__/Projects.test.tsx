@@ -1,8 +1,8 @@
 import { render, screen, fireEvent } from '@testing-library/react';
-import Projects from '@/components/Projects';
+import Projects from '@/components/home/Projects';
 import { Project } from '@/types/database.types';
 
-jest.mock('@/context/LanguageContext', () => ({
+jest.mock('@/i18n/LanguageContext', () => ({
     useLanguage: () => ({
         t: (key: string) => key,
         language: 'en',

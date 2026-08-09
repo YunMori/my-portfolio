@@ -2,10 +2,10 @@
 
 import { useState } from 'react'
 import { toast } from 'sonner'
-import { addPost, updatePost, deletePost } from '@/app/actions'
+import { addPost, updatePost, deletePost } from '@/app/actions/posts'
 import { Post, Category } from '@/types/database.types'
 import { formatPostDate, postSlug } from '@/utils/post'
-import PostBody from '@/components/PostBody'
+import PostBody from '@/components/blog/PostBody'
 
 interface PostManagerProps {
     initialPosts: Post[]
