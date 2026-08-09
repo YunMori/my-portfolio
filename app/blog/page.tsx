@@ -1,6 +1,7 @@
 import { Metadata } from 'next'
-import { getPosts, getCategories } from '@/app/actions'
-import BlogList from '@/components/BlogList'
+import { getPosts } from '@/app/actions/posts'
+import { getCategories } from '@/app/actions/categories'
+import BlogList from '@/components/blog/BlogList'
 
 type BlogPageProps = {
     searchParams: Promise<{ category?: string }>

@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import { useRef, useEffect, useCallback } from 'react';
-import { useLanguage } from '@/context/LanguageContext';
+import { useLanguage } from '@/i18n/LanguageContext';
 
 const NAME_CHARS = 'Jong Seo Yun.'.split('');
 

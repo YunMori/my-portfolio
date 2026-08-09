@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { getAnalyticsData } from '@/app/actions'
+import { getAnalyticsData } from '@/app/actions/analytics'
 import VisitorChart from '@/components/admin/VisitorChart'
 
 export default async function AdminDashboard() {

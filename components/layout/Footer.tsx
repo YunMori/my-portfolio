@@ -1,6 +1,6 @@
 'use client';
 
-import { useLanguage } from '@/context/LanguageContext';
+import { useLanguage } from '@/i18n/LanguageContext';
 
 const marqueeItems = ['Next.js', 'React', 'TypeScript', 'Tailwind', 'Node.js', 'Supabase', 'Python', 'Vue', 'Firebase', 'Git'];
 

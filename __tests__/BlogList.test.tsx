@@ -1,8 +1,8 @@
 import { render, screen, within } from '@testing-library/react';
-import BlogList from '@/components/BlogList';
+import BlogList from '@/components/blog/BlogList';
 import { Post, Category } from '@/types/database.types';
 
-jest.mock('@/context/LanguageContext', () => ({
+jest.mock('@/i18n/LanguageContext', () => ({
     useLanguage: () => ({
         t: (key: string) => key,
         language: 'en',
