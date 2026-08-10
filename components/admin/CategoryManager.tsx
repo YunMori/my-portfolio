@@ -12,8 +12,11 @@ interface CategoryManagerProps {
     postCounts: Record<string, number>
 }
 
+// `name_en` is the optional English label; blank means "no translation yet" and the
+// action stores null so the site falls back to `name`. See i18n/localize.ts.
 const EMPTY = {
     name: '',
+    name_en: '',
     slug: '',
     sort_order: '0',
 }
@@ -30,6 +33,7 @@ export default function CategoryManager({ initialCategories, postCounts }: Categ
         setEditingId(category.id)
         setFormData({
             name: category.name,
+            name_en: category.name_en || '',
             slug: category.slug,
             sort_order: String(category.sort_order ?? 0),
         })
@@ -49,6 +53,7 @@ export default function CategoryManager({ initialCategories, postCounts }: Categ
         e.preventDefault()
         const submitData = new FormData()
         submitData.append('name', formData.name)
+        submitData.append('name_en', formData.name_en)
         submitData.append('slug', formData.slug.trim() || postSlug(formData.name))
         submitData.append('sort_order', formData.sort_order)
 
@@ -118,6 +123,19 @@ export default function CategoryManager({ initialCategories, postCounts }: Categ
                             required
                             placeholder="개발"
                             value={formData.name}
+                            onChange={handleInputChange}
+                            className="w-full bg-stone-900 border border-stone-700 rounded p-2 text-stone-200 focus:border-green-500 outline-none"
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-xs uppercase tracking-wider text-stone-500 mb-1">
+                            Name <span className="text-green-600">EN</span> <span className="normal-case tracking-normal text-stone-600">(optional)</span>
+                        </label>
+                        <input
+                            name="name_en"
+                            type="text"
+                            placeholder="Leave blank to reuse the original"
+                            value={formData.name_en}
                             onChange={handleInputChange}
                             className="w-full bg-stone-900 border border-stone-700 rounded p-2 text-stone-200 focus:border-green-500 outline-none"
                         />

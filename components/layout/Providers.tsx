@@ -1,11 +1,11 @@
 'use client';
 
-import { LanguageProvider } from '@/i18n/LanguageContext';
+import { ContentLanguageProvider } from '@/i18n/ContentLanguage';
 
 export function Providers({ children }: { children: React.ReactNode }) {
     return (
-        <LanguageProvider>
+        <ContentLanguageProvider>
             {children}
-        </LanguageProvider>
+        </ContentLanguageProvider>
     );
 }

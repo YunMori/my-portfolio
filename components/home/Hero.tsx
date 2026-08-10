@@ -2,12 +2,9 @@
 
 import Image from 'next/image';
 import { useRef, useEffect, useCallback } from 'react';
-import { useLanguage } from '@/i18n/LanguageContext';
-
 const NAME_CHARS = 'Jong Seo Yun.'.split('');
 
 export default function Hero() {
-    const { t } = useLanguage();
     const sectionRef = useRef<HTMLElement>(null);
     const svgRef = useRef<SVGSVGElement>(null);
     const rafRef = useRef<number>(0);
@@ -115,7 +112,7 @@ export default function Hero() {
 
                     {/* Heading with per-character name reveal */}
                     <h1 className="text-5xl md:text-7xl font-display font-bold mb-6 text-stone-100 leading-[1.1]">
-                        {t('hero.greeting')}<br />
+                        Hello, I am<br />
                         <span className="text-green-500" style={{ perspective: '400px' }}>
                             {NAME_CHARS.map((char, i) => (
                                 <span
@@ -138,7 +135,7 @@ export default function Hero() {
                     <div className="hero-accent-line" />
 
                     <p className="text-stone-500 text-base md:text-lg leading-relaxed max-w-xl mb-10 whitespace-pre-wrap">
-                        나도 내가 뭐 하고 싶은지 모릅니다. 재밌어 보이는거 만듭니다.
+                        I don&apos;t know what I want to do either. I just build whatever looks fun.
                     </p>
 
                     <div className="flex flex-wrap gap-4">
@@ -152,7 +149,7 @@ export default function Hero() {
                             href="mailto:sbok10422@gmail.com"
                             className="px-8 py-3 bg-transparent border border-stone-700 text-stone-300 font-bold text-sm rounded-full hover:border-green-500 hover:text-green-500 transition-all flex items-center gap-2"
                         >
-                            <i className="fa-regular fa-envelope"></i> {t('hero.contact')}
+                            <i className="fa-regular fa-envelope"></i> Contact Me
                         </a>
                     </div>
                 </div>

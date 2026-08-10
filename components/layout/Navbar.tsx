@@ -2,10 +2,12 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useLanguage } from '@/i18n/LanguageContext';
+import { useContentLanguage } from '@/i18n/ContentLanguage';
 
 export default function Navbar() {
-  const { language, toggleLanguage, t } = useLanguage();
+  // The chrome below is English-only; this toggle switches the language of the
+  // *content* (blog posts, project descriptions).
+  const { language, toggleLanguage } = useContentLanguage();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
@@ -35,13 +37,14 @@ export default function Navbar() {
 
         {/* Desktop Nav */}
         <div className="hidden md:flex items-center space-x-8 text-sm font-medium text-stone-400">
-          <Link href="/#about" className="hover:text-green-400 transition-colors">{t('nav.about')}</Link>
-          <Link href="/#skills" className="hover:text-green-400 transition-colors">{t('nav.skills')}</Link>
-          <Link href="/#projects" className="hover:text-green-400 transition-colors">{t('nav.projects')}</Link>
-          <Link href="/blog" className="hover:text-green-400 transition-colors">{t('nav.blog')}</Link>
-          <Link href="/#contact" className="btn-shimmer px-6 py-2 bg-green-500 text-black font-bold text-xs uppercase tracking-wider rounded-full hover:bg-green-400 transition-colors shadow-lg shadow-green-900/50">{t('nav.contact')}</Link>
+          <Link href="/#about" className="hover:text-green-400 transition-colors">About</Link>
+          <Link href="/#skills" className="hover:text-green-400 transition-colors">Skills</Link>
+          <Link href="/#projects" className="hover:text-green-400 transition-colors">Projects</Link>
+          <Link href="/blog" className="hover:text-green-400 transition-colors">Blog</Link>
+          <Link href="/#contact" className="btn-shimmer px-6 py-2 bg-green-500 text-black font-bold text-xs uppercase tracking-wider rounded-full hover:bg-green-400 transition-colors shadow-lg shadow-green-900/50">Contact</Link>
           <button
             onClick={toggleLanguage}
+            aria-label={language === 'en' ? 'Show content in Korean' : 'Show content in English'}
             className="ml-4 px-3 py-1 rounded border border-stone-700 hover:border-green-500 text-xs font-bold uppercase transition-colors"
           >
             {language === 'en' ? 'KO' : 'EN'}
@@ -52,6 +55,7 @@ export default function Navbar() {
         <div className="flex md:hidden items-center gap-3">
           <button
             onClick={toggleLanguage}
+            aria-label={language === 'en' ? 'Show content in Korean' : 'Show content in English'}
             className="px-3 py-1 rounded border border-stone-700 hover:border-green-500 text-xs font-bold uppercase transition-colors text-stone-400"
           >
             {language === 'en' ? 'KO' : 'EN'}
@@ -71,11 +75,11 @@ export default function Navbar() {
 
       {/* Mobile Menu with slide animation */}
       <div className={`md:hidden bg-main/95 backdrop-blur-md border-t border-stone-800 px-6 flex flex-col gap-4 text-sm font-medium text-stone-400 overflow-hidden transition-all duration-300 ${isMenuOpen ? 'max-h-64 py-4 opacity-100' : 'max-h-0 py-0 opacity-0'}`}>
-        <Link href="/#about" onClick={handleNavClick} className="hover:text-green-400 transition-colors py-2">{t('nav.about')}</Link>
-        <Link href="/#skills" onClick={handleNavClick} className="hover:text-green-400 transition-colors py-2">{t('nav.skills')}</Link>
-        <Link href="/#projects" onClick={handleNavClick} className="hover:text-green-400 transition-colors py-2">{t('nav.projects')}</Link>
-        <Link href="/blog" onClick={handleNavClick} className="hover:text-green-400 transition-colors py-2">{t('nav.blog')}</Link>
-        <Link href="/#contact" onClick={handleNavClick} className="w-full text-center px-6 py-3 bg-green-500 text-black font-bold text-xs uppercase tracking-wider rounded-full hover:bg-green-400 transition-colors">{t('nav.contact')}</Link>
+        <Link href="/#about" onClick={handleNavClick} className="hover:text-green-400 transition-colors py-2">About</Link>
+        <Link href="/#skills" onClick={handleNavClick} className="hover:text-green-400 transition-colors py-2">Skills</Link>
+        <Link href="/#projects" onClick={handleNavClick} className="hover:text-green-400 transition-colors py-2">Projects</Link>
+        <Link href="/blog" onClick={handleNavClick} className="hover:text-green-400 transition-colors py-2">Blog</Link>
+        <Link href="/#contact" onClick={handleNavClick} className="w-full text-center px-6 py-3 bg-green-500 text-black font-bold text-xs uppercase tracking-wider rounded-full hover:bg-green-400 transition-colors">Contact</Link>
       </div>
     </nav>
   );
