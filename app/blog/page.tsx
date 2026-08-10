@@ -10,12 +10,15 @@ type BlogPageProps = {
 export async function generateMetadata({ searchParams }: BlogPageProps): Promise<Metadata> {
     const { category: categorySlug } = await searchParams
 
+    // Metadata is generated on the server, which cannot know the visitor's chosen
+    // content language — there is no locale in the URL. It stays English, matching
+    // <html lang="en"> and the rest of the chrome.
     const base: Metadata = {
         title: 'Blog | Morifolio',
-        description: '개발하며 배우고 정리한 기록들. 아키텍처, 프론트엔드, 회고.',
+        description: 'Notes from building things — architecture, frontend, and retrospectives.',
         openGraph: {
             title: 'Blog | Yun Jong Seo',
-            description: '개발하며 배우고 정리한 기록들.',
+            description: 'Notes from building things.',
             type: 'website',
         },
     }
@@ -26,8 +29,9 @@ export async function generateMetadata({ searchParams }: BlogPageProps): Promise
     const category = (await getCategories()).find(c => c.slug === categorySlug)
     if (!category) return base
 
-    const title = `${category.name} | Blog | Morifolio`
-    const description = `${category.name} 카테고리의 글 모음.`
+    const label = category.name_en || category.name
+    const title = `${label} | Blog | Morifolio`
+    const description = `Posts filed under ${label}.`
     return {
         ...base,
         title,

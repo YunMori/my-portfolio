@@ -6,6 +6,23 @@ import { createPublicClient } from '@/utils/supabase/public'
 import { isAuthenticated } from '@/utils/auth'
 import { Project } from '@/types/database.types'
 import { parseGithubPath } from '@/utils/github'
+import { optionalText } from '@/utils/form'
+
+/** Shared by add and update so the two payloads cannot drift apart. */
+function parseProjectForm(formData: FormData) {
+    return {
+        title: formData.get('title') as string,
+        description: formData.get('description') as string,
+        date: formData.get('date') as string,
+        stack: (formData.get('stack') as string).split(',').map(s => s.trim()),
+        github_link: formData.get('github_link') as string,
+        content: formData.get('content') as string,
+        // Optional English translations; null means "fall back to the original".
+        title_en: optionalText(formData, 'title_en'),
+        description_en: optionalText(formData, 'description_en'),
+        content_en: optionalText(formData, 'content_en'),
+    }
+}
 
 export async function getProjects() {
     const supabase = createPublicClient()
@@ -28,16 +45,9 @@ export async function addProject(formData: FormData) {
 
     const supabase = await createClient()
 
-    const title = formData.get('title') as string
-    const description = formData.get('description') as string
-    const date = formData.get('date') as string
-    const stack = (formData.get('stack') as string).split(',').map(s => s.trim())
-    const github_link = formData.get('github_link') as string
-    const content = formData.get('content') as string
-
     const { error } = await supabase
         .from('projects')
-        .insert({ title, description, date, stack, github_link, content })
+        .insert(parseProjectForm(formData))
 
     if (error) {
         console.error('Error adding project:', error)
@@ -57,16 +67,10 @@ export async function updateProject(formData: FormData) {
     const supabase = await createClient()
 
     const id = formData.get('id') as string
-    const title = formData.get('title') as string
-    const description = formData.get('description') as string
-    const date = formData.get('date') as string
-    const stack = (formData.get('stack') as string).split(',').map(s => s.trim())
-    const github_link = formData.get('github_link') as string
-    const content = formData.get('content') as string
 
     const { error } = await supabase
         .from('projects')
-        .update({ title, description, date, stack, github_link, content })
+        .update(parseProjectForm(formData))
         .eq('id', id)
 
     if (error) {

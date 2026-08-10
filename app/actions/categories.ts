@@ -6,6 +6,7 @@ import { createPublicClient } from '@/utils/supabase/public'
 import { isAuthenticated } from '@/utils/auth'
 import { Category } from '@/types/database.types'
 import { postSlug } from '@/utils/post'
+import { optionalText } from '@/utils/form'
 
 export async function getCategories() {
     const supabase = createPublicClient()
@@ -54,7 +55,9 @@ function parseCategoryForm(formData: FormData) {
     let slug = postSlug(rawSlug)
     if (!slug) slug = `category-${Math.random().toString(36).slice(2, 8)}`
     const sort_order = Number(formData.get('sort_order')) || 0
-    return { name, slug, sort_order }
+    // Optional English label; null means "fall back to the original name".
+    const name_en = optionalText(formData, 'name_en')
+    return { name, name_en, slug, sort_order }
 }
 
 // Category changes alter the filter row on the public blog, so both paths revalidate.

@@ -13,22 +13,31 @@ export type Profile = {
     created_at?: string;
 }
 
+// The base text columns below (`title`, `description`, `content`, `name`) hold the
+// Korean original; each `_en` sibling is an optional English translation that the
+// admin panel fills in. Read them through `pick()` in i18n/localize.ts, which falls
+// back to the original when the translation is missing.
+// See supabase/migrations/20260809_04_i18n_content.sql.
 export type Project = {
     id: string;
     title: string;
+    title_en: string | null;
     description: string;
+    description_en: string | null;
     stack: string[];
     date: string;
     image_url?: string;
     link?: string;
     github_link?: string;
     content?: string;
+    content_en?: string | null;
     created_at?: string;
 }
 
 export type Category = {
     id: string;
     name: string;
+    name_en: string | null;
     slug: string;
     sort_order: number;
     created_at?: string;
@@ -36,14 +45,17 @@ export type Category = {
 
 // The slice of a category carried on a post. `sort_order` comes along so chips
 // render in the same order as the blog filter row.
-export type PostCategory = Pick<Category, 'id' | 'name' | 'slug' | 'sort_order'>
+export type PostCategory = Pick<Category, 'id' | 'name' | 'name_en' | 'slug' | 'sort_order'>
 
 export type Post = {
     id: string;
     title: string;
+    title_en: string | null;
     slug: string;
     description: string;
+    description_en: string | null;
     content: string;
+    content_en: string | null;
     published: boolean;
     // `date` column, so the API always returns 'YYYY-MM-DD'. Nullable: the admin
     // form allows leaving it blank. Render it through formatPostDate().
@@ -57,12 +69,18 @@ export type Post = {
 
 // A post as the blog list renders it: everything except the markdown body,
 // which is replaced by the reading-time estimate derived from it server-side.
-// Returned by getPosts().
-export type PostListItem = Omit<Post, 'content'> & { readingMinutes: number };
+// Both language bodies are dropped — the list never renders either one — and each
+// contributes a reading-time estimate instead. `readingMinutesEn` is null when the
+// post has no English translation, in which case the reader sees the original and
+// `readingMinutes` describes it. Returned by getPosts().
+export type PostListItem = Omit<Post, 'content' | 'content_en'> & {
+    readingMinutes: number;
+    readingMinutesEn: number | null;
+};
 
 // Just enough of a post to list or link to it, without dragging the markdown
 // body along. Returned by getPostSummaries().
-export type PostSummary = Pick<Post, 'slug' | 'title' | 'date' | 'created_at'>;
+export type PostSummary = Pick<Post, 'slug' | 'title' | 'title_en' | 'date' | 'created_at'>;
 
 // Many-to-many link between posts and categories. See supabase/migrations/20260809_02_multi_category.sql.
 export type PostCategoryLink = {

@@ -6,9 +6,9 @@ import { slugify, nodeToText } from '@/utils/post'
 
 // Injects stable anchor ids on h2/h3 so the table of contents can link to them.
 // The override runs after rehype-sanitize, so the id survives sanitization.
-export default function PostBody({ content }: { content: string }) {
+export default function PostBody({ content, lang }: { content: string; lang?: string }) {
     return (
-        <div className="prose prose-invert prose-stone max-w-none prose-headings:font-display prose-headings:scroll-mt-24 prose-a:text-green-400 prose-code:text-green-300">
+        <div lang={lang} className="prose prose-invert prose-stone max-w-none prose-headings:font-display prose-headings:scroll-mt-24 prose-a:text-green-400 prose-code:text-green-300">
             <ReactMarkdown
                 rehypePlugins={[rehypeSanitize]}
                 components={{

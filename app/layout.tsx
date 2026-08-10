@@ -47,7 +47,10 @@ export const metadata: Metadata = {
         alt: "Yun Jong Seo Profile"
       },
     ],
-    locale: "ko_KR",
+    // The UI chrome is English; the content language toggle only affects posts
+    // and project bodies, which the crawler cannot reach without a locale in the URL.
+    locale: "en_US",
+    alternateLocale: ["ko_KR"],
     type: "website",
   },
   twitter: {
@@ -80,7 +83,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ko" className="dark">
+    // The chrome is English-only. Korean content carries its own `lang` on the
+    // element that wraps it — see i18n/ContentLanguage.tsx.
+    <html lang="en" className="dark">
       <head>
         {/* CDN 도메인 사전 연결 (DNS+TLS 핸드셰이크 미리 처리 → LCP 개선) */}
         <link rel="preconnect" href="https://cdnjs.cloudflare.com" />

@@ -3,8 +3,9 @@ interface SocialProofProps {
     totalTech: number;
 }
 
-// Server component: the labels are already English, so nothing here needs the
-// language context and nothing needs to run in the browser.
+// Server component: the UI chrome is English-only and these are fixed labels, not
+// database content, so nothing here needs the content language and nothing needs
+// to run in the browser.
 export default function SocialProof({ totalProjects, totalTech }: SocialProofProps) {
     const stats = [
         { value: `${totalProjects}+`, label: 'Projects' },

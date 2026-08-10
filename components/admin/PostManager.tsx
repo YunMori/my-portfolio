@@ -12,12 +12,18 @@ interface PostManagerProps {
     categories: Category[]
 }
 
+// `*_en` hold the optional English translation of the Korean original beside them.
+// Blank means "no translation yet" — the action stores null and the site falls back
+// to the original. See i18n/localize.ts.
 const EMPTY = {
     title: '',
+    title_en: '',
     slug: '',
     description: '',
+    description_en: '',
     date: '',
     content: '',
+    content_en: '',
     published: true,
 }
 
@@ -29,6 +35,9 @@ export default function PostManager({ initialPosts, categories }: PostManagerPro
     // flow through handleInputChange.
     const [categoryIds, setCategoryIds] = useState<string[]>([])
     const [contentTab, setContentTab] = useState<'write' | 'preview'>('write')
+    // Which translation the single body editor below is pointed at. Both values live
+    // in formData and both are submitted, so switching never discards the other one.
+    const [contentLang, setContentLang] = useState<'ko' | 'en'>('ko')
 
     // Form population happens on the transition, not in an effect reacting to it.
     // An effect would render once with the stale form, then immediately re-render
@@ -37,10 +46,13 @@ export default function PostManager({ initialPosts, categories }: PostManagerPro
         setEditingId(post.id)
         setFormData({
             title: post.title,
+            title_en: post.title_en || '',
             slug: post.slug,
             description: post.description || '',
+            description_en: post.description_en || '',
             date: post.date || '',
             content: post.content || '',
+            content_en: post.content_en || '',
             published: post.published,
         })
         setCategoryIds(post.categories.map(c => c.id))
@@ -66,12 +78,15 @@ export default function PostManager({ initialPosts, categories }: PostManagerPro
         e.preventDefault()
         const submitData = new FormData()
         submitData.append('title', formData.title)
+        submitData.append('title_en', formData.title_en)
         submitData.append('slug', formData.slug.trim() || postSlug(formData.title))
         submitData.append('description', formData.description)
+        submitData.append('description_en', formData.description_en)
         submitData.append('date', formData.date)
         // One entry per selected category; the action reads them with getAll().
         categoryIds.forEach(id => submitData.append('category_id', id))
         submitData.append('content', formData.content)
+        submitData.append('content_en', formData.content_en)
         submitData.append('published', formData.published ? 'true' : 'false')
 
         const action = editingId ? updatePost : addPost
@@ -141,6 +156,20 @@ export default function PostManager({ initialPosts, categories }: PostManagerPro
                         />
                     </div>
                     <div>
+                        <label htmlFor="post-title-en" className="block text-xs uppercase tracking-wider text-stone-500 mb-1">
+                            Title <span className="text-green-600">EN</span> <span className="normal-case tracking-normal text-stone-600">(optional)</span>
+                        </label>
+                        <input
+                            id="post-title-en"
+                            name="title_en"
+                            type="text"
+                            placeholder="Leave blank to reuse the original"
+                            value={formData.title_en}
+                            onChange={handleInputChange}
+                            className="w-full bg-stone-900 border border-stone-700 rounded p-2 text-stone-200 focus:border-green-500 outline-none"
+                        />
+                    </div>
+                    <div>
                         <label htmlFor="post-slug" className="block text-xs uppercase tracking-wider text-stone-500 mb-1">Slug (URL)</label>
                         <input
                             id="post-slug"
@@ -160,6 +189,20 @@ export default function PostManager({ initialPosts, categories }: PostManagerPro
                             type="text"
                             placeholder="Short summary shown in the list"
                             value={formData.description}
+                            onChange={handleInputChange}
+                            className="w-full bg-stone-900 border border-stone-700 rounded p-2 text-stone-200 focus:border-green-500 outline-none"
+                        />
+                    </div>
+                    <div>
+                        <label htmlFor="post-description-en" className="block text-xs uppercase tracking-wider text-stone-500 mb-1">
+                            Description <span className="text-green-600">EN</span> <span className="normal-case tracking-normal text-stone-600">(optional)</span>
+                        </label>
+                        <input
+                            id="post-description-en"
+                            name="description_en"
+                            type="text"
+                            placeholder="Leave blank to reuse the original"
+                            value={formData.description_en}
                             onChange={handleInputChange}
                             className="w-full bg-stone-900 border border-stone-700 rounded p-2 text-stone-200 focus:border-green-500 outline-none"
                         />
@@ -214,9 +257,29 @@ export default function PostManager({ initialPosts, categories }: PostManagerPro
                     </div>
                     <div>
                         <div className="flex justify-between items-center mb-1">
-                            <label htmlFor="post-content" className="block text-xs uppercase tracking-wider text-stone-500">Content (Markdown)</label>
+                            <label htmlFor="post-content" className="block text-xs uppercase tracking-wider text-stone-500">
+                                Content (Markdown)
+                                {contentLang === 'en' && <span className="normal-case tracking-normal text-stone-600"> — optional</span>}
+                            </label>
                             {/* Preview reuses PostBody, so what you see here is exactly what /blog/<slug> renders. */}
-                            <div className="flex gap-1 text-[11px]">
+                            <div className="flex items-center gap-3 text-[11px]">
+                                <div className="flex gap-1">
+                                    {(['ko', 'en'] as const).map(lang => (
+                                        <button
+                                            key={lang}
+                                            type="button"
+                                            onClick={() => setContentLang(lang)}
+                                            className={`px-2 py-0.5 rounded border uppercase transition-colors ${
+                                                contentLang === lang
+                                                    ? 'bg-green-600/20 text-green-400 border-green-700'
+                                                    : 'bg-transparent text-stone-500 border-transparent hover:text-stone-300'
+                                            }`}
+                                        >
+                                            {lang}
+                                        </button>
+                                    ))}
+                                </div>
+                                <div className="flex gap-1">
                                 {(['write', 'preview'] as const).map(tab => (
                                     <button
                                         key={tab}
@@ -231,6 +294,7 @@ export default function PostManager({ initialPosts, categories }: PostManagerPro
                                         {tab === 'write' ? 'Write' : 'Preview'}
                                     </button>
                                 ))}
+                                </div>
                             </div>
                         </div>
                         {/*
@@ -239,17 +303,19 @@ export default function PostManager({ initialPosts, categories }: PostManagerPro
                         */}
                         <textarea
                             id="post-content"
-                            name="content"
+                            name={contentLang === 'ko' ? 'content' : 'content_en'}
                             rows={12}
-                            placeholder={"## 섹션 제목\n\n본문을 마크다운으로 작성하세요..."}
-                            value={formData.content}
+                            placeholder={contentLang === 'ko'
+                                ? "## 섹션 제목\n\n본문을 마크다운으로 작성하세요..."
+                                : "Leave blank to reuse the Korean original."}
+                            value={contentLang === 'ko' ? formData.content : formData.content_en}
                             onChange={handleInputChange}
                             className={`w-full bg-stone-900 border border-stone-700 rounded p-2 text-stone-200 focus:border-green-500 outline-none font-mono text-sm ${contentTab === 'preview' ? 'hidden' : ''}`}
                         ></textarea>
                         {contentTab === 'preview' && (
                             <div className="w-full min-h-[19rem] max-h-[32rem] overflow-y-auto bg-stone-900 border border-stone-700 rounded p-4">
-                                {formData.content.trim()
-                                    ? <PostBody content={formData.content} />
+                                {(contentLang === 'ko' ? formData.content : formData.content_en).trim()
+                                    ? <PostBody content={contentLang === 'ko' ? formData.content : formData.content_en} />
                                     : <p className="text-sm text-stone-600 italic">미리볼 내용이 없습니다.</p>}
                             </div>
                         )}

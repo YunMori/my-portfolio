@@ -45,20 +45,27 @@ function extractStackFromReadme(readmeContent: string): string {
     return Array.from(stacks).join(', ');
 }
 
+const EMPTY_FORM = {
+    title: '',
+    title_en: '',
+    description: '',
+    description_en: '',
+    date: '',
+    stack: '',
+    github_link: '',
+    content: '',
+    content_en: ''
+}
+
 export default function ProjectManager({ initialProjects }: ProjectManagerProps) {
     const [projects] = useState<Project[]>(initialProjects)
     const [editingId, setEditingId] = useState<string | null>(null)
     const [isFetching, setIsFetching] = useState(false)
 
-    // Form State for Controlled Inputs
-    const [formData, setFormData] = useState({
-        title: '',
-        description: '',
-        date: '',
-        stack: '',
-        github_link: '',
-        content: ''
-    })
+    // Form State for Controlled Inputs. The `*_en` fields hold the optional English
+    // translation of the Korean original beside them; blank means "no translation
+    // yet" and the action stores null so the site falls back. See i18n/localize.ts.
+    const [formData, setFormData] = useState({ ...EMPTY_FORM })
 
     // Update form when editingId changes
     useEffect(() => {
@@ -67,23 +74,19 @@ export default function ProjectManager({ initialProjects }: ProjectManagerProps)
             if (project) {
                 setFormData({
                     title: project.title,
+                    title_en: project.title_en || '',
                     description: project.description,
+                    description_en: project.description_en || '',
                     date: project.date,
                     stack: project.stack.join(', '),
                     github_link: project.github_link || '',
-                    content: project.content || ''
+                    content: project.content || '',
+                    content_en: project.content_en || ''
                 })
             }
         } else {
             // Reset form for new project
-            setFormData({
-                title: '',
-                description: '',
-                date: '',
-                stack: '',
-                github_link: '',
-                content: ''
-            })
+            setFormData({ ...EMPTY_FORM })
         }
     }, [editingId, projects])
 
@@ -235,12 +238,38 @@ export default function ProjectManager({ initialProjects }: ProjectManagerProps)
                             />
                         </div>
                         <div>
+                            <label className="block text-xs uppercase tracking-wider text-stone-500 mb-1">
+                                Project Title <span className="text-green-600">EN</span> <span className="normal-case tracking-normal text-stone-600">(optional)</span>
+                            </label>
+                            <input
+                                name="title_en"
+                                type="text"
+                                placeholder="Leave blank to reuse the original"
+                                value={formData.title_en}
+                                onChange={handleInputChange}
+                                className="w-full bg-stone-900 border border-stone-700 rounded p-2 text-stone-200 focus:border-green-500 outline-none"
+                            />
+                        </div>
+                        <div>
                             <label className="block text-xs uppercase tracking-wider text-stone-500 mb-1">Description</label>
                             <input
                                 name="description"
                                 type="text"
                                 placeholder="Short project description"
                                 value={formData.description}
+                                onChange={handleInputChange}
+                                className="w-full bg-stone-900 border border-stone-700 rounded p-2 text-stone-200 focus:border-green-500 outline-none"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-xs uppercase tracking-wider text-stone-500 mb-1">
+                                Description <span className="text-green-600">EN</span> <span className="normal-case tracking-normal text-stone-600">(optional)</span>
+                            </label>
+                            <input
+                                name="description_en"
+                                type="text"
+                                placeholder="Leave blank to reuse the original"
+                                value={formData.description_en}
                                 onChange={handleInputChange}
                                 className="w-full bg-stone-900 border border-stone-700 rounded p-2 text-stone-200 focus:border-green-500 outline-none"
                             />
@@ -276,6 +305,19 @@ export default function ProjectManager({ initialProjects }: ProjectManagerProps)
                                 rows={6}
                                 placeholder="# Project Details\n\nExplain your project methodology..."
                                 value={formData.content}
+                                onChange={handleInputChange}
+                                className="w-full bg-stone-900 border border-stone-700 rounded p-2 text-stone-200 focus:border-green-500 outline-none font-mono text-sm"
+                            ></textarea>
+                        </div>
+                        <div>
+                            <label className="block text-xs uppercase tracking-wider text-stone-500 mb-1">
+                                Detailed Content <span className="text-green-600">EN</span> <span className="normal-case tracking-normal text-stone-600">(optional)</span>
+                            </label>
+                            <textarea
+                                name="content_en"
+                                rows={6}
+                                placeholder="Leave blank to reuse the Korean original."
+                                value={formData.content_en}
                                 onChange={handleInputChange}
                                 className="w-full bg-stone-900 border border-stone-700 rounded p-2 text-stone-200 focus:border-green-500 outline-none font-mono text-sm"
                             ></textarea>
