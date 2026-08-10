@@ -3,8 +3,20 @@
 import { PostListItem, Category } from '@/types/database.types';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useLanguage } from '@/i18n/LanguageContext';
+import { useContentLanguage, Language } from '@/i18n/ContentLanguage';
+import { pick, pickLang } from '@/i18n/localize';
 import { formatPostDate } from '@/utils/post';
+
+/**
+ * The estimate for the body actually on screen, so the list agrees with the number
+ * the post page derives from the same text. Falls back to the original's estimate
+ * when there is no translation — that is what `pick` will render too.
+ */
+function readingMinutes(post: PostListItem, language: Language): number {
+    return language === 'en' && post.readingMinutesEn !== null
+        ? post.readingMinutesEn
+        : post.readingMinutes;
+}
 
 interface BlogListProps {
     posts: PostListItem[];
@@ -14,7 +26,7 @@ interface BlogListProps {
 }
 
 export default function BlogList({ posts, categories, activeCategory }: BlogListProps) {
-    const { t } = useLanguage();
+    const { language } = useContentLanguage();
     // 한 번 이상 뷰포트에 진입한 글 ID 기억 → 재등장 시 즉시 표시 (Projects 패턴과 동일).
     // ref가 아니라 state인 이유: 아래 목록이 렌더 중에 이 값을 읽는다. ref를 렌더 중
     // 읽으면 동시성 렌더링에서 값이 어긋날 수 있어 React가 금지하는 패턴이다.
@@ -54,9 +66,9 @@ export default function BlogList({ posts, categories, activeCategory }: BlogList
         <section id="blog" className="py-24 bg-main relative min-h-screen">
             <div className="max-w-4xl mx-auto px-6">
                 <div className="relative mb-16 space-y-4 pt-16">
-                    <span className="text-green-400 font-bold tracking-widest text-xs uppercase">{t('blog.header')}</span>
+                    <span className="text-green-400 font-bold tracking-widest text-xs uppercase">Writing</span>
                     <h1 className="text-4xl md:text-5xl font-display font-bold text-stone-100">
-                        {t('blog.title')}
+                        Tech Blog
                     </h1>
                 </div>
 
@@ -71,7 +83,7 @@ export default function BlogList({ posts, categories, activeCategory }: BlogList
                                     : 'bg-transparent text-stone-400 border-stone-700 hover:border-green-500 hover:text-green-400'
                             }`}
                         >
-                            {t('blog.filterAll')}
+                            All
                         </Link>
                         {categories.map(category => (
                             <Link
@@ -83,14 +95,14 @@ export default function BlogList({ posts, categories, activeCategory }: BlogList
                                         : 'bg-transparent text-stone-400 border-stone-700 hover:border-green-500 hover:text-green-400'
                                 }`}
                             >
-                                {category.name}
+                                {pick(category, 'name', language)}
                             </Link>
                         ))}
                     </div>
                 )}
 
                 {posts.length === 0 ? (
-                    <p className="text-stone-500 italic py-20 text-center">{t('blog.empty')}</p>
+                    <p className="text-stone-500 italic py-20 text-center">No posts yet. Check back soon.</p>
                 ) : (
                     <div id="blog-list" className="flex flex-col">
                         {posts.map((post, index) => {
@@ -107,13 +119,13 @@ export default function BlogList({ posts, categories, activeCategory }: BlogList
                                         <div className="flex items-center gap-3 mb-3 text-[11px] font-mono text-stone-500 uppercase tracking-wider">
                                             <span>{formatPostDate(post.date)}</span>
                                             <span className="text-stone-700">·</span>
-                                            <span>{post.readingMinutes} {t('blog.min')}</span>
+                                            <span>{readingMinutes(post, language)} min read</span>
                                         </div>
-                                        <h2 className="text-xl md:text-2xl font-display font-bold text-stone-200 group-hover:text-green-400 transition-colors leading-snug mb-2">
-                                            {post.title}
+                                        <h2 lang={pickLang(post, 'title', language)} className="text-xl md:text-2xl font-display font-bold text-stone-200 group-hover:text-green-400 transition-colors leading-snug mb-2">
+                                            {pick(post, 'title', language)}
                                         </h2>
-                                        <p className="text-stone-400 text-sm leading-relaxed line-clamp-2 mb-3">
-                                            {post.description}
+                                        <p lang={pickLang(post, 'description', language)} className="text-stone-400 text-sm leading-relaxed line-clamp-2 mb-3">
+                                            {pick(post, 'description', language)}
                                         </p>
                                         {post.categories.length > 0 && (
                                             <div className="flex flex-wrap gap-1.5">
@@ -122,7 +134,7 @@ export default function BlogList({ posts, categories, activeCategory }: BlogList
                                                         key={category.id}
                                                         className="inline-block text-[10px] font-mono text-green-400 bg-green-900/40 border border-green-600/60 rounded px-2 py-0.5"
                                                     >
-                                                        {category.name}
+                                                        {pick(category, 'name', language)}
                                                     </span>
                                                 ))}
                                             </div>

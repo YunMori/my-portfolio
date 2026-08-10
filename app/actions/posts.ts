@@ -6,9 +6,12 @@ import { createPublicClient } from '@/utils/supabase/public'
 import { isAuthenticated } from '@/utils/auth'
 import { Post, PostListItem, PostSummary, PostCategory } from '@/types/database.types'
 import { postSlug, readingTime } from '@/utils/post'
+import { optionalText } from '@/utils/form'
 
 // Joined shape used by every post query, so `post.categories` is always available.
-const POST_SELECT = '*, post_categories(category:categories(id, name, slug, sort_order))'
+// `*` picks up the `_en` translation columns automatically; the category embed
+// lists them explicitly, so `name_en` has to be named here.
+const POST_SELECT = '*, post_categories(category:categories(id, name, name_en, slug, sort_order))'
 
 type PostRow = Record<string, unknown> & {
     post_categories?: ({ category: PostCategory | null } | null)[] | null
@@ -34,10 +37,19 @@ function normalizePost(row: PostRow): Post {
  * renders. `content` is 30KB across the current posts and grows with every new
  * one; the reading-time estimate it feeds is a single integer, so computing it
  * here keeps that payload on the server.
+ *
+ * `content_en` goes the same way — otherwise adding translations would double the
+ * list payload for a body the list never shows. Both estimates are sent instead,
+ * two integers rather than two markdown bodies, so the list agrees with what the
+ * post page computes from whichever translation the reader ends up on.
  */
 function toListItem(post: Post): PostListItem {
-    const { content, ...rest } = post
-    return { ...rest, readingMinutes: readingTime(content) }
+    const { content, content_en, ...rest } = post
+    return {
+        ...rest,
+        readingMinutes: readingTime(content),
+        readingMinutesEn: content_en ? readingTime(content_en) : null,
+    }
 }
 
 /**
@@ -95,7 +107,7 @@ export async function getPostSummaries(): Promise<PostSummary[]> {
     const supabase = createPublicClient()
     const { data, error } = await supabase
         .from('posts')
-        .select('slug, title, date, created_at')
+        .select('slug, title, title_en, date, created_at')
         .eq('published', true)
         .order('date', { ascending: false })
 
@@ -159,8 +171,15 @@ function parsePostForm(formData: FormData) {
     // column payload rather than inside it — inserting them would fail on an
     // unknown column. No checkboxes ticked means "uncategorized".
     const category_ids = (formData.getAll('category_id') as string[]).filter(Boolean)
+    // Optional English translations; null means "fall back to the Korean original".
+    const title_en = optionalText(formData, 'title_en')
+    const description_en = optionalText(formData, 'description_en')
+    const content_en = optionalText(formData, 'content_en')
     return {
-        fields: { title, slug, description, date, content, published },
+        fields: {
+            title, slug, description, date, content, published,
+            title_en, description_en, content_en,
+        },
         category_ids,
     }
 }

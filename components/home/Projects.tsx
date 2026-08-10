@@ -4,7 +4,8 @@ import { Project } from '@/types/database.types';
 import { useState, useEffect, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
 import rehypeSanitize from 'rehype-sanitize';
-import { useLanguage } from '@/i18n/LanguageContext';
+import { useContentLanguage } from '@/i18n/ContentLanguage';
+import { pick, pickLang } from '@/i18n/localize';
 import { parseGithubPath } from '@/utils/github';
 
 interface ProjectsProps {
@@ -12,7 +13,7 @@ interface ProjectsProps {
 }
 
 export default function Projects({ projects }: ProjectsProps) {
-    const { t } = useLanguage();
+    const { language } = useContentLanguage();
     const [selectedProject, setSelectedProject] = useState<Project | null>(null);
     const [readmeContent, setReadmeContent] = useState<string | null>(null);
     const [isLoadingReadme, setIsLoadingReadme] = useState(false);
@@ -65,11 +66,22 @@ export default function Projects({ projects }: ProjectsProps) {
         };
     }, [activeFilter]);
 
+    // Stored content wins over the GitHub README, and it follows the content
+    // language — `pick` falls back to the Korean original when there is no
+    // translation, so a project only in Korean behaves exactly as before.
+    const storedContent = selectedProject ? pick(selectedProject, 'content', language) : '';
+    // Only the stored column has a known language. When it is empty the modal shows
+    // a GitHub README instead, which is not ours to label — leaving `lang` off lets
+    // it inherit the page's English.
+    const bodyLang = selectedProject && storedContent
+        ? pickLang(selectedProject, 'content', language)
+        : undefined;
+
     useEffect(() => {
         if (selectedProject) {
-            if (selectedProject.content) {
+            if (storedContent) {
                 // Use stored content if available (Priority)
-                setReadmeContent(selectedProject.content);
+                setReadmeContent(storedContent);
                 setIsLoadingReadme(false);
             } else if (selectedProject.github_link) {
                 // Fallback: Fetch from GitHub if no content stored
@@ -106,15 +118,15 @@ export default function Projects({ projects }: ProjectsProps) {
             setReadmeContent(null);
             setIsLoadingReadme(false);
         }
-    }, [selectedProject]);
+    }, [selectedProject, storedContent]);
 
     return (
         <section id="projects" className="py-24 bg-main relative">
             <div className="max-w-7xl mx-auto px-6">
                 <div className="relative mb-20 space-y-4 text-center md:text-left">
-                    <span className="text-green-400 font-bold tracking-widest text-xs uppercase">{t('projects.header')}</span>
+                    <span className="text-green-400 font-bold tracking-widest text-xs uppercase">Selected Works</span>
                     <h2 className="text-4xl md:text-5xl font-display font-bold text-stone-100">
-                        {t('projects.title')}
+                        Recent Projects
                     </h2>
                 </div>
 
@@ -130,7 +142,7 @@ export default function Projects({ projects }: ProjectsProps) {
                                     : 'bg-transparent text-stone-400 border-stone-700 hover:border-green-500 hover:text-green-400'
                             }`}
                         >
-                            {tech === ALL_KEY ? t('projects.filterAll') : tech}
+                            {tech === ALL_KEY ? 'All' : tech}
                         </button>
                     ))}
                 </div>
@@ -162,20 +174,20 @@ export default function Projects({ projects }: ProjectsProps) {
 
                             <div className="p-8 flex flex-col flex-grow">
                                 <div className="flex justify-between items-start mb-4">
-                                    <h3 className="text-xl font-bold text-stone-200 group-hover:text-green-500 transition-colors flex-1 min-w-0 line-clamp-2">
-                                        {p.title}
+                                    <h3 lang={pickLang(p, 'title', language)} className="text-xl font-bold text-stone-200 group-hover:text-green-500 transition-colors flex-1 min-w-0 line-clamp-2">
+                                        {pick(p, 'title', language)}
                                     </h3>
                                     <span className="text-xs font-mono text-stone-400 shrink-0 ml-4">{p.date}</span>
                                 </div>
-                                <p className="text-stone-400 text-sm leading-relaxed mb-6 flex-grow">
-                                    {p.description}
+                                <p lang={pickLang(p, 'description', language)} className="text-stone-400 text-sm leading-relaxed mb-6 flex-grow">
+                                    {pick(p, 'description', language)}
                                 </p>
                                 <div className="flex items-center gap-2 mt-auto">
                                     <button className="text-xs font-bold text-stone-300 hover:text-white flex items-center gap-2 transition-all">
-                                        {t('projects.viewCase')} <i className="fa-solid fa-arrow-right text-green-500 group-hover:translate-x-1 transition-transform"></i>
+                                        View Case Study <i className="fa-solid fa-arrow-right text-green-500 group-hover:translate-x-1 transition-transform"></i>
                                     </button>
                                     {p.github_link && (
-                                        <a href={p.github_link} target="_blank" rel="noopener noreferrer" aria-label={`${p.title} GitHub 저장소 보기`} className="ml-auto text-stone-400 hover:text-white" onClick={(e) => e.stopPropagation()}>
+                                        <a href={p.github_link} target="_blank" rel="noopener noreferrer" aria-label={`View the ${p.title} GitHub repository`} className="ml-auto text-stone-400 hover:text-white" onClick={(e) => e.stopPropagation()}>
                                             <i className="fa-brands fa-github text-lg"></i>
                                         </a>
                                     )}
@@ -201,7 +213,7 @@ export default function Projects({ projects }: ProjectsProps) {
 
                         <div className="mb-8">
                             <span className="text-green-500 text-xs font-bold tracking-widest uppercase mb-2 block">{selectedProject.date}</span>
-                            <h2 id="modal-title" className="text-3xl md:text-4xl font-display font-bold text-white mb-6">{selectedProject.title}</h2>
+                            <h2 id="modal-title" lang={pickLang(selectedProject, 'title', language)} className="text-3xl md:text-4xl font-display font-bold text-white mb-6">{pick(selectedProject, 'title', language)}</h2>
                             <div className="flex flex-wrap gap-2 mb-8">
                                 {selectedProject.stack.map(tech => (
                                     <span key={tech} className="px-3 py-1 bg-stone-800 rounded-full text-xs text-stone-300 border border-stone-700">
@@ -211,12 +223,12 @@ export default function Projects({ projects }: ProjectsProps) {
                             </div>
                             {selectedProject.github_link && (
                                 <a href={selectedProject.github_link} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-sm font-bold text-stone-300 hover:text-white border border-stone-700 px-4 py-2 rounded-lg hover:border-stone-500 transition-colors mb-8">
-                                    <i className="fa-brands fa-github"></i> {t('projects.viewSource')}
+                                    <i className="fa-brands fa-github"></i> View Source
                                 </a>
                             )}
                         </div>
 
-                        <div className="prose prose-invert prose-stone max-w-none">
+                        <div lang={bodyLang} className="prose prose-invert prose-stone max-w-none">
                             {/* Loading State or README Content */}
                             {isLoadingReadme ? (
                                 <div className="space-y-4 animate-pulse">
@@ -227,7 +239,7 @@ export default function Projects({ projects }: ProjectsProps) {
                             ) : readmeContent ? (
                                 <ReactMarkdown rehypePlugins={[rehypeSanitize]}>{readmeContent}</ReactMarkdown>
                             ) : (
-                                <p className="text-stone-500 italic">{t('projects.noContent')}</p>
+                                <p className="text-stone-500 italic">No detailed content available for this project yet.</p>
                             )}
                         </div>
                     </div>

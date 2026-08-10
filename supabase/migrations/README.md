@@ -21,8 +21,19 @@ Supabase SQL Editor에 붙여넣어 실행하면 됩니다.
 | `20260809_01_analytics_rpc.sql` | 빠져 있던 `increment_view()` 함수 (없어서 조회수가 0/1에 고정돼 있었음) | ✅ |
 | `20260809_02_multi_category.sql` | `post_categories` 조인 테이블 — 글 하나에 카테고리 여러 개 | ⚠️ **4단계 미실행** |
 | `20260809_03_db_optimization.sql` | 인덱스 정리, RLS 재작성, `posts.date` → `date` 타입 | ✅ |
+| `20260809_04_i18n_content.sql` | `posts`/`projects`에 `*_en` 컬럼, `categories.name_en` — 콘텐츠 영어 번역용 | ✅ |
 
 ## 주의사항
+
+### `20260809_04_i18n_content.sql` — 2026-08-10 적용됨
+
+전부 nullable `ADD COLUMN IF NOT EXISTS` 라 백필도, RLS 변경도, 되돌릴 수 없는 단계도
+없었습니다. 기존 컬럼이 한국어 원본이고 `_en` 이 선택적 영어 번역입니다. 번역이 비어 있으면
+앱이 원본으로 폴백하므로(`i18n/localize.ts` 의 `pick()`), 적용 후에도 기존 글 6개 /
+프로젝트 5개는 그대로 한국어로 보입니다. 번역은 어드민의 "EN (optional)" 칸에 채워 넣습니다.
+
+⚠️ **코드보다 먼저 실행해야 합니다.** `getPostSummaries()` 가 `title_en` 을 select하므로,
+컬럼 없이 새 코드를 배포하면 쿼리가 실패해 블로그 글 페이지가 하나도 프리렌더되지 않습니다.
 
 ### `20260809_02_multi_category.sql` — 4단계가 아직 안 돌았습니다
 
