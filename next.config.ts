@@ -3,10 +3,20 @@ import type { NextConfig } from "next";
 const isDev = process.env.NODE_ENV === "development";
 
 // Next.js 인라인 스크립트(hydration) 때문에 script-src에 'unsafe-inline'이 필요하고,
-// 개발 모드(HMR)에서만 'unsafe-eval'을 추가로 허용한다
+// 개발 모드(HMR)에서만 'unsafe-eval'을 추가로 허용한다.
+//
+// 'wasm-unsafe-eval'은 이력서 빌더 때문에 필요하다. @react-pdf/pdfkit v6는 PDF 스트림
+// 압축에 emscripten으로 빌드한 zlib(wasm)을 쓰는데, WebAssembly.instantiate()는 CSP가
+// 명시적으로 허용하지 않으면 막힌다. 개발 모드에서는 'unsafe-eval'이 이걸 덮어줘서
+// 통과하지만 프로덕션 빌드에서는 미리보기와 PDF 내보내기가 둘 다 CompileError로 죽었다.
+//
+// 'unsafe-eval'을 켜지 않고 'wasm-unsafe-eval'만 쓴다 — 이 토큰은 WebAssembly 컴파일만
+// 허용하고 eval()/new Function()은 계속 막는다 (CSP Level 3). 이걸 모르는 구형 브라우저는
+// 토큰을 무시하므로 wasm이 여전히 차단되지만, 그 경우 빌더가 빈 화면 대신 에러 메시지를
+// 보여준다 (components/admin/resume/ResumePreview.tsx).
 const contentSecurityPolicy = [
   "default-src 'self'",
-  `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""}`,
+  `script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'${isDev ? " 'unsafe-eval'" : ""}`,
   "style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net",
   "font-src 'self' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net",
   "img-src 'self' data: blob: https://*.supabase.co",
