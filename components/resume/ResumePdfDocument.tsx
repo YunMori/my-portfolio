@@ -17,7 +17,11 @@ const styles = StyleSheet.create({
     },
     // 헤더
     header: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 6 },
-    name: { fontSize: 22, fontWeight: 700 },
+    // lineHeight를 반드시 명시한다. page의 lineHeight: 1.5는 9pt 기준으로 13.5pt라는
+    // 절대값으로 확정된 뒤 자식에게 상속되기 때문에(CSS처럼 비율로 상속되지 않는다),
+    // 지정하지 않으면 22pt 이름이 13.5pt 줄상자를 받아 아래 직무 텍스트와 겹친다.
+    // 다른 스타일은 전부 11pt 이하라 13.5pt 안에 들어가서 이 문제가 드러나지 않는다.
+    name: { fontSize: 22, fontWeight: 700, lineHeight: 1.2 },
     role: { fontSize: 10, color: '#57534e', marginTop: 2 },
     oneLiner: { fontSize: 9, color: '#44403c', marginTop: 6 },
     contactRow: { flexDirection: 'row', flexWrap: 'wrap', marginTop: 8 },
