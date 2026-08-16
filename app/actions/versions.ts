@@ -9,23 +9,46 @@
 import { createClient } from '@/utils/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { isAuthenticated } from '@/utils/auth'
-import { ResumeVersion } from '@/types/database.types'
+import { ResumeVersionListItem } from '@/types/database.types'
 import type { ResumeSelections, ResumeData } from '@/utils/resume/buildResumeData'
 
-export async function getVersions(): Promise<ResumeVersion[]> {
+// 목록용 컬럼. snapshot(이력서 한 부 전체가 담긴 jsonb)은 제외한다 — 목록은 메타만 쓰고,
+// 실제 스냅샷은 다운로드 버튼을 눌렀을 때 getVersionSnapshot()으로 그 행만 읽는다.
+const VERSION_LIST_SELECT = 'id, version_no, label, note, selections, created_at'
+
+export async function getVersions(): Promise<ResumeVersionListItem[]> {
     if (!(await isAuthenticated())) return []
 
     const supabase = await createClient()
     const { data, error } = await supabase
         .from('resume_versions')
-        .select('*')
+        .select(VERSION_LIST_SELECT)
         .order('created_at', { ascending: false })
+        .limit(50)
 
     if (error) {
         console.error('Error fetching resume versions:', error)
         return []
     }
-    return data as ResumeVersion[]
+    return data as unknown as ResumeVersionListItem[]
+}
+
+// 스냅샷 PDF를 뽑을 때만 호출된다. RLS(소유자 전용)가 접근을 막는다.
+export async function getVersionSnapshot(id: string): Promise<ResumeData | null> {
+    if (!(await isAuthenticated())) return null
+
+    const supabase = await createClient()
+    const { data, error } = await supabase
+        .from('resume_versions')
+        .select('snapshot')
+        .eq('id', id)
+        .maybeSingle()
+
+    if (error) {
+        console.error('Error fetching resume version snapshot:', error)
+        return null
+    }
+    return (data?.snapshot as ResumeData) ?? null
 }
 
 /**
@@ -64,7 +87,8 @@ export async function saveVersion(
             selections,
             snapshot,
         })
-        .select()
+        // 방금 보낸 snapshot을 되돌려받을 이유가 없다 (목록에 그대로 꽂히는 값이라 더욱).
+        .select(VERSION_LIST_SELECT)
         .single()
 
     if (error) {
@@ -73,7 +97,7 @@ export async function saveVersion(
     }
 
     revalidatePath('/admin/resume')
-    return { success: true, version: data as ResumeVersion }
+    return { success: true, version: data as unknown as ResumeVersionListItem }
 }
 
 // 라벨/메모는 사후 수정 가능. snapshot과 selections는 손대지 않는다 (불변).

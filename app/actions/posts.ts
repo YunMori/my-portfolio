@@ -4,7 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { createClient } from '@/utils/supabase/server'
 import { createPublicClient } from '@/utils/supabase/public'
 import { isAuthenticated } from '@/utils/auth'
-import { Post, PostListItem, PostSummary, PostCategory } from '@/types/database.types'
+import { Post, PostListItem, PostAdminListItem, PostSummary, PostCategory } from '@/types/database.types'
 import { postSlug, readingTime } from '@/utils/post'
 import { optionalText } from '@/utils/form'
 
@@ -12,6 +12,16 @@ import { optionalText } from '@/utils/form'
 // `*` picks up the `_en` translation columns automatically; the category embed
 // lists them explicitly, so `name_en` has to be named here.
 const POST_SELECT = '*, post_categories(category:categories(id, name, name_en, slug, sort_order))'
+
+// Same join, but with the markdown bodies named out. The admin list renders
+// title/slug/date/description and nothing else, so shipping `content` +
+// `content_en` for every post put the whole blog through the RSC payload *and*
+// again through client-component props. The editor pulls one post's body from
+// getPostForEdit() when you click Edit — the same reasoning as toListItem()
+// below, which the public list has always used.
+const POST_ADMIN_LIST_SELECT =
+    'id, title, title_en, slug, description, description_en, published, date, created_at,' +
+    ' post_categories(category:categories(id, name, name_en, slug, sort_order))'
 
 type PostRow = Record<string, unknown> & {
     post_categories?: ({ category: PostCategory | null } | null)[] | null
@@ -135,21 +145,39 @@ export async function getPostBySlug(slug: string) {
     return normalizePost(data as PostRow)
 }
 
-// Admin-only: includes unpublished drafts
-export async function getAllPostsAdmin() {
+// Admin-only: includes unpublished drafts. No markdown bodies — see POST_ADMIN_LIST_SELECT.
+export async function getAllPostsAdmin(): Promise<PostAdminListItem[]> {
     if (!(await isAuthenticated())) return []
 
     const supabase = await createClient()
     const { data, error } = await supabase
         .from('posts')
-        .select(POST_SELECT)
+        .select(POST_ADMIN_LIST_SELECT)
         .order('date', { ascending: false })
 
     if (error) {
         console.error('Error fetching posts (admin):', error)
         return []
     }
-    return (data as PostRow[]).map(normalizePost)
+    return (data as unknown as PostRow[]).map(normalizePost) as unknown as PostAdminListItem[]
+}
+
+// Admin-only: the full row for the edit form, fetched when a post is opened.
+export async function getPostForEdit(id: string): Promise<Post | null> {
+    if (!(await isAuthenticated())) return null
+
+    const supabase = await createClient()
+    const { data, error } = await supabase
+        .from('posts')
+        .select(POST_SELECT)
+        .eq('id', id)
+        .maybeSingle()
+
+    if (error) {
+        console.error('Error fetching post for edit:', error)
+        return null
+    }
+    return data ? normalizePost(data as PostRow) : null
 }
 
 // --- Mutations (Admin) ---

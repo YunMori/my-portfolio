@@ -1,14 +1,22 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
+import dynamic from 'next/dynamic'
+import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
-import { addPost, updatePost, deletePost } from '@/app/actions/posts'
-import { Post, Category } from '@/types/database.types'
+import { addPost, updatePost, deletePost, getPostForEdit } from '@/app/actions/posts'
+import { PostAdminListItem, Category } from '@/types/database.types'
 import { formatPostDate, postSlug } from '@/utils/post'
-import PostBody from '@/components/blog/PostBody'
+// PostBody는 react-markdown + rehype-sanitize + micromark 트리(~119KB)를 끌고 온다.
+// 쓰이는 곳은 아래 '미리보기' 탭 하나뿐이고 기본 탭은 'write'라, 대부분의 방문에서
+// 한 번도 쓰이지 않는 파서를 first load에 싣고 있었다. (ResumeBuilderShell과 같은 패턴)
+const PostBody = dynamic(() => import('@/components/blog/PostBody'), {
+    loading: () => <p className="text-sm text-stone-600">미리보기를 불러오는 중...</p>,
+})
 
 interface PostManagerProps {
-    initialPosts: Post[]
+    // 목록에는 마크다운 본문이 없다. 편집을 누르면 그 글 하나만 본문까지 가져온다.
+    initialPosts: PostAdminListItem[]
     categories: Category[]
 }
 
@@ -28,7 +36,10 @@ const EMPTY = {
 }
 
 export default function PostManager({ initialPosts, categories }: PostManagerProps) {
-    const [posts] = useState<Post[]>(initialPosts)
+    // 서버가 내려준 목록을 그대로 읽는다. useState로 고정해두면 router.refresh() 뒤에
+    // 새 props가 와도 초기화자가 다시 돌지 않아 목록이 갱신되지 않는다.
+    const posts = initialPosts
+    const router = useRouter()
     const [editingId, setEditingId] = useState<string | null>(null)
     const [formData, setFormData] = useState({ ...EMPTY })
     // Kept out of formData: it's a list, not a single input value, so it doesn't
@@ -38,11 +49,17 @@ export default function PostManager({ initialPosts, categories }: PostManagerPro
     // Which translation the single body editor below is pointed at. Both values live
     // in formData and both are submitted, so switching never discards the other one.
     const [contentLang, setContentLang] = useState<'ko' | 'en'>('ko')
+    // 편집을 열면 본문만 따로 받아온다 (목록 payload에서 마크다운을 뺐기 때문).
+    const [isLoadingBody, setIsLoadingBody] = useState(false)
+    const editRequestRef = useRef<string | null>(null)
 
     // Form population happens on the transition, not in an effect reacting to it.
     // An effect would render once with the stale form, then immediately re-render
     // with the right values — a cascading render for something the click already knows.
-    const startEdit = (post: Post) => {
+    //
+    // The list row has everything except the markdown bodies, so the metadata fills
+    // in immediately and only the two body fields wait on the round trip.
+    const startEdit = async (post: PostAdminListItem) => {
         setEditingId(post.id)
         setFormData({
             title: post.title,
@@ -51,11 +68,31 @@ export default function PostManager({ initialPosts, categories }: PostManagerPro
             description: post.description || '',
             description_en: post.description_en || '',
             date: post.date || '',
-            content: post.content || '',
-            content_en: post.content_en || '',
+            content: '',
+            content_en: '',
             published: post.published,
         })
         setCategoryIds(post.categories.map(c => c.id))
+
+        // 편집을 연달아 누르면 먼저 보낸 응답이 늦게 도착해 나중 글의 본문을 덮어쓸 수
+        // 있다. 마지막으로 요청한 id와 다르면 결과를 버린다.
+        editRequestRef.current = post.id
+        setIsLoadingBody(true)
+        try {
+            const full = await getPostForEdit(post.id)
+            if (editRequestRef.current !== post.id) return
+            if (!full) {
+                toast.error('본문을 불러오지 못했습니다')
+                return
+            }
+            setFormData(prev => ({
+                ...prev,
+                content: full.content || '',
+                content_en: full.content_en || '',
+            }))
+        } finally {
+            if (editRequestRef.current === post.id) setIsLoadingBody(false)
+        }
     }
 
     const cancelEdit = () => {
@@ -98,7 +135,10 @@ export default function PostManager({ initialPosts, categories }: PostManagerPro
                 toast.error(result.error || 'Operation failed')
             } else {
                 toast.success(editingId ? 'Post updated!' : 'Post added!')
-                window.location.reload()
+                // 전체 새로고침 대신 RSC 페이로드만 다시 받는다. 서버 액션이 이미
+                // revalidatePath를 호출하므로 목록은 최신 상태로 내려온다.
+                cancelEdit()
+                router.refresh()
             }
         } catch (err) {
             console.error(err)
@@ -113,7 +153,8 @@ export default function PostManager({ initialPosts, categories }: PostManagerPro
             const result = await deletePost(id)
             if (result.success) {
                 toast.success('Post deleted')
-                window.location.reload()
+                if (editingId === id) cancelEdit()
+                router.refresh()
             } else {
                 toast.error(result.error || 'Failed to delete')
             }
@@ -260,6 +301,11 @@ export default function PostManager({ initialPosts, categories }: PostManagerPro
                             <label htmlFor="post-content" className="block text-xs uppercase tracking-wider text-stone-500">
                                 Content (Markdown)
                                 {contentLang === 'en' && <span className="normal-case tracking-normal text-stone-600"> — optional</span>}
+                                {isLoadingBody && (
+                                    <span className="normal-case tracking-normal text-stone-600">
+                                        {' '}<i className="fa-solid fa-spinner fa-spin"></i> 불러오는 중
+                                    </span>
+                                )}
                             </label>
                             {/* Preview reuses PostBody, so what you see here is exactly what /blog/<slug> renders. */}
                             <div className="flex items-center gap-3 text-[11px]">
@@ -331,11 +377,18 @@ export default function PostManager({ initialPosts, categories }: PostManagerPro
                         Published (uncheck to save as draft)
                     </label>
 
+                    {/*
+                        본문이 아직 안 왔는데 저장하면 빈 content로 덮어쓰게 되므로 막는다.
+                        (목록에서 마크다운을 빼면서 생긴 제약)
+                    */}
                     <button
                         type="submit"
-                        className={`w-full font-bold py-3 rounded transition-colors mt-2 ${editingId ? 'bg-green-600 hover:bg-green-500 text-black' : 'bg-stone-700 hover:bg-stone-600 text-white'}`}
+                        disabled={isLoadingBody}
+                        className={`w-full font-bold py-3 rounded transition-colors mt-2 disabled:opacity-50 disabled:cursor-not-allowed ${editingId ? 'bg-green-600 hover:bg-green-500 text-black' : 'bg-stone-700 hover:bg-stone-600 text-white'}`}
                     >
-                        {editingId ? 'Update Post' : 'Add Post'}
+                        {isLoadingBody
+                            ? '본문을 불러오는 중...'
+                            : editingId ? 'Update Post' : 'Add Post'}
                     </button>
                 </form>
             </section>

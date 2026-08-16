@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { addProject, updateProject, deleteProject, fetchGithubRepo } from '@/app/actions/projects'
 import { Project } from '@/types/database.types'
@@ -64,7 +65,9 @@ const EMPTY_FORM = {
 }
 
 export default function ProjectManager({ initialProjects }: ProjectManagerProps) {
-    const [projects] = useState<Project[]>(initialProjects)
+    // 서버가 내려준 목록을 그대로 읽는다 (router.refresh() 후 갱신되도록).
+    const projects = initialProjects
+    const router = useRouter()
     const [editingId, setEditingId] = useState<string | null>(null)
     const [isFetching, setIsFetching] = useState(false)
 
@@ -73,32 +76,33 @@ export default function ProjectManager({ initialProjects }: ProjectManagerProps)
     // yet" and the action stores null so the site falls back. See i18n/localize.ts.
     const [formData, setFormData] = useState({ ...EMPTY_FORM })
 
-    // Update form when editingId changes
-    useEffect(() => {
-        if (editingId) {
-            const project = projects.find(p => p.id === editingId)
-            if (project) {
-                setFormData({
-                    title: project.title,
-                    title_en: project.title_en || '',
-                    description: project.description,
-                    description_en: project.description_en || '',
-                    date: project.date,
-                    stack: project.stack.join(', '),
-                    github_link: project.github_link || '',
-                    content: project.content || '',
-                    content_en: project.content_en || '',
-                    role: project.role || '',
-                    period_start: project.period_start || '',
-                    period_end: project.period_end || '',
-                    include_in_resume_default: project.include_in_resume_default === false ? '' : 'on'
-                })
-            }
-        } else {
-            // Reset form for new project
-            setFormData({ ...EMPTY_FORM })
-        }
-    }, [editingId, projects])
+    // Form population happens on the transition, not in an effect reacting to it.
+    // An effect would render once with the stale form, then immediately re-render
+    // with the right values — and it also re-ran on every `projects` identity change,
+    // which now happens on each router.refresh(). Same pattern as PostManager.
+    const startEdit = (project: Project) => {
+        setEditingId(project.id)
+        setFormData({
+            title: project.title,
+            title_en: project.title_en || '',
+            description: project.description,
+            description_en: project.description_en || '',
+            date: project.date,
+            stack: project.stack.join(', '),
+            github_link: project.github_link || '',
+            content: project.content || '',
+            content_en: project.content_en || '',
+            role: project.role || '',
+            period_start: project.period_start || '',
+            period_end: project.period_end || '',
+            include_in_resume_default: project.include_in_resume_default === false ? '' : 'on'
+        })
+    }
+
+    const cancelEdit = () => {
+        setEditingId(null)
+        setFormData({ ...EMPTY_FORM })
+    }
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value, type } = e.target
@@ -168,7 +172,8 @@ export default function ProjectManager({ initialProjects }: ProjectManagerProps)
                 toast.error(result.error || 'Operation failed')
             } else {
                 toast.success(editingId ? 'Project updated!' : 'Project added!')
-                window.location.reload()
+                cancelEdit()
+                router.refresh()
             }
         } catch (err) {
             console.error(err)
@@ -183,7 +188,8 @@ export default function ProjectManager({ initialProjects }: ProjectManagerProps)
             const result = await deleteProject(id)
             if (result.success) {
                 toast.success('Project deleted')
-                window.location.reload()
+                if (editingId === id) cancelEdit()
+                router.refresh()
             } else {
                 toast.error(result.error || 'Failed to delete')
             }
@@ -204,7 +210,7 @@ export default function ProjectManager({ initialProjects }: ProjectManagerProps)
                     </h2>
                     {editingId && (
                         <button
-                            onClick={() => setEditingId(null)}
+                            onClick={cancelEdit}
                             className="text-xs text-red-400 hover:text-red-300 underline"
                         >
                             Cancel Edit
@@ -409,7 +415,7 @@ export default function ProjectManager({ initialProjects }: ProjectManagerProps)
                             </div>
                             <div className="flex flex-col gap-2 ml-4">
                                 <button
-                                    onClick={() => setEditingId(project.id)}
+                                    onClick={() => startEdit(project)}
                                     className="text-xs px-3 py-1 bg-stone-800 hover:bg-stone-700 text-stone-300 rounded border border-stone-700"
                                 >
                                     Edit

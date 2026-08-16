@@ -1,6 +1,6 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import PostManager from '@/components/admin/PostManager';
-import { Post, Category } from '@/types/database.types';
+import { PostAdminListItem, Category } from '@/types/database.types';
 
 // PostBody pulls in react-markdown/rehype-sanitize (ESM); mock them the same way
 // Projects.test.tsx does so Jest can load the module tree.
@@ -14,11 +14,23 @@ jest.mock('rehype-sanitize', () => ({}));
 const addPost = jest.fn().mockResolvedValue({ success: true });
 const updatePost = jest.fn().mockResolvedValue({ success: true });
 const deletePost = jest.fn().mockResolvedValue({ success: true });
+// The admin list no longer carries markdown bodies; Edit fetches the one post's.
+const getPostForEdit = jest.fn().mockResolvedValue({
+    id: 'post-1',
+    content: '## Heading',
+    content_en: null,
+});
 
 jest.mock('@/app/actions/posts', () => ({
     addPost: (fd: FormData) => addPost(fd),
     updatePost: (fd: FormData) => updatePost(fd),
     deletePost: (id: string) => deletePost(id),
+    getPostForEdit: (id: string) => getPostForEdit(id),
+}));
+
+const refresh = jest.fn();
+jest.mock('next/navigation', () => ({
+    useRouter: () => ({ refresh, push: jest.fn(), replace: jest.fn() }),
 }));
 
 jest.mock('sonner', () => ({
@@ -30,13 +42,14 @@ const mockCategories: Category[] = [
     { id: 'cat-2', name: 'Backend', slug: 'backend', sort_order: 2 },
 ];
 
-const mockPosts: Post[] = [
+const mockPosts: PostAdminListItem[] = [
     {
         id: 'post-1',
         title: 'Existing Post',
+        title_en: null,
         slug: 'existing-post',
         description: 'desc',
-        content: '## Heading',
+        description_en: null,
         categories: [mockCategories[0], mockCategories[1]],
         published: true,
         date: '2026.07.01',
@@ -47,22 +60,8 @@ beforeEach(() => {
     jest.clearAllMocks();
 });
 
-// handleSubmit calls window.location.reload() on success. jsdom's Location is
-// read-only so it can't be stubbed; the call is a harmless no-op that logs a
-// "Not implemented: navigation" notice, which this silences.
-const consoleError = console.error;
-beforeAll(() => {
-    console.error = (...args: unknown[]) => {
-        if (String(args[0]).includes('Not implemented: navigation')) return;
-        consoleError(...args);
-    };
-});
-afterAll(() => {
-    console.error = consoleError;
-});
-
 describe('PostManager content preview', () => {
-    it('swaps the textarea for a rendered preview and back', () => {
+    it('swaps the textarea for a rendered preview and back', async () => {
         render(<PostManager initialPosts={mockPosts} categories={mockCategories} />);
 
         // Tailwind's `hidden` isn't loaded in jsdom, so assert the class rather
@@ -72,9 +71,12 @@ describe('PostManager content preview', () => {
         expect(textarea).not.toHaveClass('hidden');
 
         fireEvent.click(screen.getByRole('button', { name: 'Preview' }));
+        // PostBody is loaded with next/dynamic now, so the parser arrives a tick late.
         // The hidden textarea still carries the same text, so match the rendered
         // markdown node specifically.
-        expect(screen.getByText('# Hello', { selector: 'div' })).toBeInTheDocument();
+        await waitFor(() =>
+            expect(screen.getByText('# Hello', { selector: 'div' })).toBeInTheDocument()
+        );
         expect(textarea).toHaveClass('hidden');
 
         // Hidden, not unmounted — the same node and its value survive the round trip.
@@ -115,12 +117,25 @@ describe('PostManager categories', () => {
         expect(formData.getAll('category_id')).toEqual([]);
     });
 
-    it('pre-checks the post\'s categories when editing', () => {
+    it('pre-checks the post\'s categories when editing', async () => {
         render(<PostManager initialPosts={mockPosts} categories={mockCategories} />);
         fireEvent.click(screen.getByRole('button', { name: 'Edit' }));
 
         expect(screen.getByRole('checkbox', { name: 'Frontend' })).toBeChecked();
         expect(screen.getByRole('checkbox', { name: 'Backend' })).toBeChecked();
+        // The body arrives separately — settle it so the test doesn't leak an update.
+        await waitFor(() => expect(getPostForEdit).toHaveBeenCalledWith('post-1'));
+    });
+
+    it('loads the markdown body only when a post is opened for editing', async () => {
+        render(<PostManager initialPosts={mockPosts} categories={mockCategories} />);
+        expect(getPostForEdit).not.toHaveBeenCalled();
+
+        fireEvent.click(screen.getByRole('button', { name: 'Edit' }));
+
+        await waitFor(() =>
+            expect(screen.getByLabelText(/Content \(Markdown\)/)).toHaveValue('## Heading')
+        );
     });
 
     it('lists every category of a post in the existing-post row', () => {

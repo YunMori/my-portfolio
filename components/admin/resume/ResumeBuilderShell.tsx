@@ -4,7 +4,7 @@
 // (HomeClient의 Projects dynamic 패턴과 동일)
 import dynamic from 'next/dynamic'
 import type { ResumeBuilderData } from '@/app/actions/resume'
-import { ResumeVersion } from '@/types/database.types'
+import { ResumeVersionListItem } from '@/types/database.types'
 
 const ResumeBuilder = dynamic(() => import('./ResumeBuilder'), {
     ssr: false,
@@ -17,7 +17,7 @@ const ResumeBuilder = dynamic(() => import('./ResumeBuilder'), {
 
 export default function ResumeBuilderShell({ data, initialVersions }: {
     data: ResumeBuilderData
-    initialVersions: ResumeVersion[]
+    initialVersions: ResumeVersionListItem[]
 }) {
     return <ResumeBuilder data={data} initialVersions={initialVersions} />
 }

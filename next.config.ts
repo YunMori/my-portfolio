@@ -45,6 +45,14 @@ const nextConfig: NextConfig = {
         source: "/(.*)",
         headers: securityHeaders,
       },
+      {
+        // 이력서 빌더가 쓰는 한글 TTF는 합쳐서 4MB에 가깝고 내용이 바뀌지 않는다.
+        // 캐시가 없으면 빌더에 들어올 때마다 다시 받느라 첫 미리보기가 그만큼 늦어진다.
+        source: "/fonts/:path*",
+        headers: [
+          { key: "Cache-Control", value: "public, max-age=31536000, immutable" },
+        ],
+      },
     ];
   },
 };

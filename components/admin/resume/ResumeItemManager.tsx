@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import {
     DndContext, closestCenter, PointerSensor, useSensor, useSensors,
@@ -62,22 +63,36 @@ function subtitle(category: ResumeCategory, item: ResumeItem) {
 }
 
 export default function ResumeItemManager({ category, initialItems, projectOptions = [] }: ResumeItemManagerProps) {
+    const router = useRouter()
+
+    // 삭제/토글/정렬은 낙관적으로 로컬에서 먼저 반영하므로 목록은 state로 들고 있다.
+    // 다만 router.refresh()로 새 initialItems가 내려오면 그쪽이 진실이므로 렌더 중에
+    // 맞춰준다 (useState 초기화자는 마운트 때 한 번만 돌기 때문에 이 동기화가 없으면
+    // 저장 후 목록이 갱신되지 않는다).
     const [items, setItems] = useState<ResumeItem[]>(initialItems)
+    const [syncedItems, setSyncedItems] = useState(initialItems)
+    if (initialItems !== syncedItems) {
+        setSyncedItems(initialItems)
+        setItems(initialItems)
+    }
+
     const [editingId, setEditingId] = useState<string | null>(null)
     const [formData, setFormData] = useState<Record<string, string>>(() => emptyForm(category))
     const [isSaving, setIsSaving] = useState(false)
 
     const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }))
 
-    useEffect(() => {
-        if (editingId) {
-            const item = items.find(i => i.id === editingId)
-            if (item) setFormData(itemToForm(category, item))
-        } else {
-            setFormData(emptyForm(category))
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [editingId])
+    // 폼 채우기는 클릭 시점에 한다. 이펙트로 하면 stale한 값으로 한 번 렌더한 뒤
+    // 올바른 값으로 다시 렌더하게 되고, 의존성 배열도 억지로 눌러야 했다.
+    const startEdit = (item: ResumeItem) => {
+        setEditingId(item.id)
+        setFormData(itemToForm(category, item))
+    }
+
+    const cancelEdit = () => {
+        setEditingId(null)
+        setFormData(emptyForm(category))
+    }
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { name, value, type } = e.target
@@ -103,7 +118,8 @@ export default function ResumeItemManager({ category, initialItems, projectOptio
                 toast.error(result.error || '저장에 실패했습니다')
             } else {
                 toast.success(editingId ? '수정되었습니다' : '추가되었습니다')
-                window.location.reload()
+                cancelEdit()
+                router.refresh()
             }
         } catch (err) {
             console.error(err)
@@ -121,7 +137,7 @@ export default function ResumeItemManager({ category, initialItems, projectOptio
             if (result.success) {
                 toast.success('삭제되었습니다')
                 setItems(prev => prev.filter(i => i.id !== id))
-                if (editingId === id) setEditingId(null)
+                if (editingId === id) cancelEdit()
             } else {
                 toast.error(result.error || '삭제에 실패했습니다')
             }
@@ -204,7 +220,7 @@ export default function ResumeItemManager({ category, initialItems, projectOptio
                         {editingId ? `${category.labelKo} 수정` : `${category.labelKo} 추가`}
                     </h2>
                     {editingId && (
-                        <button onClick={() => setEditingId(null)} className="text-xs text-red-400 hover:text-red-300 underline">
+                        <button onClick={cancelEdit} className="text-xs text-red-400 hover:text-red-300 underline">
                             편집 취소
                         </button>
                     )}
@@ -279,7 +295,7 @@ export default function ResumeItemManager({ category, initialItems, projectOptio
                                     item={item}
                                     category={category}
                                     isEditing={editingId === item.id}
-                                    onEdit={() => setEditingId(item.id)}
+                                    onEdit={() => startEdit(item)}
                                     onDelete={() => handleDelete(item.id)}
                                     onToggle={handleToggle}
                                 />
