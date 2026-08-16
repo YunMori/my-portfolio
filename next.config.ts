@@ -12,6 +12,10 @@ const contentSecurityPolicy = [
   "img-src 'self' data: blob: https://*.supabase.co",
   "connect-src 'self' https://*.supabase.co wss://*.supabase.co",
   "object-src 'none'",
+  // 이력서 빌더의 <PDFViewer>는 생성한 PDF를 <iframe src="blob:...">로 띄운다.
+  // frame-src 지시자가 없으면 default-src 'self'로 폴백해 blob:이 막히고 미리보기가 통째로
+  // 빈 화면이 된다. 남이 우리를 임베드하는 것은 frame-ancestors 'none'이 계속 막는다.
+  "frame-src 'self' blob:",
   "base-uri 'self'",
   "form-action 'self'",
   "frame-ancestors 'none'",
