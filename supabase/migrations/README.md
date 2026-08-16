@@ -22,8 +22,31 @@ Supabase SQL Editor에 붙여넣어 실행하면 됩니다.
 | `20260809_02_multi_category.sql` | `post_categories` 조인 테이블 — 글 하나에 카테고리 여러 개 | ⚠️ **4단계 미실행** |
 | `20260809_03_db_optimization.sql` | 인덱스 정리, RLS 재작성, `posts.date` → `date` 타입 | ✅ |
 | `20260809_04_i18n_content.sql` | `posts`/`projects`에 `*_en` 컬럼, `categories.name_en` — 콘텐츠 영어 번역용 | ✅ |
+| `20260816_01_resume_platform.sql` | 이력서 아카이브 11개 테이블 + `profile`/`projects` 확장 | ✅ 소급 기록 (아래 참고) |
+| `20260816_02_resume_versions.sql` | `resume_versions` (스냅샷 이력) 생성, `resume_presets` 폐기 | ✅ 2026-08-16 적용 |
 
 ## 주의사항
+
+### `20260816_01_resume_platform.sql` 은 소급 기록입니다
+
+이 파일이 만드는 테이블(`educations`, `experiences`, `certifications`, `awards`,
+`cover_letters`, `personal_details`, `portfolio_items`, `education_courses`,
+`language_activities` 등)은 이력서 기능 작업 **이전에** 이미 SQL Editor에서 직접 실행되어
+원격에 존재했지만, 마이그레이션 폴더에는 기록되지 않은 상태였습니다.
+2026-08-16에 파일로 옮겨 담았습니다. 멱등이므로 새 환경에서는 순서대로 실행하면 됩니다.
+
+`20260809_03_db_optimization.sql` 이 이 테이블들의 RLS 정책을 먼저 작성해 둔 것도
+같은 이유입니다 — 코드에는 없지만 DB에는 있었기 때문입니다.
+
+### `20260816_02_resume_versions.sql` — `resume_presets` 를 삭제합니다
+
+이력서 "버전 관리"를 프리셋(선택 조합만 저장) 대신 스냅샷(저장 시점 내용 전체 동결)으로
+구현하면서 `resume_presets` 는 상위 호환인 `resume_versions` 로 대체됐습니다.
+적용 시점에 `resume_presets` 는 0행이었고 앱 코드 어디서도 참조하지 않았습니다.
+
+`resume_versions.snapshot` 에는 전화번호·생년월일·주소·병역 같은 민감 정보가 그대로
+들어갈 수 있으므로, RLS는 `personal_details` / `cover_letters` 와 같은 **소유자 전용**입니다.
+
 
 ### `20260809_04_i18n_content.sql` — 2026-08-10 적용됨
 

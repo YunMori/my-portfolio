@@ -54,6 +54,22 @@ export default async function AdminLayout({
                     >
                         <i className="fa-solid fa-tags w-6 text-center"></i> Manage Categories
                     </Link>
+
+                    <div className="pt-4 pb-2 px-4 text-[10px] uppercase font-bold text-stone-600 tracking-widest">Resume</div>
+
+                    <Link
+                        href="/admin/archive"
+                        className="block px-4 py-3 rounded-lg hover:bg-stone-800 text-stone-400 hover:text-stone-200 transition-colors font-medium text-sm"
+                    >
+                        <i className="fa-solid fa-box-archive w-6 text-center"></i> Resume Archive
+                    </Link>
+
+                    <Link
+                        href="/admin/resume"
+                        className="block px-4 py-3 rounded-lg hover:bg-stone-800 text-stone-400 hover:text-stone-200 transition-colors font-medium text-sm"
+                    >
+                        <i className="fa-solid fa-file-pdf w-6 text-center"></i> Resume Builder
+                    </Link>
                 </nav>
 
                 <div className="p-4 border-t border-stone-800 space-y-1">

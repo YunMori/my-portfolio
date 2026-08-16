@@ -1,0 +1,140 @@
+import {
+    buildResumeData, defaultSelections, sanitizeSelections,
+} from '@/utils/resume/buildResumeData'
+import type { ResumeBuilderData } from '@/app/actions/resume'
+import { Education, Experience, PersonalDetails, Profile } from '@/types/database.types'
+
+const meta = {
+    is_public: true,
+    include_in_resume_default: true,
+    display_order: 0,
+    tags: [],
+}
+
+const profile: Profile = {
+    id: 'profile-1',
+    name: '홍길동',
+    role: 'Backend Developer',
+    bio: '',
+    avatar_url: 'https://example.com/photo.jpg',
+    resume_url: null,
+    social_links: { github: 'https://github.com/hong' },
+    one_liner: '문제를 구조로 푸는 개발자',
+    email: 'hong@example.com',
+    blog_url: null,
+}
+
+const personalDetails: PersonalDetails = {
+    ...meta,
+    id: 'pd-1',
+    birth_date: '1999-01-01',
+    address: '서울시',
+    military_service: '육군 만기전역',
+    phone: '010-1234-5678',
+    include_in_resume_default: false, // 민감정보 기본 OFF
+}
+
+const educations: Education[] = [
+    { ...meta, id: 'edu-1', school: 'A대학교', major: 'CS', degree: '학사', status: '졸업', start_date: '2019.03', end_date: '2025.02' },
+    { ...meta, id: 'edu-2', school: 'B고등학교', major: null, degree: null, status: '졸업', start_date: null, end_date: null, include_in_resume_default: false },
+]
+
+const experiences: Experience[] = [
+    { ...meta, id: 'exp-1', company: '테스트회사', position: '개발자', start_date: '2024.01', end_date: null, summary: null, achievements: ['성과 1'] },
+]
+
+const baseData: ResumeBuilderData = {
+    profile,
+    personalDetails,
+    projects: [],
+    educations,
+    experiences,
+    languageActivities: [],
+    certifications: [],
+    educationCourses: [],
+    awards: [],
+    portfolioItems: [],
+    coverLetters: [],
+}
+
+describe('defaultSelections', () => {
+    it('include_in_resume_default=true 항목만 초기 선택된다', () => {
+        const selections = defaultSelections(baseData)
+        expect(selections.items.educations).toEqual(['edu-1']) // edu-2는 기본 제외
+        expect(selections.items.experiences).toEqual(['exp-1'])
+    })
+
+    it('민감 기본정보 필드(전화/생년월일/주소/병역)는 기본 OFF', () => {
+        const selections = defaultSelections(baseData)
+        expect(selections.basicFields.phone).toBe(false)
+        expect(selections.basicFields.birth_date).toBe(false)
+        expect(selections.basicFields.address).toBe(false)
+        expect(selections.basicFields.military_service).toBe(false)
+        // 비민감 필드는 값이 있으면 기본 ON
+        expect(selections.basicFields.email).toBe(true)
+        expect(selections.basicFields.github).toBe(true)
+        expect(selections.basicFields.photo).toBe(true)
+        expect(selections.basicFields.blog).toBe(false) // 값 없음
+    })
+})
+
+describe('buildResumeData', () => {
+    it('선택된 항목만 결과에 포함한다', () => {
+        const selections = defaultSelections(baseData)
+        const result = buildResumeData(baseData, selections)
+        expect(result.educations.map(e => e.id)).toEqual(['edu-1'])
+        expect(result.experiences).toHaveLength(1)
+        expect(result.name).toBe('홍길동')
+    })
+
+    it('토글 OFF된 민감 필드는 null이 된다', () => {
+        const selections = defaultSelections(baseData)
+        const result = buildResumeData(baseData, selections)
+        expect(result.contacts.phone).toBeNull()
+        expect(result.personal.birthDate).toBeNull()
+        expect(result.personal.address).toBeNull()
+        expect(result.personal.militaryService).toBeNull()
+        expect(result.contacts.email).toBe('hong@example.com')
+    })
+
+    it('민감 필드를 켜면 값이 노출된다', () => {
+        const selections = defaultSelections(baseData)
+        selections.basicFields.phone = true
+        const result = buildResumeData(baseData, selections)
+        expect(result.contacts.phone).toBe('010-1234-5678')
+    })
+
+    it('토글 해제 시 항목이 제외된다', () => {
+        const selections = defaultSelections(baseData)
+        selections.items.educations = []
+        const result = buildResumeData(baseData, selections)
+        expect(result.educations).toHaveLength(0)
+    })
+})
+
+describe('sanitizeSelections (프리셋 로드)', () => {
+    it('삭제된 항목 id는 조용히 걸러낸다', () => {
+        const stored = {
+            items: {
+                ...defaultSelections(baseData).items,
+                educations: ['edu-1', 'deleted-id'],
+            },
+            basicFields: defaultSelections(baseData).basicFields,
+        }
+        const result = sanitizeSelections(stored, baseData)
+        expect(result.items.educations).toEqual(['edu-1'])
+    })
+
+    it('null/미지정이면 기본 선택 상태를 반환한다', () => {
+        const result = sanitizeSelections(null, baseData)
+        expect(result).toEqual(defaultSelections(baseData))
+    })
+
+    it('저장된 basicFields 토글을 복원한다', () => {
+        const stored = {
+            basicFields: { ...defaultSelections(baseData).basicFields, phone: true },
+        }
+        const result = sanitizeSelections(stored, baseData)
+        expect(result.basicFields.phone).toBe(true)
+    })
+})

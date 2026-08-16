@@ -21,6 +21,13 @@ function parseProjectForm(formData: FormData) {
         title_en: optionalText(formData, 'title_en'),
         description_en: optionalText(formData, 'description_en'),
         content_en: optionalText(formData, 'content_en'),
+        // Resume-only fields. The public site never reads these; the resume builder
+        // uses `role`/`period_*` for the project section and `include_in_resume_default`
+        // to seed its initial toggle state. See utils/resume/buildResumeData.ts.
+        role: optionalText(formData, 'role'),
+        period_start: optionalText(formData, 'period_start'),
+        period_end: optionalText(formData, 'period_end'),
+        include_in_resume_default: formData.get('include_in_resume_default') === 'on',
     }
 }
 
