@@ -3,21 +3,19 @@
 // 이력서 빌더: 좌측 토글 패널 + 우측 실시간 PDF 미리보기 (미리보기 = 실제 PDF)
 // 이 컴포넌트는 ResumeBuilderShell에서 dynamic(ssr:false)로 로드된다 (react-pdf 번들 격리)
 import { useState, useEffect, useMemo } from 'react'
-import { PDFViewer, pdf } from '@react-pdf/renderer'
+import { pdf } from '@react-pdf/renderer'
 import { toast } from 'sonner'
 import ResumePdfDocument from '@/components/resume/ResumePdfDocument'
+import ResumePreview from './ResumePreview'
 import { registerResumeFonts } from '@/utils/resume/pdfFonts'
 import {
     buildResumeData, defaultSelections, sanitizeSelections,
     ResumeSelections, ResumeData, BasicFieldKey, ToggleCategoryKey,
 } from '@/utils/resume/buildResumeData'
 import { CATEGORY_MAP } from '@/utils/resume/config'
-import { saveVersion, deleteVersion } from '@/app/actions/versions'
+import { saveVersion, deleteVersion, getVersionSnapshot } from '@/app/actions/versions'
 import type { ResumeBuilderData } from '@/app/actions/resume'
-import { ResumeVersion } from '@/types/database.types'
-
-// 한글 폰트 등록 (클라이언트 모듈 로드 시 1회)
-registerResumeFonts()
+import { ResumeVersionListItem } from '@/types/database.types'
 
 const BASIC_FIELD_LABELS: { key: BasicFieldKey; label: string; sensitive?: boolean }[] = [
     { key: 'photo', label: '사진' },
@@ -91,14 +89,18 @@ function formatDateTime(iso: string) {
 
 export default function ResumeBuilder({ data, initialVersions }: {
     data: ResumeBuilderData
-    initialVersions: ResumeVersion[]
+    initialVersions: ResumeVersionListItem[]
 }) {
+    // 한글 폰트 등록 (내부 플래그로 1회만 실행). 모듈 스코프에 두면 청크가 평가되는 순간
+    // 4MB짜리 TTF 두 개를 받기 시작하므로 컴포넌트가 실제로 마운트될 때까지 미룬다.
+    registerResumeFonts()
+
     // 초기 토글 상태 = 각 항목의 include_in_resume_default
     const [selections, setSelections] = useState<ResumeSelections>(() => defaultSelections(data))
     const [isExporting, setIsExporting] = useState(false)
 
     // 버전 상태
-    const [versions, setVersions] = useState<ResumeVersion[]>(initialVersions)
+    const [versions, setVersions] = useState<ResumeVersionListItem[]>(initialVersions)
     const [versionLabel, setVersionLabel] = useState('')
     const [versionNote, setVersionNote] = useState('')
     const [isSavingVersion, setIsSavingVersion] = useState(false)
@@ -115,6 +117,20 @@ export default function ResumeBuilder({ data, initialVersions }: {
     const previewData = useMemo(
         () => buildResumeData(data, debouncedSelections),
         [data, debouncedSelections],
+    )
+
+    /*
+     * 미리보기에 넘길 element를 메모이즈한다.
+     *
+     * usePDF는 useEffect(..., [document])로 재생성을 트리거하므로, JSX를 인라인으로 넘기면
+     * 이 컴포넌트가 리렌더될 때마다 새 객체가 되어 PDF 전체가 다시 만들어진다. 위의 400ms
+     * 디바운스는 previewData만 안정시킬 뿐 element identity는 막지 못했다. 그래서 버전
+     * 라벨/메모 입력창에 한 글자 칠 때마다, isExporting/busyVersionId가 바뀔 때마다
+     * 레이아웃 + blob 생성 + 이전 blob revoke + iframe 리로드가 통째로 일어났다.
+     */
+    const previewDocument = useMemo(
+        () => <ResumePdfDocument data={previewData} />,
+        [previewData],
     )
 
     const nextVersionNo = useMemo(
@@ -195,10 +211,15 @@ export default function ResumeBuilder({ data, initialVersions }: {
     }
 
     // 스냅샷 그대로 PDF 생성 — 현재 아카이브 상태를 전혀 참조하지 않는다.
-    const handleDownloadSnapshot = async (version: ResumeVersion) => {
+    // 스냅샷은 목록에 싣지 않고 이 시점에 그 행만 가져온다 (app/actions/versions.ts 참고).
+    const handleDownloadSnapshot = async (version: ResumeVersionListItem) => {
         setBusyVersionId(version.id)
         try {
-            const snapshot = version.snapshot as ResumeData
+            const snapshot = await getVersionSnapshot(version.id)
+            if (!snapshot) {
+                toast.error('스냅샷을 불러오지 못했습니다')
+                return
+            }
             const name = snapshot?.name || '이력서'
             await downloadPdf(snapshot, `${name}_이력서_v${version.version_no}_${dateStamp(version.created_at)}.pdf`)
             toast.success(`v${version.version_no} PDF가 다운로드되었습니다`)
@@ -211,12 +232,12 @@ export default function ResumeBuilder({ data, initialVersions }: {
     }
 
     // 저장된 선택 조합을 최신 아카이브 위에 복원 (삭제된 항목 id는 조용히 걸러진다)
-    const handleRestoreSelections = (version: ResumeVersion) => {
+    const handleRestoreSelections = (version: ResumeVersionListItem) => {
         setSelections(sanitizeSelections(version.selections as Partial<ResumeSelections>, data))
         toast.success(`v${version.version_no} 구성을 불러왔습니다 (현재 데이터 기준)`)
     }
 
-    const handleDeleteVersion = async (version: ResumeVersion) => {
+    const handleDeleteVersion = async (version: ResumeVersionListItem) => {
         if (!confirm(`v${version.version_no}${version.label ? ` "${version.label}"` : ''} 버전을 삭제하시겠습니까?`)) return
 
         setBusyVersionId(version.id)
@@ -411,13 +432,7 @@ export default function ResumeBuilder({ data, initialVersions }: {
                 {/* 우측: 실시간 PDF 미리보기 (미리보기 = 실제 PDF, 드리프트 없음) */}
                 <div className="lg:col-span-3 lg:sticky lg:top-6">
                     <div className="rounded-xl overflow-hidden border border-stone-800 bg-stone-950">
-                        <PDFViewer
-                            key="resume-preview"
-                            style={{ width: '100%', height: 'calc(100vh - 180px)', border: 'none' }}
-                            showToolbar
-                        >
-                            <ResumePdfDocument data={previewData} />
-                        </PDFViewer>
+                        <ResumePreview document={previewDocument} />
                     </div>
                 </div>
             </div>
