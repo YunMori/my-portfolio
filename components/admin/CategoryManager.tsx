@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { addCategory, updateCategory, deleteCategory } from '@/app/actions/categories'
 import { Category } from '@/types/database.types'
@@ -22,7 +23,9 @@ const EMPTY = {
 }
 
 export default function CategoryManager({ initialCategories, postCounts }: CategoryManagerProps) {
-    const [categories] = useState<Category[]>(initialCategories)
+    // 서버가 내려준 목록을 그대로 읽는다 (router.refresh() 후 갱신되도록).
+    const categories = initialCategories
+    const router = useRouter()
     const [editingId, setEditingId] = useState<string | null>(null)
     const [formData, setFormData] = useState({ ...EMPTY })
 
@@ -66,7 +69,8 @@ export default function CategoryManager({ initialCategories, postCounts }: Categ
                 toast.error(result.error || 'Operation failed')
             } else {
                 toast.success(editingId ? 'Category updated!' : 'Category added!')
-                window.location.reload()
+                cancelEdit()
+                router.refresh()
             }
         } catch (err) {
             console.error(err)
@@ -85,7 +89,8 @@ export default function CategoryManager({ initialCategories, postCounts }: Categ
             const result = await deleteCategory(id)
             if (result.success) {
                 toast.success('Category deleted')
-                window.location.reload()
+                if (editingId === id) cancelEdit()
+                router.refresh()
             } else {
                 toast.error(result.error || 'Failed to delete')
             }

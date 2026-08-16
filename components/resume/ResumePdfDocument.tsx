@@ -70,9 +70,11 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 export default function ResumePdfDocument({ data }: { data: ResumeData }) {
     const { contacts, personal } = data
     const hasPersonal = !!(personal.birthDate || personal.address || personal.militaryService)
+    // 라벨은 전부 텍스트로 둔다. NanumGothic에는 U+2709(✉) 글리프가 없어서 이메일 앞에
+    // .notdef 네모가 찍혔다 (U+260E ☎는 있지만 둘만 다른 모양이 되므로 함께 맞춘다).
     const contactItems = [
-        contacts.email && `✉ ${contacts.email}`,
-        contacts.phone && `☎ ${contacts.phone}`,
+        contacts.email && `Email ${contacts.email}`,
+        contacts.phone && `Tel ${contacts.phone}`,
         contacts.github && `GitHub ${contacts.github}`,
         contacts.blog && `Blog ${contacts.blog}`,
     ].filter(Boolean) as string[]
