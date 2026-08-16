@@ -97,6 +97,11 @@ export type PostListItem = Omit<Post, 'content' | 'content_en'> & {
     readingMinutesEn: number | null;
 };
 
+// A post as the admin list renders it. Same idea as PostListItem, but without the
+// reading-time estimates the admin table never shows. The editor fetches the full
+// row (bodies included) with getPostForEdit() when you click Edit.
+export type PostAdminListItem = Omit<Post, 'content' | 'content_en'>;
+
 // Just enough of a post to list or link to it, without dragging the markdown
 // body along. Returned by getPostSummaries().
 export type PostSummary = Pick<Post, 'slug' | 'title' | 'title_en' | 'date' | 'created_at'>;
@@ -222,6 +227,16 @@ export type ResumeVersion = {
     snapshot: unknown;
     created_at: string;
 }
+
+/**
+ * 버전 목록 행 — snapshot 없이.
+ *
+ * snapshot은 이력서 한 부 전체가 들어 있는 jsonb라 목록에 실으면 버전 수에 비례해
+ * /admin/resume 진입 전송량이 늘어난다. 목록 UI는 메타 필드만 쓰고, snapshot은
+ * "스냅샷 PDF" 버튼을 눌렀을 때 getVersionSnapshot()으로 그 행만 가져온다.
+ * selections는 "이 설정으로 편집"이 즉시 써야 해서 남긴다 (id 배열이라 가볍다).
+ */
+export type ResumeVersionListItem = Omit<ResumeVersion, 'snapshot'>
 
 export type Database = {
     public: {
