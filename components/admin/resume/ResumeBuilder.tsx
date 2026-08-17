@@ -71,7 +71,7 @@ function buildSections(data: ResumeBuilderData): BuilderSection[] {
         fromCategory('certifications', data.certifications as unknown as Record<string, unknown>[]),
         fromCategory('education_courses', data.educationCourses as unknown as Record<string, unknown>[]),
         fromCategory('awards', data.awards as unknown as Record<string, unknown>[]),
-        fromCategory('portfolio_items', data.portfolioItems as unknown as Record<string, unknown>[]),
+        fromCategory('project_contributions', data.contributions as unknown as Record<string, unknown>[]),
         fromCategory('cover_letters', data.coverLetters as unknown as Record<string, unknown>[]),
     ]
 }

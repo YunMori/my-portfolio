@@ -3,7 +3,7 @@
 
 import {
     Profile, PersonalDetails, Project, Education, Experience, LanguageActivity,
-    Certification, EducationCourse, Award, PortfolioItem, CoverLetter,
+    Certification, EducationCourse, Award, ProjectContribution, CoverLetter,
 } from '@/types/database.types'
 import type { ResumeBuilderData } from '@/app/actions/resume'
 
@@ -15,7 +15,7 @@ export type BasicFieldKey =
 // 항목 토글이 있는 카테고리 키 (프로젝트 포함)
 export const TOGGLE_CATEGORIES = [
     'projects', 'educations', 'experiences', 'language_activities',
-    'certifications', 'education_courses', 'awards', 'portfolio_items', 'cover_letters',
+    'certifications', 'education_courses', 'awards', 'project_contributions', 'cover_letters',
 ] as const
 export type ToggleCategoryKey = typeof TOGGLE_CATEGORIES[number]
 
@@ -52,7 +52,7 @@ export type ResumeData = {
     languageActivities: LanguageActivity[]
     educationCourses: EducationCourse[]
     awards: Award[]
-    portfolioItems: PortfolioItem[]
+    contributions: ProjectContribution[]
     coverLetters: CoverLetter[]
 }
 
@@ -75,7 +75,7 @@ export function defaultSelections(data: ResumeBuilderData): ResumeSelections {
             certifications: pick(data.certifications),
             education_courses: pick(data.educationCourses),
             awards: pick(data.awards),
-            portfolio_items: pick(data.portfolioItems),
+            project_contributions: pick(data.contributions),
             cover_letters: pick(data.coverLetters),
         },
         basicFields: {
@@ -102,6 +102,19 @@ export function buildResumeData(data: ResumeBuilderData, selections: ResumeSelec
     const details = data.personalDetails
     const on = selections.basicFields
 
+    const projects = filterSelected(data.projects, selections.items.projects)
+
+    /*
+     * 기여는 자기 프로젝트가 선택됐을 때만 살아남는다.
+     *
+     * PDF에서 기여는 프로젝트 아래에 중첩 렌더되므로, 프로젝트를 끈 채로 기여만 남으면
+     * 붙을 곳이 없다. 개별 토글(첫 번째 filterSelected)과 부모 프로젝트 선택(두 번째 필터)
+     * 둘 다 통과해야 한다.
+     */
+    const selectedProjectIds = new Set(projects.map(p => p.id))
+    const contributions = filterSelected(data.contributions, selections.items.project_contributions)
+        .filter(c => selectedProjectIds.has(c.project_id))
+
     return {
         name: profile?.name ?? '',
         role: profile?.role ?? '',
@@ -120,12 +133,12 @@ export function buildResumeData(data: ResumeBuilderData, selections: ResumeSelec
         },
         educations: filterSelected(data.educations, selections.items.educations),
         experiences: filterSelected(data.experiences, selections.items.experiences),
-        projects: filterSelected(data.projects, selections.items.projects),
+        projects,
         certifications: filterSelected(data.certifications, selections.items.certifications),
         languageActivities: filterSelected(data.languageActivities, selections.items.language_activities),
         educationCourses: filterSelected(data.educationCourses, selections.items.education_courses),
         awards: filterSelected(data.awards, selections.items.awards),
-        portfolioItems: filterSelected(data.portfolioItems, selections.items.portfolio_items),
+        contributions,
         coverLetters: filterSelected(data.coverLetters, selections.items.cover_letters),
     }
 }
@@ -148,7 +161,7 @@ export function sanitizeSelections(
         certifications: new Set(data.certifications.map(i => i.id)),
         education_courses: new Set(data.educationCourses.map(i => i.id)),
         awards: new Set(data.awards.map(i => i.id)),
-        portfolio_items: new Set(data.portfolioItems.map(i => i.id)),
+        project_contributions: new Set(data.contributions.map(i => i.id)),
         cover_letters: new Set(data.coverLetters.map(i => i.id)),
     }
 

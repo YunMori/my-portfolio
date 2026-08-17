@@ -9,7 +9,7 @@ import { isAuthenticated } from '@/utils/auth'
 import { getCategory, FieldDef } from '@/utils/resume/config'
 import {
     Profile, PersonalDetails, Education, Experience, LanguageActivity,
-    Certification, EducationCourse, Award, PortfolioItem, CoverLetter, Project,
+    Certification, EducationCourse, Award, ProjectContribution, CoverLetter, Project,
 } from '@/types/database.types'
 
 /**
@@ -58,6 +58,8 @@ function parseItemForm(fields: FieldDef[], formData: FormData) {
 function revalidateResumePaths(categoryKey: string) {
     revalidatePath(`/admin/archive/${categoryKey}`)
     revalidatePath('/admin/resume')
+    // 기여는 공개 상세 페이지에도 그려지므로 그쪽도 무효화한다 (다른 카테고리는 어드민 전용).
+    if (categoryKey === 'project_contributions') revalidatePath('/projects/[slug]', 'page')
 }
 
 // --- 제네릭 CRUD ---
@@ -286,7 +288,7 @@ export type ResumeBuilderData = {
     certifications: Certification[];
     educationCourses: EducationCourse[];
     awards: Award[];
-    portfolioItems: PortfolioItem[];
+    contributions: ProjectContribution[];
     coverLetters: CoverLetter[];
 }
 
@@ -311,7 +313,7 @@ export async function getResumeBuilderData(): Promise<ResumeBuilderData | null> 
     const [
         { data: profile }, { data: personalDetails },
         projects, educations, experiences, languageActivities,
-        certifications, educationCourses, awards, portfolioItems, coverLetters,
+        certifications, educationCourses, awards, contributions, coverLetters,
     ] = await Promise.all([
         supabase.from('profile').select('*').limit(1).maybeSingle(),
         supabase.from('personal_details').select('*').limit(1).maybeSingle(),
@@ -322,7 +324,7 @@ export async function getResumeBuilderData(): Promise<ResumeBuilderData | null> 
         fetchAll<Certification>('certifications'),
         fetchAll<EducationCourse>('education_courses'),
         fetchAll<Award>('awards'),
-        fetchAll<PortfolioItem>('portfolio_items'),
+        fetchAll<ProjectContribution>('project_contributions'),
         fetchAll<CoverLetter>('cover_letters'),
     ])
 
@@ -330,7 +332,7 @@ export async function getResumeBuilderData(): Promise<ResumeBuilderData | null> 
         profile: profile as Profile | null,
         personalDetails: personalDetails as PersonalDetails | null,
         projects, educations, experiences, languageActivities,
-        certifications, educationCourses, awards, portfolioItems, coverLetters,
+        certifications, educationCourses, awards, contributions, coverLetters,
     }
 }
 

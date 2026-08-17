@@ -52,7 +52,7 @@ const baseData: ResumeBuilderData = {
     certifications: [],
     educationCourses: [],
     awards: [],
-    portfolioItems: [],
+    contributions: [],
     coverLetters: [],
 }
 

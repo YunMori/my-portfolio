@@ -40,7 +40,7 @@ describe('resume category registry', () => {
     it('요구된 8개 카테고리가 모두 등록되어 있다', () => {
         const expected = [
             'educations', 'experiences', 'language_activities', 'certifications',
-            'education_courses', 'awards', 'portfolio_items', 'cover_letters',
+            'education_courses', 'awards', 'project_contributions', 'cover_letters',
         ]
         expected.forEach(key => expect(CATEGORY_MAP[key]).toBeDefined())
         expect(RESUME_CATEGORIES).toHaveLength(expected.length)

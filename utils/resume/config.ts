@@ -28,7 +28,7 @@ export type CategoryKey =
     | 'certifications'
     | 'education_courses'
     | 'awards'
-    | 'portfolio_items'
+    | 'project_contributions'
     | 'cover_letters';
 
 export type ResumeCategory = {
@@ -153,29 +153,38 @@ export const RESUME_CATEGORIES: ResumeCategory[] = [
             { name: 'description', label: '설명', type: 'textarea' },
         ],
     },
+    /*
+     * 프로젝트 기여 — 여기 입력한 내용이 세 곳에서 쓰인다:
+     *   1) 공개 상세 페이지 /projects/[slug] (is_public 인 행만)
+     *   2) 이력서 PDF 프로젝트 섹션 (선택된 프로젝트 아래에 중첩)
+     *   3) 이력서 빌더 토글 목록
+     * problem → actions → outcome 순서가 그대로 읽히는 순서다.
+     */
     {
-        key: 'portfolio_items',
-        table: 'portfolio_items',
-        labelKo: '포트폴리오 상세',
-        labelEn: 'Portfolio Items',
-        icon: 'fa-images',
+        key: 'project_contributions',
+        table: 'project_contributions',
+        labelKo: '프로젝트 기여',
+        labelEn: 'Contributions',
+        icon: 'fa-screwdriver-wrench',
         titleField: 'title',
-        subtitleFields: ['item_type'],
+        subtitleFields: ['area', 'metric'],
         fields: [
             { name: 'project_id', label: '연결 프로젝트', type: 'project', required: true },
+            { name: 'title', label: '무엇을 했는가', type: 'text', required: true, placeholder: 'PDF 미리보기 렌더 파이프라인 구축' },
             {
-                name: 'item_type', label: '유형', type: 'select', options: [
-                    { value: 'image', label: '디자인 이미지' },
-                    { value: 'code', label: '코드 스니펫' },
-                    { value: 'video', label: '데모 영상' },
+                name: 'area', label: '구분', type: 'select', options: [
+                    { value: 'feature', label: '기능 개발' },
+                    { value: 'performance', label: '성능 개선' },
+                    { value: 'infra', label: '인프라·배포' },
+                    { value: 'data', label: '데이터·모델' },
+                    { value: 'process', label: '협업·프로세스' },
+                    { value: 'etc', label: '기타' },
                 ]
             },
-            { name: 'title', label: '제목', type: 'text' },
-            { name: 'description', label: '설명', type: 'textarea' },
-            { name: 'image_url', label: '이미지 URL', type: 'text' },
-            { name: 'code_snippet', label: '코드 스니펫', type: 'textarea' },
-            { name: 'code_language', label: '코드 언어', type: 'text', placeholder: 'typescript' },
-            { name: 'video_url', label: '영상 링크', type: 'text' },
+            { name: 'metric', label: '대표 지표', type: 'text', placeholder: '첫 렌더 3.2s → 0.4s' },
+            { name: 'problem', label: '문제 상황', type: 'textarea', placeholder: '무엇이 문제였는지 한두 문장으로' },
+            { name: 'actions', label: '한 일 (한 줄에 하나)', type: 'bullets', placeholder: 'CSP에 wasm-unsafe-eval 추가\n렌더 큐 디바운스 적용' },
+            { name: 'outcome', label: '결과 (한 줄에 하나)', type: 'bullets', placeholder: '미리보기 실패율 100% → 0%' },
         ],
     },
     {

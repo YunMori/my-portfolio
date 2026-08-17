@@ -1,8 +1,8 @@
-import { getProjects } from '@/app/actions/projects'
+import { getProjectsAdmin } from '@/app/actions/projects'
 import ProjectManager from '@/components/admin/ProjectManager'
 
 export default async function ProjectsPage() {
-    const projects = await getProjects()
+    const projects = await getProjectsAdmin()
 
     return (
         <div>

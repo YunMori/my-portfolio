@@ -48,6 +48,7 @@ function extractStackFromReadme(readmeContent: string): string {
 
 const EMPTY_FORM = {
     title: '',
+    slug: '',
     title_en: '',
     description: '',
     description_en: '',
@@ -84,6 +85,7 @@ export default function ProjectManager({ initialProjects }: ProjectManagerProps)
         setEditingId(project.id)
         setFormData({
             title: project.title,
+            slug: project.slug ?? '',
             title_en: project.title_en || '',
             description: project.description,
             description_en: project.description_en || '',
@@ -254,6 +256,20 @@ export default function ProjectManager({ initialProjects }: ProjectManagerProps)
                                 onChange={handleInputChange}
                                 className="w-full bg-stone-900 border border-stone-700 rounded p-2 text-stone-200 focus:border-green-500 outline-none"
                             />
+                        </div>
+                        <div>
+                            <label className="block text-xs uppercase tracking-wider text-stone-500 mb-1">
+                                Slug <span className="normal-case tracking-normal text-stone-600">(비우면 제목에서 생성)</span>
+                            </label>
+                            <input
+                                name="slug"
+                                type="text"
+                                placeholder="my-portfolio"
+                                value={formData.slug}
+                                onChange={handleInputChange}
+                                className="w-full bg-stone-900 border border-stone-700 rounded p-2 text-stone-200 focus:border-green-500 outline-none font-mono text-sm"
+                            />
+                            <p className="text-[10px] text-stone-600 mt-1">공개 주소: /projects/{formData.slug || '…'}</p>
                         </div>
                         <div>
                             <label className="block text-xs uppercase tracking-wider text-stone-500 mb-1">

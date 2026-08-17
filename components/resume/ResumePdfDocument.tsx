@@ -50,6 +50,10 @@ const styles = StyleSheet.create({
     bulletDot: { width: 10, fontSize: 8.5, color: '#78716c' },
     bulletText: { flex: 1, fontSize: 8.5, color: '#44403c' },
     stack: { fontSize: 8, color: '#78716c', marginTop: 2 },
+    // 프로젝트 아래 중첩되는 기여 — 왼쪽 선으로 소속을 표시한다
+    contribution: { marginTop: 5, paddingLeft: 7, borderLeftWidth: 1, borderLeftColor: '#d6d3d1' },
+    contributionTitle: { fontSize: 9, fontWeight: 700 },
+    metric: { fontSize: 8, color: '#3a6347', marginLeft: 6 },
     link: { fontSize: 8, color: '#1d4ed8', marginTop: 1 },
     // 인적사항 표
     personalRow: { flexDirection: 'row', marginBottom: 3 },
@@ -76,6 +80,14 @@ export default function ResumePdfDocument({ data }: { data: ResumeData }) {
     const hasPersonal = !!(personal.birthDate || personal.address || personal.militaryService)
     // 라벨은 전부 텍스트로 둔다. NanumGothic에는 U+2709(✉) 글리프가 없어서 이메일 앞에
     // .notdef 네모가 찍혔다 (U+260E ☎는 있지만 둘만 다른 모양이 되므로 함께 맞춘다).
+    // 기여를 프로젝트별로 묶는다. 순서는 buildResumeData가 넘겨준 display_order 그대로.
+    const byProject = new Map<string, typeof data.contributions>()
+    for (const c of data.contributions) {
+        const list = byProject.get(c.project_id)
+        if (list) list.push(c)
+        else byProject.set(c.project_id, [c])
+    }
+
     const contactItems = [
         contacts.email && `Email ${contacts.email}`,
         contacts.phone && `Tel ${contacts.phone}`,
@@ -171,28 +183,55 @@ export default function ResumePdfDocument({ data }: { data: ResumeData }) {
                     </Section>
                 )}
 
-                {/* 프로젝트 */}
+                {/* 프로젝트 — 각 프로젝트 아래에 그 프로젝트에서 한 일을 중첩한다 */}
                 {data.projects.length > 0 && (
                     <Section title="프로젝트">
-                        {data.projects.map(project => (
-                            <View key={project.id} style={styles.row} wrap={false}>
-                                <Text style={styles.dateCol}>
-                                    {periodText(project.period_start, project.period_end) || project.date}
-                                </Text>
-                                <View style={styles.bodyCol}>
-                                    <View style={styles.itemTitleRow}>
-                                        <Text style={styles.itemTitle}>{project.title}</Text>
-                                        {project.role ? <Text style={styles.itemSub}>{project.role}</Text> : null}
+                        {data.projects.map(project => {
+                            // buildResumeData가 이미 선택된 프로젝트의 기여만 남겨두었다.
+                            const contributions = byProject.get(project.id) ?? []
+                            return (
+                                <View key={project.id} style={styles.row} wrap={false}>
+                                    <Text style={styles.dateCol}>
+                                        {periodText(project.period_start, project.period_end) || project.date}
+                                    </Text>
+                                    <View style={styles.bodyCol}>
+                                        <View style={styles.itemTitleRow}>
+                                            <Text style={styles.itemTitle}>{project.title}</Text>
+                                            {project.role ? <Text style={styles.itemSub}>{project.role}</Text> : null}
+                                        </View>
+                                        {project.description ? <Text style={styles.itemDesc}>{project.description}</Text> : null}
+                                        {project.stack?.length > 0 && (
+                                            <Text style={styles.stack}>기술 스택: {project.stack.join(', ')}</Text>
+                                        )}
+
+                                        {contributions.map(c => (
+                                            <View key={c.id} style={styles.contribution}>
+                                                <View style={styles.itemTitleRow}>
+                                                    <Text style={styles.contributionTitle}>{c.title}</Text>
+                                                    {c.metric ? <Text style={styles.metric}>{c.metric}</Text> : null}
+                                                </View>
+                                                {c.problem ? <Text style={styles.itemDesc}>{c.problem}</Text> : null}
+                                                {(c.actions ?? []).map((line, i) => (
+                                                    <View key={`a${i}`} style={styles.bullet}>
+                                                        <Text style={styles.bulletDot}>·</Text>
+                                                        <Text style={styles.bulletText}>{line}</Text>
+                                                    </View>
+                                                ))}
+                                                {(c.outcome ?? []).map((line, i) => (
+                                                    <View key={`o${i}`} style={styles.bullet}>
+                                                        <Text style={styles.bulletDot}>→</Text>
+                                                        <Text style={styles.bulletText}>{line}</Text>
+                                                    </View>
+                                                ))}
+                                            </View>
+                                        ))}
+
+                                        {project.github_link ? <Text style={styles.link}>{project.github_link}</Text> : null}
+                                        {project.link ? <Text style={styles.link}>{project.link}</Text> : null}
                                     </View>
-                                    {project.description ? <Text style={styles.itemDesc}>{project.description}</Text> : null}
-                                    {project.stack?.length > 0 && (
-                                        <Text style={styles.stack}>기술 스택: {project.stack.join(', ')}</Text>
-                                    )}
-                                    {project.github_link ? <Text style={styles.link}>{project.github_link}</Text> : null}
-                                    {project.link ? <Text style={styles.link}>{project.link}</Text> : null}
                                 </View>
-                            </View>
-                        ))}
+                            )
+                        })}
                     </Section>
                 )}
 
@@ -267,26 +306,7 @@ export default function ResumePdfDocument({ data }: { data: ResumeData }) {
                     </Section>
                 )}
 
-                {/* 포트폴리오 상세 (링크/산출물 목록) */}
-                {data.portfolioItems.length > 0 && (
-                    <Section title="포트폴리오">
-                        {data.portfolioItems.map(item => {
-                            const url = item.video_url || item.image_url
-                            return (
-                                <View key={item.id} style={styles.row} wrap={false}>
-                                    <Text style={styles.dateCol}>
-                                        {item.item_type === 'image' ? '이미지' : item.item_type === 'code' ? '코드' : item.item_type === 'video' ? '영상' : ''}
-                                    </Text>
-                                    <View style={styles.bodyCol}>
-                                        <Text style={styles.itemTitle}>{item.title ?? '(제목 없음)'}</Text>
-                                        {item.description ? <Text style={styles.itemDesc}>{item.description}</Text> : null}
-                                        {url ? <Text style={styles.link}>{url}</Text> : null}
-                                    </View>
-                                </View>
-                            )
-                        })}
-                    </Section>
-                )}
+                {/* 기여는 위 '프로젝트' 섹션 안에 중첩된다 — 별도 섹션이 없다 */}
 
                 {/* 자기소개서 */}
                 {data.coverLetters.length > 0 && (

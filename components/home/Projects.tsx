@@ -1,26 +1,29 @@
 'use client'
 
-import { Project } from '@/types/database.types';
-import { useState, useEffect, useRef } from 'react';
-import ReactMarkdown from 'react-markdown';
-import rehypeSanitize from 'rehype-sanitize';
+import Link from 'next/link';
+import { useState, useEffect } from 'react';
 import { useContentLanguage } from '@/i18n/ContentLanguage';
 import { pick, pickLang } from '@/i18n/localize';
-import { parseGithubPath } from '@/utils/github';
+import type { ProjectCard } from '@/app/actions/projects';
 
 interface ProjectsProps {
-    projects: Project[];
+    projects: ProjectCard[];
 }
 
+/*
+ * 카드 그리드. 상세는 /projects/[slug]가 맡는다.
+ *
+ * 예전에는 카드를 누르면 모달이 열리고 그 안에서 stored content를 보여주거나, 없으면
+ * 브라우저가 직접 GitHub API를 호출해 README를 받아왔다. 상세가 실제 페이지가 되면서
+ * 모달·README fetch·마크다운 파서가 전부 여기서 빠졌고, 덕분에 프로젝트 본문이 홈
+ * payload에 실려 나가지 않는다 (app/actions/projects.ts의 PROJECT_CARD_SELECT 참고).
+ */
 export default function Projects({ projects }: ProjectsProps) {
     const { language } = useContentLanguage();
-    const [selectedProject, setSelectedProject] = useState<Project | null>(null);
-    const [readmeContent, setReadmeContent] = useState<string | null>(null);
-    const [isLoadingReadme, setIsLoadingReadme] = useState(false);
     const [activeFilter, setActiveFilter] = useState<string>('__all__');
-    // 한 번 이상 뷰포트에 진입한 프로젝트 ID 기억 → 재등장 시 즉시 표시
-    const visibleIds = useRef(new Set<string>());
-    const [, forceUpdate] = useState(0);
+    // 한 번 이상 뷰포트에 진입한 프로젝트 ID 기억 → 재등장 시 즉시 표시.
+    // ref가 아니라 state인 이유: 아래 목록이 렌더 중에 이 값을 읽는다 (BlogList와 동일).
+    const [visibleIds, setVisibleIds] = useState<ReadonlySet<string>>(() => new Set());
 
     const ALL_KEY = '__all__';
     const allTechs = [ALL_KEY, ...Array.from(new Set(projects.flatMap(p => p.stack))).sort()];
@@ -28,31 +31,24 @@ export default function Projects({ projects }: ProjectsProps) {
         ? projects
         : projects.filter(p => p.stack.includes(activeFilter));
 
-    // ESC 키로 모달 닫기
-    useEffect(() => {
-        const handleEsc = (e: KeyboardEvent) => {
-            if (e.key === 'Escape') setSelectedProject(null);
-        };
-        if (selectedProject) document.addEventListener('keydown', handleEsc);
-        return () => document.removeEventListener('keydown', handleEsc);
-    }, [selectedProject]);
-
-    // 필터 변경 시 새 카드에 Observer 등록
-    // 핵심: JS classList 조작 대신 visibleIds Set + forceUpdate로 React가 직접 opacity 제어
+    // 필터 변경 시 새 카드에 Observer 등록.
+    // JS classList 조작 대신 visibleIds Set으로 React가 직접 opacity를 제어한다
     // → 필터 전환 후 재등장하는 카드도 transitionDelay 없이 즉시 표시됨
     useEffect(() => {
         const observer = new IntersectionObserver((entries) => {
-            let changed = false;
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    const id = (entry.target as HTMLElement).dataset.projectId;
-                    if (id && !visibleIds.current.has(id)) {
-                        visibleIds.current.add(id);
-                        changed = true;
-                    }
-                }
+            const seen = entries
+                .filter(entry => entry.isIntersecting)
+                .map(entry => (entry.target as HTMLElement).dataset.projectId)
+                .filter((id): id is string => !!id);
+
+            if (seen.length === 0) return;
+
+            setVisibleIds(prev => {
+                const next = new Set(prev);
+                seen.forEach(id => next.add(id));
+                // 이미 전부 표시된 상태면 같은 참조를 돌려줘 불필요한 리렌더를 막는다.
+                return next.size === prev.size ? prev : next;
             });
-            if (changed) forceUpdate(n => n + 1);
         }, { threshold: 0.1 });
 
         const timeoutId = setTimeout(() => {
@@ -65,60 +61,6 @@ export default function Projects({ projects }: ProjectsProps) {
             clearTimeout(timeoutId);
         };
     }, [activeFilter]);
-
-    // Stored content wins over the GitHub README, and it follows the content
-    // language — `pick` falls back to the Korean original when there is no
-    // translation, so a project only in Korean behaves exactly as before.
-    const storedContent = selectedProject ? pick(selectedProject, 'content', language) : '';
-    // Only the stored column has a known language. When it is empty the modal shows
-    // a GitHub README instead, which is not ours to label — leaving `lang` off lets
-    // it inherit the page's English.
-    const bodyLang = selectedProject && storedContent
-        ? pickLang(selectedProject, 'content', language)
-        : undefined;
-
-    useEffect(() => {
-        if (selectedProject) {
-            if (storedContent) {
-                // Use stored content if available (Priority)
-                setReadmeContent(storedContent);
-                setIsLoadingReadme(false);
-            } else if (selectedProject.github_link) {
-                // Fallback: Fetch from GitHub if no content stored
-                const fetchReadme = async () => {
-                    setIsLoadingReadme(true);
-                    setReadmeContent(null);
-                    try {
-                        const parsed = parseGithubPath(selectedProject.github_link!);
-
-                        if (parsed) {
-                            const { owner, repo } = parsed;
-                            const res = await fetch(`https://api.github.com/repos/${owner}/${repo}/readme`, {
-                                headers: { 'Accept': 'application/vnd.github.v3+json' }
-                            });
-
-                            if (res.ok) {
-                                const data = await res.json();
-                                const content = atob(data.content);
-                                setReadmeContent(content);
-                            }
-                        }
-                    } catch (error) {
-                        console.error('Error fetching README:', error);
-                    } finally {
-                        setIsLoadingReadme(false);
-                    }
-                };
-                fetchReadme();
-            } else {
-                setReadmeContent(null);
-                setIsLoadingReadme(false);
-            }
-        } else {
-            setReadmeContent(null);
-            setIsLoadingReadme(false);
-        }
-    }, [selectedProject, storedContent]);
 
     return (
         <section id="projects" className="py-24 bg-main relative">
@@ -149,14 +91,14 @@ export default function Projects({ projects }: ProjectsProps) {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                     {filteredProjects.map((p, index) => {
-                        const isVisible = visibleIds.current.has(p.id);
+                        const isVisible = visibleIds.has(p.id);
                         return (
-                        <div
+                        <Link
                             key={p.id}
+                            href={`/projects/${encodeURIComponent(p.slug)}`}
                             data-project-id={p.id}
-                            className={`card-glow group rounded-2xl overflow-visible bg-surface border border-highlight hover:border-green-500 transition-all duration-500 hover:-translate-y-2 hover:shadow-[0_0_30px_rgba(74,124,89,0.15)] cursor-pointer flex flex-col h-full ${isVisible ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-10 scale-[0.95]'}`}
+                            className={`card-glow group rounded-2xl overflow-visible bg-surface border border-highlight hover:border-green-500 transition-all duration-500 hover:-translate-y-2 hover:shadow-[0_0_30px_rgba(74,124,89,0.15)] flex flex-col h-full ${isVisible ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-10 scale-[0.95]'}`}
                             style={{ transitionDelay: isVisible ? '0ms' : `${index * 150}ms` }}
-                            onClick={() => setSelectedProject(p)}
                         >
                             <div className="h-52 bg-[#151412] relative flex items-center justify-center border-b border-stone-800 shrink-0">
                                 {/* Image Placeholder or Actual Image */}
@@ -183,68 +125,18 @@ export default function Projects({ projects }: ProjectsProps) {
                                     {pick(p, 'description', language)}
                                 </p>
                                 <div className="flex items-center gap-2 mt-auto">
-                                    <button className="text-xs font-bold text-stone-300 hover:text-white flex items-center gap-2 transition-all">
+                                    {/* 카드 전체가 <Link>라 여기는 표시용 span이다 (링크 안에 링크를 넣지 않는다) */}
+                                    <span className="text-xs font-bold text-stone-300 group-hover:text-white flex items-center gap-2 transition-all">
                                         View Case Study <i className="fa-solid fa-arrow-right text-green-500 group-hover:translate-x-1 transition-transform"></i>
-                                    </button>
-                                    {p.github_link && (
-                                        <a href={p.github_link} target="_blank" rel="noopener noreferrer" aria-label={`View the ${p.title} GitHub repository`} className="ml-auto text-stone-400 hover:text-white" onClick={(e) => e.stopPropagation()}>
-                                            <i className="fa-brands fa-github text-lg"></i>
-                                        </a>
-                                    )}
+                                    </span>
                                 </div>
                             </div>
-                        </div>
+                        </Link>
                         );
                     })}
                 </div>
             </div>
 
-            {/* Project Detail Modal */}
-            {selectedProject && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="modal-title">
-                    <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => setSelectedProject(null)}></div>
-                    <div className="relative bg-[#1a1917] w-full max-w-3xl max-h-[90vh] overflow-y-auto rounded-3xl border border-stone-800 shadow-2xl p-8 md:p-12 animate-in fade-in zoom-in duration-300">
-                        <button
-                            onClick={() => setSelectedProject(null)}
-                            className="absolute top-6 right-6 w-10 h-10 rounded-full bg-stone-800 text-stone-400 hover:bg-stone-700 hover:text-white flex items-center justify-center transition-colors z-50"
-                        >
-                            <i className="fa-solid fa-xmark"></i>
-                        </button>
-
-                        <div className="mb-8">
-                            <span className="text-green-500 text-xs font-bold tracking-widest uppercase mb-2 block">{selectedProject.date}</span>
-                            <h2 id="modal-title" lang={pickLang(selectedProject, 'title', language)} className="text-3xl md:text-4xl font-display font-bold text-white mb-6">{pick(selectedProject, 'title', language)}</h2>
-                            <div className="flex flex-wrap gap-2 mb-8">
-                                {selectedProject.stack.map(tech => (
-                                    <span key={tech} className="px-3 py-1 bg-stone-800 rounded-full text-xs text-stone-300 border border-stone-700">
-                                        {tech}
-                                    </span>
-                                ))}
-                            </div>
-                            {selectedProject.github_link && (
-                                <a href={selectedProject.github_link} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-sm font-bold text-stone-300 hover:text-white border border-stone-700 px-4 py-2 rounded-lg hover:border-stone-500 transition-colors mb-8">
-                                    <i className="fa-brands fa-github"></i> View Source
-                                </a>
-                            )}
-                        </div>
-
-                        <div lang={bodyLang} className="prose prose-invert prose-stone max-w-none">
-                            {/* Loading State or README Content */}
-                            {isLoadingReadme ? (
-                                <div className="space-y-4 animate-pulse">
-                                    <div className="h-4 bg-stone-800 rounded w-3/4"></div>
-                                    <div className="h-4 bg-stone-800 rounded w-1/2"></div>
-                                    <div className="h-4 bg-stone-800 rounded w-5/6"></div>
-                                </div>
-                            ) : readmeContent ? (
-                                <ReactMarkdown rehypePlugins={[rehypeSanitize]}>{readmeContent}</ReactMarkdown>
-                            ) : (
-                                <p className="text-stone-500 italic">No detailed content available for this project yet.</p>
-                            )}
-                        </div>
-                    </div>
-                </div>
-            )}
         </section>
     );
 }

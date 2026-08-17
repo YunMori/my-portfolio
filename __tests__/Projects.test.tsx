@@ -1,12 +1,12 @@
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import Projects from '@/components/home/Projects';
 import { ContentLanguageProvider } from '@/i18n/ContentLanguage';
-import { Project } from '@/types/database.types';
+import type { ProjectCard } from '@/app/actions/projects';
 
 // The real provider rather than a mock: jsdom's navigator.language is en-US and
 // localStorage is empty, so it settles on 'en' — the same path a first-time
 // visitor takes. Tests that need Korean write the preference first.
-function renderProjects(projects: Project[]) {
+function renderProjects(projects: ProjectCard[]) {
     return render(
         <ContentLanguageProvider>
             <Projects projects={projects} />
@@ -14,16 +14,10 @@ function renderProjects(projects: Project[]) {
     );
 }
 
-jest.mock('react-markdown', () => {
-    const MockMarkdown = ({ children }: { children: string }) => <div>{children}</div>;
-    MockMarkdown.displayName = 'MockMarkdown';
-    return MockMarkdown;
-});
-jest.mock('rehype-sanitize', () => ({}));
-
-const mockProjects: Project[] = [
+const mockProjects: ProjectCard[] = [
     {
         id: 'proj-1',
+        slug: 'my-project',
         title: 'My Project',
         title_en: null,
         description: 'A cool project',
@@ -34,17 +28,16 @@ const mockProjects: Project[] = [
 ];
 
 // Korean original with an English translation on every text column.
-const translatedProject: Project[] = [
+const translatedProject: ProjectCard[] = [
     {
         id: 'proj-2',
+        slug: 'translated-project',
         title: '내 프로젝트',
         title_en: 'Translated Project',
         description: '멋진 프로젝트',
         description_en: 'A translated description',
         stack: ['React'],
         date: '2026.02',
-        content: '# 한국어 본문',
-        content_en: '# English body',
     },
 ];
 
@@ -68,18 +61,17 @@ describe('Projects', () => {
         expect(tsElements.length).toBeGreaterThan(0);
     });
 
-    it('opens modal on card click', () => {
+    // The detail used to be an in-page modal that dumped the GitHub README.
+    // It is a real route now, so the card is a link and carries no body content.
+    it('links the whole card to the project detail route', () => {
         renderProjects(mockProjects);
-        fireEvent.click(screen.getByText('My Project'));
-        expect(screen.getByRole('dialog')).toBeInTheDocument();
+        const link = screen.getByRole('link', { name: /My Project/ });
+        expect(link).toHaveAttribute('href', '/projects/my-project');
     });
 
-    it('closes modal on ESC key', () => {
-        renderProjects(mockProjects);
-        fireEvent.click(screen.getByText('My Project'));
-        expect(screen.getByRole('dialog')).toBeInTheDocument();
-        fireEvent.keyDown(document, { key: 'Escape' });
-        expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    it('percent-encodes the slug in the href', () => {
+        renderProjects([{ ...mockProjects[0], slug: 'a b' }]);
+        expect(screen.getByRole('link', { name: /My Project/ })).toHaveAttribute('href', '/projects/a%20b');
     });
 
     it('renders the English translation when there is one', () => {
@@ -95,13 +87,12 @@ describe('Projects', () => {
         expect(screen.getByText('A cool project')).toBeInTheDocument();
     });
 
-    it('switches the modal body to the chosen language', async () => {
+    it('follows the chosen content language on the card', async () => {
         localStorage.setItem('portfolio-lang', 'ko');
         renderProjects(translatedProject);
 
-        fireEvent.click(await screen.findByText('내 프로젝트'));
-        expect(await screen.findByText('# 한국어 본문')).toBeInTheDocument();
-        expect(screen.queryByText('# English body')).not.toBeInTheDocument();
+        expect(await screen.findByText('내 프로젝트')).toBeInTheDocument();
+        expect(screen.queryByText('Translated Project')).not.toBeInTheDocument();
     });
 
     it('keeps the surrounding chrome in English', () => {

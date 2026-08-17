@@ -28,6 +28,9 @@ export type Profile = {
 // See supabase/migrations/20260809_04_i18n_content.sql.
 export type Project = {
     id: string;
+    // 공개 상세 페이지 /projects/[slug] 의 URL. posts.slug와 같은 규칙(ASCII 전용)이고
+    // 언어가 바뀌어도 URL은 그대로여야 하므로 번역 컬럼을 두지 않는다.
+    slug: string;
     title: string;
     title_en: string | null;
     description: string;
@@ -52,6 +55,9 @@ export type Project = {
     tags?: string[] | null;
     updated_at?: string;
 }
+
+// 이전/다음 링크·generateStaticParams·sitemap 이 쓰는 최소 형태. 본문을 끌고 오지 않는다.
+export type ProjectSummary = Pick<Project, 'slug' | 'title' | 'title_en' | 'date' | 'created_at'>;
 
 export type Category = {
     id: string;
@@ -184,17 +190,26 @@ export type Award = ResumeMeta & {
     description: string | null;
 }
 
-// 프로젝트 1:N 상세 자료
-export type PortfolioItem = ResumeMeta & {
+/**
+ * 프로젝트에서 내가 한 일 (프로젝트에 1:N).
+ *
+ * 한 행이 기여 하나다. problem → actions → outcome 순서로 읽히도록 컬럼을 고정해서,
+ * 공개 상세 페이지(/projects/[slug])와 이력서 PDF가 같은 데이터를 각자의 방식으로 렌더한다.
+ * `area`의 허용 값은 utils/resume/config.ts의 select 옵션이 정의한다.
+ * See supabase/migrations/20260817_01_project_contributions.sql.
+ */
+export type ProjectContribution = ResumeMeta & {
     project_id: string;
-    item_type: 'image' | 'code' | 'video' | null;
-    title: string | null;
-    description: string | null;
-    image_url: string | null;
-    code_snippet: string | null;
-    code_language: string | null;
-    video_url: string | null;
+    title: string;
+    area: string | null;
+    problem: string | null;
+    actions: string[] | null;
+    outcome: string[] | null;
+    metric: string | null;
 }
+
+// 공개 상세 페이지가 소비하는 형태: 프로젝트 + 그 프로젝트의 공개 기여 목록.
+export type ProjectDetail = Project & { contributions: ProjectContribution[] };
 
 // 자기소개서 (민감정보 — RLS가 소유자 전용)
 export type CoverLetter = ResumeMeta & {
@@ -318,10 +333,10 @@ export type Database = {
                 Insert: Partial<Omit<Award, 'id' | 'created_at' | 'updated_at'>> & { name: string };
                 Update: Partial<Omit<Award, 'id' | 'created_at' | 'updated_at'>>;
             };
-            portfolio_items: {
-                Row: PortfolioItem;
-                Insert: Partial<Omit<PortfolioItem, 'id' | 'created_at' | 'updated_at'>> & { project_id: string };
-                Update: Partial<Omit<PortfolioItem, 'id' | 'created_at' | 'updated_at'>>;
+            project_contributions: {
+                Row: ProjectContribution;
+                Insert: Partial<Omit<ProjectContribution, 'id' | 'created_at' | 'updated_at'>> & { project_id: string; title: string };
+                Update: Partial<Omit<ProjectContribution, 'id' | 'created_at' | 'updated_at'>>;
             };
             cover_letters: {
                 Row: CoverLetter;

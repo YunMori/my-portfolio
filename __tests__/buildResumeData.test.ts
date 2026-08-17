@@ -2,7 +2,7 @@ import {
     buildResumeData, defaultSelections, sanitizeSelections,
 } from '@/utils/resume/buildResumeData'
 import type { ResumeBuilderData } from '@/app/actions/resume'
-import { Education, Experience, PersonalDetails, Profile } from '@/types/database.types'
+import { Education, Experience, PersonalDetails, Profile, Project, ProjectContribution } from '@/types/database.types'
 
 const meta = {
     is_public: true,
@@ -53,7 +53,7 @@ const baseData: ResumeBuilderData = {
     certifications: [],
     educationCourses: [],
     awards: [],
-    portfolioItems: [],
+    contributions: [],
     coverLetters: [],
 }
 
@@ -136,5 +136,46 @@ describe('sanitizeSelections (프리셋 로드)', () => {
         }
         const result = sanitizeSelections(stored, baseData)
         expect(result.basicFields.phone).toBe(true)
+    })
+})
+
+describe('프로젝트 기여 (project_contributions)', () => {
+    const projects: Project[] = [
+        { ...meta, id: 'proj-1', slug: 'alpha', title: 'Alpha', title_en: null, description: '', description_en: null, stack: [], date: '2026.01' },
+        { ...meta, id: 'proj-2', slug: 'beta', title: 'Beta', title_en: null, description: '', description_en: null, stack: [], date: '2026.02' },
+    ]
+
+    const contributions: ProjectContribution[] = [
+        { ...meta, id: 'c-1', project_id: 'proj-1', title: '기여 1', area: 'feature', problem: null, actions: ['한 일'], outcome: [], metric: null },
+        { ...meta, id: 'c-2', project_id: 'proj-2', title: '기여 2', area: 'performance', problem: null, actions: [], outcome: ['결과'], metric: '3.2s → 0.4s' },
+    ]
+
+    const data: ResumeBuilderData = { ...baseData, projects, contributions }
+
+    it('선택된 프로젝트의 기여만 남는다', () => {
+        const selections = defaultSelections(data)
+        selections.items.projects = ['proj-1'] // proj-2를 끈다
+        const result = buildResumeData(data, selections)
+
+        expect(result.projects.map(p => p.id)).toEqual(['proj-1'])
+        // c-2는 개별 토글은 켜져 있지만 부모 프로젝트가 빠졌으므로 함께 사라진다
+        expect(result.contributions.map(c => c.id)).toEqual(['c-1'])
+    })
+
+    it('기여를 개별로 끄면 그것만 빠진다', () => {
+        const selections = defaultSelections(data)
+        selections.items.project_contributions = ['c-2']
+        const result = buildResumeData(data, selections)
+
+        expect(result.projects).toHaveLength(2)
+        expect(result.contributions.map(c => c.id)).toEqual(['c-2'])
+    })
+
+    it('프로젝트를 전부 끄면 기여도 전부 사라진다', () => {
+        const selections = defaultSelections(data)
+        selections.items.projects = []
+        const result = buildResumeData(data, selections)
+
+        expect(result.contributions).toEqual([])
     })
 })
