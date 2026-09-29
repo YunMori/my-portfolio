@@ -9,7 +9,7 @@
 ## 적용 현황
 
 아래 기존 적용 표시는 과거 기록이며 현재 원격 상태를 재검증한 결과가 아닙니다.
-2026-09-29 로컬 기능 제거 작업에서는 배포·DB 인증 정보가 없어 원격 적용을 하지 않았습니다.
+2026-09-29 빌더 제거는 프로덕션 앱 배포 후 Supabase SQL Editor에서 적용하고 재조회했습니다.
 
 | 파일 | 내용 | 상태 |
 |---|---|---|
@@ -26,7 +26,18 @@
 | `20260816_01_resume_platform.sql` | 이력서 아카이브 11개 테이블 + `profile`/`projects` 확장 | ✅ 소급 기록 (아래 참고) |
 | `20260816_02_resume_versions.sql` | `resume_versions` (스냅샷 이력) 생성, `resume_presets` 폐기 | ✅ 2026-08-16 적용 |
 | `20260816_03_resume_versions_rls_initplan.sql` | 버전 테이블 RLS 최적화 | 원격 적용 여부 미확인 |
-| `20260913_01_remove_resume_builder.sql` | 버전·프리셋 및 빌더 기본 포함 컬럼 삭제 | 로컬 준비 완료·원격 적용 미확인 |
+| `20260913_01_remove_resume_builder.sql` | 버전·프리셋 및 빌더 기본 포함 컬럼 삭제 | ✅ 2026-09-29 원격 적용·검증 |
+
+### 2026-09-29 적용 결과
+
+- 대상: `yrshedjsexuogheavcyx` (`YunMori's Project`, production).
+- 앱: `3505bb8` 배포가 Vercel production에서 Ready인 것을 확인한 뒤 SQL을 실행했습니다.
+  `/admin/resume` → `/admin/archive` 이동과 관리자 메뉴의 빌더 제거도 확인했습니다.
+- `resume_versions`는 삭제 전 0행이었으며 테이블을 제거했습니다. `resume_presets`는 이미 없었습니다.
+- 실제 존재하던 10개 `include_in_resume_default` 컬럼을 제거했고, 삭제 확인 쿼리는 0행을 반환했습니다.
+- 보존 대상 11개 테이블·총 21행의 행 수와 전체 내용 해시가 삭제 전후 동일했습니다
+  (삭제 대상 기본 포함 컬럼 제외). 원문 개인정보는 검증 결과에 기록하지 않았습니다.
+- `portfolio_items` 테이블은 작업 전부터 존재하지 않았습니다. 해당 테이블은 생성하거나 삭제하지 않았습니다.
 
 ## 이력서 빌더 제거 적용 순서
 
