@@ -7,10 +7,7 @@ import { createClient } from '@/utils/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { isAuthenticated } from '@/utils/auth'
 import { getCategory, FieldDef } from '@/utils/resume/config'
-import {
-    Profile, PersonalDetails, Education, Experience, LanguageActivity,
-    Certification, EducationCourse, Award, PortfolioItem, CoverLetter, Project,
-} from '@/types/database.types'
+import { Profile, PersonalDetails } from '@/types/database.types'
 
 /**
  * 카테고리 필드 정의에 따라 FormData → DB 레코드로 파싱.
@@ -42,22 +39,12 @@ function parseItemForm(fields: FieldDef[], formData: FormData) {
         }
     }
 
-    // 모든 카테고리가 공유하는 메타 필드
-    record.is_public = formData.get('is_public') === 'on' || formData.get('is_public') === 'true'
-    record.include_in_resume_default =
-        formData.get('include_in_resume_default') === 'on' || formData.get('include_in_resume_default') === 'true'
-    record.tags = ((formData.get('tags') as string) || '')
-        .split(',')
-        .map(s => s.trim())
-        .filter(Boolean)
-
     return record
 }
 
 // 이력서 기능은 어드민 전용이라 공개 경로('/')는 재검증하지 않는다.
 function revalidateResumePaths(categoryKey: string) {
     revalidatePath(`/admin/archive/${categoryKey}`)
-    revalidatePath('/admin/resume')
 }
 
 // --- 제네릭 CRUD ---
@@ -88,11 +75,17 @@ export async function addResumeItem(categoryKey: string, formData: FormData) {
     const supabase = await createClient()
     const record = parseItemForm(category.fields, formData)
 
-    // 신규 항목은 목록 맨 뒤로
-    const { count } = await supabase
+    // 기존 순서를 유지하면서 가장 큰 순서 값 다음에 추가한다.
+    // 삭제로 순서에 빈칸이 생겨도 새 자료가 중간에 끼어들지 않는다.
+    const { data: lastItem, error: orderError } = await supabase
         .from(category.table)
-        .select('*', { count: 'exact', head: true })
-    record.display_order = count ?? 0
+        .select('display_order')
+        .order('display_order', { ascending: false })
+        .limit(1)
+        .maybeSingle()
+    if (orderError) return { success: false, error: orderError.message }
+    record.display_order = (lastItem?.display_order ?? -1) + 1
+    record.is_public = false
 
     const { error } = await supabase.from(category.table).insert(record)
 
@@ -135,59 +128,6 @@ export async function deleteResumeItem(categoryKey: string, id: string) {
 
     if (error) {
         console.error(`Error deleting ${category.table}:`, error)
-        return { success: false, error: error.message }
-    }
-
-    revalidateResumePaths(categoryKey)
-    return { success: true }
-}
-
-/**
- * 드래그 정렬 저장: 배열 순서가 곧 display_order.
- *
- * 행마다 UPDATE가 하나씩 나가지만 병렬로 보낸다 — 순차 await면 항목 수만큼 왕복이 직렬로
- * 쌓인다. upsert 한 번으로 합칠 수도 있지만, 부분 컬럼만 보내면 insert 경로의 NOT NULL
- * 제약에 먼저 걸리므로 쓰지 않는다.
- */
-export async function reorderResumeItems(categoryKey: string, orderedIds: string[]) {
-    const category = getCategory(categoryKey)
-    if (!category) return { success: false, error: 'Unknown category' }
-    if (!(await isAuthenticated())) return { success: false, error: 'Unauthorized' }
-
-    const supabase = await createClient()
-
-    const results = await Promise.all(
-        orderedIds.map((id, i) =>
-            supabase.from(category.table).update({ display_order: i }).eq('id', id)
-        )
-    )
-
-    const failed = results.find(r => r.error)
-    if (failed?.error) {
-        console.error(`Error reordering ${category.table}:`, failed.error)
-        return { success: false, error: failed.error.message }
-    }
-
-    revalidateResumePaths(categoryKey)
-    return { success: true }
-}
-
-// 토글(공개 여부 / 이력서 기본 포함)만 빠르게 갱신
-export async function toggleResumeItemFlag(
-    categoryKey: string,
-    id: string,
-    flag: 'is_public' | 'include_in_resume_default',
-    value: boolean,
-) {
-    const category = getCategory(categoryKey)
-    if (!category) return { success: false, error: 'Unknown category' }
-    if (!(await isAuthenticated())) return { success: false, error: 'Unauthorized' }
-
-    const supabase = await createClient()
-    const { error } = await supabase.from(category.table).update({ [flag]: value }).eq('id', id)
-
-    if (error) {
-        console.error(`Error toggling ${category.table}.${flag}:`, error)
         return { success: false, error: error.message }
     }
 
@@ -240,7 +180,6 @@ export async function updateBasicInfo(formData: FormData) {
     }
 
     revalidatePath('/admin/archive/basic')
-    revalidatePath('/admin/resume')
     return { success: true }
 }
 
@@ -255,8 +194,6 @@ export async function upsertPersonalDetails(formData: FormData) {
         address: str('address'),
         military_service: str('military_service'),
         phone: str('phone'),
-        // 민감 필드는 빌더에서 기본 꺼짐이 안전하므로 명시적으로 켜야만 켜진다
-        include_in_resume_default: formData.get('include_in_resume_default') === 'on',
     }
 
     const { data: existing } = await supabase.from('personal_details').select('id').limit(1).maybeSingle()
@@ -270,68 +207,7 @@ export async function upsertPersonalDetails(formData: FormData) {
     }
 
     revalidatePath('/admin/archive/basic')
-    revalidatePath('/admin/resume')
     return { success: true }
-}
-
-// --- 이력서 빌더용 데이터 — 인증 전용, 비공개 행 + 민감정보 포함 ---
-
-export type ResumeBuilderData = {
-    profile: Profile | null;
-    personalDetails: PersonalDetails | null;
-    projects: Project[];
-    educations: Education[];
-    experiences: Experience[];
-    languageActivities: LanguageActivity[];
-    certifications: Certification[];
-    educationCourses: EducationCourse[];
-    awards: Award[];
-    portfolioItems: PortfolioItem[];
-    coverLetters: CoverLetter[];
-}
-
-export async function getResumeBuilderData(): Promise<ResumeBuilderData | null> {
-    if (!(await isAuthenticated())) return null
-
-    const supabase = await createClient()
-
-    const fetchAll = async <T,>(table: string): Promise<T[]> => {
-        const { data, error } = await supabase
-            .from(table)
-            .select('*')
-            .order('display_order', { ascending: true })
-            .order('created_at', { ascending: false })
-        if (error) {
-            console.error(`Error fetching ${table} (builder):`, error)
-            return []
-        }
-        return data as T[]
-    }
-
-    const [
-        { data: profile }, { data: personalDetails },
-        projects, educations, experiences, languageActivities,
-        certifications, educationCourses, awards, portfolioItems, coverLetters,
-    ] = await Promise.all([
-        supabase.from('profile').select('*').limit(1).maybeSingle(),
-        supabase.from('personal_details').select('*').limit(1).maybeSingle(),
-        fetchAll<Project>('projects'),
-        fetchAll<Education>('educations'),
-        fetchAll<Experience>('experiences'),
-        fetchAll<LanguageActivity>('language_activities'),
-        fetchAll<Certification>('certifications'),
-        fetchAll<EducationCourse>('education_courses'),
-        fetchAll<Award>('awards'),
-        fetchAll<PortfolioItem>('portfolio_items'),
-        fetchAll<CoverLetter>('cover_letters'),
-    ])
-
-    return {
-        profile: profile as Profile | null,
-        personalDetails: personalDetails as PersonalDetails | null,
-        projects, educations, experiences, languageActivities,
-        certifications, educationCourses, awards, portfolioItems, coverLetters,
-    }
 }
 
 // 포트폴리오 상세 폼의 프로젝트 선택 옵션용

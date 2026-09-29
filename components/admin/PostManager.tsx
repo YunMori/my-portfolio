@@ -9,7 +9,7 @@ import { PostAdminListItem, Category } from '@/types/database.types'
 import { formatPostDate, postSlug } from '@/utils/post'
 // PostBody는 react-markdown + rehype-sanitize + micromark 트리(~119KB)를 끌고 온다.
 // 쓰이는 곳은 아래 '미리보기' 탭 하나뿐이고 기본 탭은 'write'라, 대부분의 방문에서
-// 한 번도 쓰이지 않는 파서를 first load에 싣고 있었다. (ResumeBuilderShell과 같은 패턴)
+// 한 번도 쓰이지 않는 파서를 first load에 싣고 있었다.
 const PostBody = dynamic(() => import('@/components/blog/PostBody'), {
     loading: () => <p className="text-sm text-stone-600">미리보기를 불러오는 중...</p>,
 })

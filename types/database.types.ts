@@ -47,7 +47,6 @@ export type Project = {
     period_end?: string | null;
     user_id?: string | null;
     is_public?: boolean;
-    include_in_resume_default?: boolean;
     display_order?: number;
     tags?: string[] | null;
     updated_at?: string;
@@ -114,14 +113,11 @@ export type PostCategoryLink = {
 
 // --- 이력서 아카이브 ---
 
-// 모든 이력서 카테고리 테이블이 공유하는 메타 필드.
-// `display_order`는 아카이브 화면의 드래그 정렬이, `include_in_resume_default`는
-// 빌더의 초기 토글 상태(utils/resume/buildResumeData.ts의 defaultSelections)가 쓴다.
+// 아카이브의 기존 공개 여부, 태그, 정렬 값은 보존한다.
 export type ResumeMeta = {
     id: string;
     user_id?: string | null;
     is_public: boolean;
-    include_in_resume_default: boolean;
     display_order: number;
     tags: string[] | null;
     created_at?: string;
@@ -203,40 +199,6 @@ export type CoverLetter = ResumeMeta & {
     answer: string | null;
     char_limit: number | null;
 }
-
-/**
- * 저장된 이력서 버전 — 불변 스냅샷.
- *
- * `snapshot`은 저장 시점의 ResumeData(utils/resume/buildResumeData.ts) 전체를 그대로
- * 담는다. 아카이브를 나중에 고치거나 항목을 지워도 이 값은 변하지 않으므로, "그때 그
- * 회사에 낸 이력서"를 언제든 같은 내용으로 다시 뽑을 수 있다.
- *
- * `selections`는 그와 별개로 토글 상태만 들고 있어서, 최신 아카이브 위에 같은 구성을
- * 복원해 이어서 편집할 때 쓴다 (sanitizeSelections가 삭제된 id를 걸러낸다).
- *
- * 두 필드 모두 jsonb라 여기서는 구조를 느슨하게 두고, 소비하는 쪽에서 좁힌다.
- * See supabase/migrations/20260816_02_resume_versions.sql.
- */
-export type ResumeVersion = {
-    id: string;
-    user_id?: string | null;
-    version_no: number;
-    label: string | null;
-    note: string | null;
-    selections: unknown;
-    snapshot: unknown;
-    created_at: string;
-}
-
-/**
- * 버전 목록 행 — snapshot 없이.
- *
- * snapshot은 이력서 한 부 전체가 들어 있는 jsonb라 목록에 실으면 버전 수에 비례해
- * /admin/resume 진입 전송량이 늘어난다. 목록 UI는 메타 필드만 쓰고, snapshot은
- * "스냅샷 PDF" 버튼을 눌렀을 때 getVersionSnapshot()으로 그 행만 가져온다.
- * selections는 "이 설정으로 편집"이 즉시 써야 해서 남긴다 (id 배열이라 가볍다).
- */
-export type ResumeVersionListItem = Omit<ResumeVersion, 'snapshot'>
 
 export type Database = {
     public: {
@@ -327,12 +289,6 @@ export type Database = {
                 Row: CoverLetter;
                 Insert: Partial<Omit<CoverLetter, 'id' | 'created_at' | 'updated_at'>> & { title: string };
                 Update: Partial<Omit<CoverLetter, 'id' | 'created_at' | 'updated_at'>>;
-            };
-            resume_versions: {
-                Row: ResumeVersion;
-                Insert: Omit<ResumeVersion, 'id' | 'created_at'>;
-                // 스냅샷은 불변 — 사후 수정은 label/note 까지만.
-                Update: Partial<Pick<ResumeVersion, 'label' | 'note'>>;
             };
         };
     };

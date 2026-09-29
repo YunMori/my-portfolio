@@ -1,14 +1,15 @@
 # Supabase 마이그레이션
 
-파일명 앞의 `YYYYMMDD_NN` 이 적용 순서입니다. 새 환경을 만들 때는 **이름순 그대로**
-Supabase SQL Editor에 붙여넣어 실행하면 됩니다.
+파일명 앞의 `YYYYMMDD_NN` 이 적용 순서입니다. 새 환경은 이름순으로 실행합니다.
+기존 환경의 빌더 제거 SQL은 아래 배포 절차를 따른 뒤 실행합니다.
 
 ⚠️ 두 파일에는 되돌릴 수 없는 `DROP COLUMN` 단계가 들어 있습니다. 아래 표의
 "주의" 항목을 먼저 읽어보세요.
 
 ## 적용 현황
 
-전부 원격 프로젝트에 적용된 상태입니다 (아래 미실행 1건 제외).
+아래 기존 적용 표시는 과거 기록이며 현재 원격 상태를 재검증한 결과가 아닙니다.
+2026-09-29 로컬 기능 제거 작업에서는 배포·DB 인증 정보가 없어 원격 적용을 하지 않았습니다.
 
 | 파일 | 내용 | 상태 |
 |---|---|---|
@@ -24,6 +25,62 @@ Supabase SQL Editor에 붙여넣어 실행하면 됩니다.
 | `20260809_04_i18n_content.sql` | `posts`/`projects`에 `*_en` 컬럼, `categories.name_en` — 콘텐츠 영어 번역용 | ✅ |
 | `20260816_01_resume_platform.sql` | 이력서 아카이브 11개 테이블 + `profile`/`projects` 확장 | ✅ 소급 기록 (아래 참고) |
 | `20260816_02_resume_versions.sql` | `resume_versions` (스냅샷 이력) 생성, `resume_presets` 폐기 | ✅ 2026-08-16 적용 |
+| `20260816_03_resume_versions_rls_initplan.sql` | 버전 테이블 RLS 최적화 | 원격 적용 여부 미확인 |
+| `20260913_01_remove_resume_builder.sql` | 버전·프리셋 및 빌더 기본 포함 컬럼 삭제 | 로컬 준비 완료·원격 적용 미확인 |
+
+## 이력서 빌더 제거 적용 순서
+
+1. PDF·버전 기능을 제거한 앱을 먼저 배포합니다. 관리자 메뉴에서 빌더가 사라지고
+   `/admin/resume`이 `/admin/archive`로 이동하며, 기본 정보와 아카이브 편집이 작동하는지 확인합니다.
+2. 아래 원본 확인 SQL 결과를 보관합니다. 버전·스냅샷은 삭제 대상이며 복원용으로 유지하지 않습니다.
+3. `20260913_01_remove_resume_builder.sql`을 실행합니다. 트랜잭션 안에서 버전·프리셋과
+   `include_in_resume_default`만 제거합니다. 이미 삭제된 테이블·컬럼은 건너뛰며,
+   예상하지 못한 의존성은 `CASCADE`로 지우지 않고 실패시킵니다.
+4. 원본 확인 SQL을 다시 실행하여 행 수·내용 해시가 같은지 비교하고, 삭제 확인 SQL이
+   0행을 반환하는지 확인합니다. 아카이브 조회·추가·수정·삭제를 다시 점검합니다.
+
+태그·공개 여부·정렬 값과 RLS 정책은 그대로 남습니다. 현재 앱은 기존 자료 수정 시
+이 값을 보내지 않으며, 신규 아카이브 자료만 `is_public=false`로 추가합니다.
+이전 빌더 코드로 되돌리면 삭제된 테이블·컬럼을 참조하므로 그대로 롤백할 수 없습니다.
+
+원본 확인 SQL (삭제 대상 기본 포함 컬럼을 제외한 전체 내용 비교, 서버 로그에 원문을 출력하지 않음):
+
+```sql
+CREATE TEMP TABLE archive_integrity (
+    table_name text, row_count bigint, content_hash text
+);
+DO $$
+DECLARE t text;
+BEGIN
+    FOREACH t IN ARRAY ARRAY[
+        'profile', 'projects', 'personal_details', 'educations', 'experiences',
+        'language_activities', 'certifications', 'education_courses', 'awards',
+        'portfolio_items', 'cover_letters', 'project_contributions'
+    ] LOOP
+        IF to_regclass(format('public.%I', t)) IS NOT NULL THEN
+            EXECUTE format($audit$
+                INSERT INTO archive_integrity
+                SELECT %L, count(*), md5(COALESCE(string_agg(
+                    (to_jsonb(r) - 'include_in_resume_default')::text,
+                    '' ORDER BY r.id
+                ), '')) FROM public.%I r
+            $audit$, t, t);
+        END IF;
+    END LOOP;
+END $$;
+SELECT * FROM archive_integrity ORDER BY table_name;
+DROP TABLE archive_integrity;
+```
+
+삭제 확인 SQL:
+
+```sql
+SELECT table_name, column_name
+FROM information_schema.columns
+WHERE table_schema = 'public'
+  AND (table_name IN ('resume_versions', 'resume_presets')
+       OR column_name = 'include_in_resume_default');
+```
 
 ## 주의사항
 

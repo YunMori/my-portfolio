@@ -18,7 +18,8 @@
 - **동적 프로젝트 관리** — Admin 대시보드에서 프로젝트 추가/수정, GitHub README 자동 로드
 - **Live Tech Stats** — 등록된 프로젝트의 기술 스택을 집계해 실시간으로 표시
 - **방문자 통계** — 일별 페이지뷰 추적 + 차트 시각화 (관리자 전용)
-- **다국어 지원** — 한국어/영어 전환 (Context API + localStorage 유지)
+- **콘텐츠 언어 전환** — 프로젝트·블로그·카테고리의 한국어/영어 전환 (선택 언어 저장)
+- **이력서 자료 아카이브** — 기본 정보·학력·경력·어학·자격증·교육·수상·포트폴리오 상세·자기소개서 조회 및 추가/수정/삭제
 - **Scroll Progress Bar** — CSS `animation-timeline: scroll()` 기반 상단 프로그레스 바
 - **SEO** — `sitemap.ts`, `robots.ts` 자동 생성
 
@@ -87,6 +88,18 @@ npm run dev
 |---|---|
 | `/admin` | 방문자 통계 대시보드 |
 | `/admin/projects` | 프로젝트 CRUD |
+| `/admin/posts` | 블로그 글 CRUD·미리보기·발행 설정 |
+| `/admin/categories` | 블로그 카테고리 CRUD |
+| `/admin/archive` | 이력서 자료 아카이브 |
+| `/admin/archive/basic` | 기본 정보·비공개 인적 사항 |
+| `/admin/archive/[category]` | 카테고리별 자료 조회·추가·수정·삭제 |
+
+PDF 생성과 버전 관리는 제거했습니다. 기존 `/admin/resume` 주소는 아카이브로 이동합니다.
+아카이브의 정렬·태그·공개 설정 UI는 제거했으며, 기존 메타데이터는 수정 저장 시 보존합니다.
+새 아카이브 자료는 비공개로 목록 끝에 추가됩니다. 프로젝트의 역할·기간도 계속 편집할 수 있습니다.
+
+버전 데이터와 빌더 전용 컬럼의 DB 삭제는 앱 배포 후 별도로 적용합니다.
+적용 절차와 확인 SQL은 [마이그레이션 안내](supabase/migrations/README.md)를 참고하세요.
 
 ## 프로젝트 구조
 

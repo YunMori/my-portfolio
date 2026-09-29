@@ -105,7 +105,7 @@ export default function BasicInfoManager({ initialProfile, initialPersonalDetail
                     <i className="fa-solid fa-user-shield text-stone-500"></i> 인적 사항
                 </h2>
                 <p className="mb-6 text-xs text-amber-500/80 bg-amber-500/10 border border-amber-500/20 rounded p-3">
-                    <i className="fa-solid fa-lock mr-1"></i> 비공개 데이터 — 웹에 노출되지 않으며, 이력서 빌더에서도 기본적으로 제외(토글 OFF)됩니다.
+                    <i className="fa-solid fa-lock mr-1"></i> 비공개 데이터 — 로그인한 본인만 조회할 수 있습니다.
                 </p>
 
                 <form onSubmit={handleDetailsSubmit} className="space-y-4">
@@ -127,18 +127,6 @@ export default function BasicInfoManager({ initialProfile, initialPersonalDetail
                         <label className={labelClass}>병역</label>
                         <input name="military_service" type="text" defaultValue={initialPersonalDetails?.military_service ?? ''} placeholder="육군 병장 만기전역 (2020.01 ~ 2021.07)" className={inputClass} />
                     </div>
-
-                    {/* 이 토글이 빌더의 민감 필드 초기 상태를 정한다 (defaultSelections의 sensitiveOn).
-                        체크박스가 폼에 없으면 저장할 때마다 false로 되돌아가므로 반드시 함께 보낸다. */}
-                    <label className="flex items-center gap-2 text-sm text-stone-400 cursor-pointer pt-2">
-                        <input
-                            name="include_in_resume_default"
-                            type="checkbox"
-                            defaultChecked={initialPersonalDetails?.include_in_resume_default ?? false}
-                            className="accent-green-500"
-                        />
-                        이력서 빌더에서 민감 필드를 기본 포함
-                    </label>
 
                     <button
                         type="submit" disabled={savingDetails}
