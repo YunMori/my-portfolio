@@ -56,12 +56,10 @@ const EMPTY_FORM = {
     github_link: '',
     content: '',
     content_en: '',
-    // 이력서용 필드. 프로젝트는 이력서 빌더의 한 섹션이기도 해서, 역할/기간과
-    // "기본 포함" 여부를 여기서 함께 관리한다. See utils/resume/buildResumeData.ts.
+    // 아카이브에서 사용하는 프로젝트 역할과 기간.
     role: '',
     period_start: '',
     period_end: '',
-    include_in_resume_default: 'on'
 }
 
 export default function ProjectManager({ initialProjects }: ProjectManagerProps) {
@@ -95,7 +93,6 @@ export default function ProjectManager({ initialProjects }: ProjectManagerProps)
             role: project.role || '',
             period_start: project.period_start || '',
             period_end: project.period_end || '',
-            include_in_resume_default: project.include_in_resume_default === false ? '' : 'on'
         })
     }
 
@@ -105,10 +102,8 @@ export default function ProjectManager({ initialProjects }: ProjectManagerProps)
     }
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-        const { name, value, type } = e.target
-        // 체크박스는 FormData 관례대로 'on'/'' 로 담는다 (서버 액션이 'on'을 true로 읽는다)
-        const checked = (e.target as HTMLInputElement).checked
-        setFormData(prev => ({ ...prev, [name]: type === 'checkbox' ? (checked ? 'on' : '') : value }))
+        const { name, value } = e.target
+        setFormData(prev => ({ ...prev, [name]: value }))
     }
 
     const handleFetchGithub = async () => {
@@ -316,10 +311,10 @@ export default function ProjectManager({ initialProjects }: ProjectManagerProps)
                                 />
                             </div>
                         </div>
-                        {/* 이력서용 필드 — 웹 포트폴리오에는 나오지 않고 Resume Builder에서만 쓰인다 */}
+                        {/* 프로젝트 아카이브 정보 */}
                         <div className="border-t border-stone-800 pt-4 space-y-4">
                             <p className="text-[10px] uppercase font-bold text-stone-600 tracking-widest">
-                                <i className="fa-solid fa-file-pdf mr-1"></i> Resume
+                                <i className="fa-solid fa-box-archive mr-1"></i> Archive
                             </p>
                             <div className="flex gap-4">
                                 <div className="flex-1">
@@ -355,16 +350,6 @@ export default function ProjectManager({ initialProjects }: ProjectManagerProps)
                                     </div>
                                 </div>
                             </div>
-                            <label className="flex items-center gap-2 text-sm text-stone-400 cursor-pointer">
-                                <input
-                                    name="include_in_resume_default"
-                                    type="checkbox"
-                                    checked={formData.include_in_resume_default === 'on'}
-                                    onChange={handleInputChange}
-                                    className="accent-green-500"
-                                />
-                                이력서 기본 포함
-                            </label>
                         </div>
 
                         <div>
